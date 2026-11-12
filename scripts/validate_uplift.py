@@ -44,7 +44,7 @@ def score_arm(train, test, feats, arm, label, rng) -> dict:
     treated = (te["treatment"] == arm).to_numpy()
     y = te[label].to_numpy()
     up = m1.predict_proba(te[feats])[:, 1] - m0.predict_proba(te[feats])[:, 1]
-    frac, q, _ = qini_curve(up, treated, y, points=11)
+    frac, q, rand = qini_curve(up, treated, y, points=21)
     top30 = int(np.argmin(np.abs(frac - 0.3)))
     return {
         "label": label, "test_rows": int(len(te)), "share_treated": round(float(treated.mean()), 3),
@@ -53,6 +53,10 @@ def score_arm(train, test, feats, arm, label, rng) -> dict:
         "qini_random": round(qini_coefficient(rng.random(len(te)), treated, y), 3),
         # share of all the extra outcomes the campaign created that come from the top 30% by score
         "top30_share_of_total_lift": round(float(q[top30] / q[-1]), 3) if q[-1] > 0 else None,
+        # Qini curve as shares of the campaign's total extra outcomes (for the evidence chart)
+        "curve": {"share_targeted": [round(float(f), 3) for f in frac],
+                  "model": [round(float(v / q[-1]), 4) for v in q] if q[-1] > 0 else [],
+                  "random": [round(float(v / q[-1]), 4) for v in rand] if q[-1] > 0 else []},
     }
 
 
@@ -87,7 +91,7 @@ def main() -> int:
         for label in labels:
             r = {"arm": arm, **score_arm(train, test, feats, arm, label, rng)}
             out["results"].append(r)
-            print(r, flush=True)
+            print({k: v for k, v in r.items() if k != "curve"}, flush=True)
     (ROOT / "reports").mkdir(exist_ok=True)
     (ROOT / f"reports/uplift_validation_{args.dataset}.json").write_text(json.dumps(out, indent=2))
     return 0

@@ -8,6 +8,20 @@ Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi.
 Live demo: https://yashg1836.github.io/truelift/ (static copy; the full service runs locally).
 Full write-up: `TrueLift_Round2_Plan.md`. Working log: `LOG.md`.
 
+![Creating an offer: forecast, better version and who sees the discount](docs/demo_create_offer.png)
+
+## Results in one table (simulated market, per week, 300 restaurants)
+
+| | Today: same discount for everyone | Rule: new customers only | TrueLift |
+|---|---|---|---|
+| Offers that pay for themselves | 130 | 211 | **242** |
+| Restaurant profit vs no offers | +₹2.46 lakh | +₹3.96 lakh | **+₹4.85 lakh** |
+| Discount given | ₹16.7 lakh | ₹10.8 lakh | **₹10.0 lakh** |
+| Zomato commission vs no offers | +₹6.45 lakh | +₹5.95 lakh | +₹6.38 lakh |
+
+On real randomised data (Criteo's ad holdouts, 4.2M unseen users) the same model's top 30% picks
+hold 84% of all the extra visits (Qini 0.34 vs 0.005 random). Details and limits: the plan, §6.
+
 ## Run it
 
 ```bash
@@ -33,7 +47,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 | `scripts/` | Build the restaurant list, run the evaluation pipeline, export the static site, check on real data |
 | `tests/` | Checks for the maths, the simulator, the measurement and the API |
 | `reports/` | Evaluation results (JSON, CSV) |
-| `docs/` | Round 1 problem statement (PDF) |
+| `docs/` | Round 1 problem statement (PDF), demo screenshots |
 
 ## Data
 

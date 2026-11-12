@@ -380,7 +380,11 @@ def evidence():
     p = ROOT / "reports/evaluation.json"
     if not p.exists():
         raise HTTPException(404, "run scripts/run_pipeline.py first")
-    return json.loads(p.read_text())
+    out = json.loads(p.read_text())
+    real = ROOT / "reports/uplift_validation_criteo.json"  # check on real randomised data
+    if real.exists():
+        out["real_data_criteo"] = json.loads(real.read_text())
+    return out
 
 
 @app.post("/api/reset")
