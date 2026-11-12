@@ -83,6 +83,13 @@ Each line: fact → source → how verified.
 - F10. Public demo must not pin simulated profits on real restaurants: UI shows "Cuisine #id" (real listing attributes, no names); evidence JSON for the site has names stripped. `reports/restaurants_results.csv` (internal, private repo) keeps names.
 - F7. Brand Pack rarely chosen (2/300): in this simulator rewarding regulars seldom pays, because loyal customers are not very price sensitive. Shown honestly; it depends on how price-sensitive regulars really are (ask Eternal for Brand Pack results).
 
+## Next steps (as of 12 Nov, 23:30)
+1. Download MT-LIFT by hand (Google sign-in) into `data/raw/mt_lift/`, run `scripts/validate_mtlift.py`, add the Qini per coupon arm to plan §6.
+2. Owner interviews near campus (plan §7): screenshots of offer report, OTP screen, payout statement (commission before or after discount?).
+3. Send Eternal the questions in plan §10 when mentors are assigned.
+4. Rehearse the 5-minute demo (plan §8) on the live site; keep the local server as backup (`uvicorn truelift.api:app`).
+5. If time allows: customer-level depth test (two discount sizes at random) and a platform-level holdout for Zomato-funded discounts.
+
 ## Session notes
 - 12 Nov: user asked: keep repo small and easy to read; host demo on GitHub Pages if it's a website; 'be smart, do everything properly end to end'.
 - 12 Nov: downloads kept in scratchpad `dl_r2/` (Q2 letter PDF, articles). Scratchpad is session-only; facts needed later are copied into this log.
