@@ -294,7 +294,13 @@ with customer details hidden.
    restaurant's own evidence grows, the simulator's true value inside the range, WhatsApp text,
    itemised payout.
 6. **Does it hold up (45 s).** Evidence tab: across 300 restaurants, offers that pay, profit,
-   Zomato's commission, measurement accuracy, and what the simulation does not prove.
+   Zomato's commission, the real-data check on Criteo (top 30% picks hold 84% of the extra visits),
+   measurement accuracy, and what the simulation does not prove.
+
+If a judge opens Empire Restaurant: its weekly estimate runs high and the true value falls below
+the range in all four weeks, while the verdict ("making money: keep") is right. Say so plainly: the
+ranges are built to miss about 1 time in 5 (79–81% coverage from week 2), and this is one of them.
+Burger King's true value is inside its range every week.
 
 ## 9. Questions judges will ask
 

@@ -84,6 +84,13 @@ Each line: fact → source → how verified.
 - F11 / D7 (13 Nov). User asked to make the repo public and to keep real restaurant names (looks real; e.g. Domino's) with a clear note that the data is simulated. Done: real names restored; a "Simulated data" banner on every tab and a tag next to each restaurant's name; README note. History rewrite no longer needed (old commits only had real names, which are now intended). Demo default = Burger King, Jayanagar (#233); static site also has Domino's (#248), Empire (#17), On The Nose (#142).
 - F7. Brand Pack rarely chosen (2/300): in this simulator rewarding regulars seldom pays, because loyal customers are not very price sensitive. Shown honestly; it depends on how price-sensitive regulars really are (ask Eternal for Brand Pack results).
 
+## 13 Nov
+- Real names back with a "Simulated data" banner + tag (user's call, D7). Demo default Burger King #233; site has Burger King, Domino's #248, Empire #17, On The Nose #142.
+- Evidence tab has a "real data" section: Criteo Qini curve (model vs random) + numbers (`reports/uplift_validation_criteo.json`, via /api/evidence).
+- Site republished to gh-pages by a normal commit (force-push is blocked by the user's permission settings; clone gh-pages, rsync site/, commit, push). Repo made PUBLIC on user's request (13 Nov).
+- Demo truth check (site data): Burger King inside range all 4 weeks; Empire estimate ~50% high, outside range all weeks but verdict right (noted in plan §8); On The Nose outside in week 1 only; Domino's inside, "too early to say".
+- Playwright run on the live site: full flow, desktop and mobile, no console errors.
+
 ## Next steps (as of 12 Nov, 23:30)
 1. (done 13 Nov) Real-data check on Criteo instead of MT-LIFT (MT-LIFT links broken: repo issues #3, #4; issue #2 reports group imbalance). Criteo, 4.2M test users: visits Qini 0.34 vs random 0.005, top 30% captures 84% of extra visits; purchases Qini 0.06 vs 0.015 (67%). In plan §6.
 2. Owner interviews near campus (plan §7): screenshots of offer report, OTP screen, payout statement (commission before or after discount?).
