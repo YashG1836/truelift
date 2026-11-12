@@ -5,6 +5,7 @@ Restaurant discounts on Zomato are judged by the orders that **use** them, not t
 orders and profit it creates, inside Zomato's existing offer flow (the owner's OTP approval).
 
 Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi.
+Live demo: https://yashg1836.github.io/truelift/ (static copy; the full service runs locally).
 Full write-up: `TrueLift_Round2_Plan.md`. Working log: `LOG.md`.
 
 ## Run it

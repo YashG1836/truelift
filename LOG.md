@@ -68,7 +68,8 @@ Each line: fact → source → how verified.
 - [x] Round 2 plan `TrueLift_Round2_Plan.md` (research table, money maths + break-even table, gap, four hooks with formulas, precision table, evidence, research plan, demo script, judge Q&A, questions for Eternal, limits, sources)
 - [x] README, `scripts/validate_mtlift.py` (tested on a fake MT-LIFT-shaped file; real data needs manual download)
 - [x] UI checked with Playwright screenshots (scratchpad `pw/flow.js`): create → better version → OTP (wrong OTP rejected) → 4 weeks → evidence → money → mobile. Fixed: reason capitalisation, chart labels, number wrapping, paise on money page, mobile header.
-- [ ] GitHub: private repo YashG1836/truelift (code) + Pages (private-repo Pages if the plan allows, else public YashG1836/truelift-demo with only site/); add collaborators ksawesome, BhavayGoyal (user asked)
+- [x] GitHub: private repo https://github.com/YashG1836/truelift (code, branch main); Pages from branch gh-pages (built site only; Pages URL is public, code stays private): https://yashg1836.github.io/truelift/ . Re-publish: run export_static, then in site/: git init -b gh-pages, commit, force-push to gh-pages.
+- [x] Collaborators invited (push access): ksawesome, BhavayGoyal
 
 ## Findings while building (12 Nov)
 - F1. First full run: TrueLift lost to the simple "new customers only" rule on total own-offer profit (₹6.46L vs ₹7.34L/week), though more of its offers paid (222/300 vs 211). Isolated test with a fixed design (15% off, no minimum): all model targeting variants beat blanket and the rule (₹4.75–4.80L vs ₹4.12L; oracle ₹5.17L), so targeting itself works; the loss came from design search.

@@ -141,9 +141,11 @@ customer, not per redemption.
 
 ## 5. The prototype
 
+- **Live demo:** https://yashg1836.github.io/truelift/ (static copy for three restaurants; every
+  answer was precomputed by the real service). The full service runs locally (README).
 - **Service** (`truelift/api.py`): the hooks above as a FastAPI app. A quote with 34 versions
-  compared takes about 35 ms; a serving decision for one customer takes a few milliseconds and
-  falls back to the owner's own audience rule if anything fails.
+  compared takes about 35 ms on a laptop (under 0.2 s under load); a serving decision for one
+  customer takes about 1.5 ms and falls back to the owner's own audience rule if anything fails.
 - Restaurants are real Bengaluru listings (locality, cuisine, rating, price) shown by cuisine and
   number, not by name, because their profits in the demo are simulated.
 - **Partner-app screens** (`truelift/static/`): home → create offer with a live forecast and a
