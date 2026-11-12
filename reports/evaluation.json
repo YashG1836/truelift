@@ -195,7 +195,7 @@
     },
     "demo_restaurant": {
       "restaurant_id": 142,
-      "name": "On The Nose",
+      "name": "Cafe #142",
       "locality": "BTM",
       "aov": 420.0,
       "orders_no_offer": 102.5,

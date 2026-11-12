@@ -3,7 +3,9 @@
 Input : data/raw/zomato_blr/zomato.csv (Kaggle "Zomato Bangalore Restaurants", 2019 snapshot)
 Output: data/processed/restaurants.csv (300 delivery restaurants, 6 localities x 50)
 
-Only public listing fields are used: name, locality, cuisines, cost for two, rating, votes.
+Only public listing fields are used: locality, cuisines, cost for two, rating, votes. Names are
+used to de-duplicate and then dropped: profits in the simulator are made up, so they must never be
+attached to a real business.
 """
 import sys
 
@@ -42,7 +44,7 @@ def main() -> int:
     out["cuisines"] = out["cuisines"].str.split(",").str[:2].str.join(",").str.strip()
     out.insert(0, "restaurant_id", np.arange(len(out)))
     out = out.rename(columns={"location": "locality"})
-    out[["restaurant_id", "name", "locality", "cuisines", "cost_for_two", "rating", "votes"]].to_csv(OUT, index=False)
+    out[["restaurant_id", "locality", "cuisines", "cost_for_two", "rating", "votes"]].to_csv(OUT, index=False)
     print(f"wrote {OUT}: {len(out)} restaurants")
     print(out.groupby("locality")[["cost_for_two", "rating", "votes"]].median())
     return 0

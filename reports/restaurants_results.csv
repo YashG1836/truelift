@@ -1,301 +1,301 @@
 restaurant_id,name,locality,aov,orders_no_offer,blanket_profit_change,blanket_redemptions,blanket_extra_orders,truelift_profit_change,truelift_design
-0,Madeena Hotel,Koramangala 5th Block,280.0,23.5,-626.0,24.0,0.5,-298.0,₹40 off only for customers it brings in
-1,Berry'd Alive,Koramangala 5th Block,280.0,130.2,-3542.0,132.1,1.9,-1390.0,₹40 off only for customers it brings in
-2,Juice Junction,Koramangala 5th Block,150.0,34.7,-628.0,31.1,-3.6,-254.0,₹20 off above ₹199 only for customers it brings in
-3,What's In A Name,Koramangala 5th Block,840.0,102.4,14378.0,224.1,121.7,16484.0,₹130 off only for customers it brings in
-4,Leon Grill,Koramangala 5th Block,350.0,32.9,-882.0,36.2,3.3,-554.0,₹50 off above ₹449 only for customers it brings in
-5,Thalassery Restaurant,Koramangala 5th Block,420.0,43.0,-1171.0,49.5,6.5,-484.0,₹60 off above ₹499 only for customers it brings in
-6,XO Belgian Waffle,Koramangala 5th Block,280.0,91.3,-2488.0,92.6,1.3,-1243.0,₹40 off only for customers it brings in
-7,Billionaires Cafe,Koramangala 5th Block,420.0,13.8,-305.0,16.4,2.7,-73.0,₹60 off only for customers it brings in
-8,Popsies,Koramangala 5th Block,380.0,69.4,-1906.0,81.1,11.7,-521.0,₹60 off only for customers it brings in
-9,1722 Urban Bistro,Koramangala 5th Block,420.0,37.7,-822.0,45.4,7.7,-140.0,₹60 off only for customers it brings in
-10,Tim Tai,Koramangala 5th Block,980.0,188.9,42825.0,460.4,271.4,43222.0,₹150 off only for customers it brings in
-11,Namaste Kitchen,Koramangala 5th Block,380.0,33.1,-923.0,38.5,5.4,-355.0,₹60 off above ₹449 only for customers it brings in
-12,Smoke de Burger,Koramangala 5th Block,210.0,13.6,-316.0,13.0,-0.6,-126.0,₹30 off above ₹249 only for customers it brings in
-13,The Paramount Hotel,Koramangala 5th Block,700.0,33.3,1011.0,53.4,20.1,322.0,₹100 off above ₹849 only for customers it brings in
-14,99 Pancakes,Koramangala 5th Block,210.0,55.1,-1322.0,52.0,-3.1,-747.0,₹30 off only for customers it brings in
-15,Smally's Resto Cafe,Koramangala 5th Block,450.0,119.3,-2723.0,149.4,30.1,-17.0,₹70 off only for customers it brings in
-16,Beer Adda,Koramangala 5th Block,700.0,62.7,2660.0,104.5,41.8,4203.0,₹100 off only for customers it brings in
-17,Empire Restaurant,Koramangala 5th Block,520.0,203.1,-2860.0,273.4,70.3,1604.0,₹80 off only for customers it brings in
-18,The Marash,Koramangala 5th Block,180.0,24.7,-580.0,23.4,-1.3,-230.0,₹30 off above ₹249 only for customers it brings in
-19,Cafe D'hide,Koramangala 5th Block,420.0,72.3,-1657.0,86.4,14.1,-347.0,₹60 off only for customers it brings in
-20,Fresh Pressery Cafe,Koramangala 5th Block,840.0,28.4,4705.0,65.1,36.7,5078.0,₹130 off only for customers it brings in
-21,Purani Dilli By Anand Sweets,Koramangala 5th Block,350.0,40.3,-1115.0,44.0,3.7,-514.0,₹50 off above ₹449 only for customers it brings in
-22,Bathinda Junction,Koramangala 5th Block,420.0,92.0,-2310.0,107.5,15.4,-350.0,₹60 off only for customers it brings in
-23,Sonar Bangala,Koramangala 5th Block,350.0,19.4,-544.0,21.1,1.7,-316.0,₹50 off above ₹449 only for customers it brings in
-24,Cream Chemistry,Koramangala 5th Block,350.0,37.1,-1032.0,40.3,3.2,-362.0,₹50 off only for customers it brings in
-25,Tall Blonde French,Koramangala 5th Block,280.0,73.5,-1995.0,74.5,1.1,-1027.0,₹40 off above ₹349 only for customers it brings in
-26,Karama Restaurant,Koramangala 5th Block,520.0,107.1,-1134.0,147.0,39.9,1113.0,₹80 off only for customers it brings in
-27,The Shawarma Inc,Koramangala 5th Block,150.0,17.2,-315.0,15.2,-1.9,-134.0,₹20 off above ₹199 only for customers it brings in
-28,Makers of Milkshakes,Koramangala 5th Block,280.0,19.3,-513.0,19.9,0.5,-237.0,₹40 off only for customers it brings in
-29,Keventers,Koramangala 5th Block,280.0,41.9,-1144.0,42.5,0.6,-426.0,₹40 off only for customers it brings in
-30,Goli Vada Pav No. 1,Koramangala 5th Block,150.0,34.1,-612.0,30.6,-3.5,-262.0,₹20 off above ₹199 only for customers it brings in
-31,Stoner,Koramangala 5th Block,350.0,157.3,-4401.0,170.7,13.4,-1854.0,₹50 off only for customers it brings in
-32,Gelato Italiano,Koramangala 5th Block,150.0,25.2,-460.0,22.5,-2.8,-192.0,₹20 off above ₹199 only for customers it brings in
-33,McDonald's,Koramangala 5th Block,350.0,37.4,-1018.0,41.1,3.6,-497.0,₹50 off above ₹449 only for customers it brings in
-34,1000 B.C,Koramangala 5th Block,210.0,15.8,-368.0,15.1,-0.7,-164.0,₹30 off above ₹249 only for customers it brings in + ₹10 Brand Pack reward for regulars
-35,Coffee Tea & More,Koramangala 5th Block,150.0,20.3,-375.0,18.0,-2.3,-172.0,₹20 off only for customers it brings in
-36,Lassi Shop,Koramangala 5th Block,150.0,39.0,-717.0,34.5,-4.5,-312.0,₹20 off above ₹199 only for customers it brings in
-37,30 Square,Koramangala 5th Block,280.0,68.6,-1854.0,69.7,1.1,-804.0,₹40 off only for customers it brings in
-38,Cream Stone,Koramangala 5th Block,350.0,49.8,-1352.0,54.6,4.8,-734.0,₹50 off above ₹449 only for customers it brings in
-39,WAFL Co,Koramangala 5th Block,280.0,20.0,-542.0,20.4,0.3,-276.0,₹40 off above ₹349 only for customers it brings in
-40,Tibetan Kitchen,Koramangala 5th Block,420.0,44.7,-1008.0,53.2,8.5,-177.0,₹60 off only for customers it brings in
-41,The Belgian Waffle Co.,Koramangala 5th Block,240.0,41.6,-1124.0,42.5,0.9,-435.0,₹40 off above ₹299 only for customers it brings in
-42,Asia Kitchen By Mainland China,Koramangala 5th Block,1000.0,185.6,44472.0,457.9,272.3,47542.0,₹150 off only for customers it brings in
-43,Dosa Plaza,Koramangala 5th Block,150.0,23.3,-440.0,20.4,-3.0,-209.0,₹20 off above ₹199 only for customers it brings in
-44,Burger Lounge,Koramangala 5th Block,420.0,16.1,-398.0,18.9,2.8,-168.0,₹60 off above ₹499 only for customers it brings in
-45,Pizza Hut,Koramangala 5th Block,520.0,20.0,-71.0,28.6,8.7,339.0,₹80 off only for customers it brings in
-46,Shanmukha,Koramangala 5th Block,560.0,79.0,-578.0,107.2,28.2,1378.0,₹80 off only for customers it brings in
-47,Mani's Dum Biryani,Koramangala 5th Block,520.0,66.0,-700.0,90.6,24.6,841.0,₹80 off only for customers it brings in
-48,7 Plates,Koramangala 5th Block,520.0,26.3,71.0,38.9,12.6,83.0,₹80 off above ₹599 only for customers it brings in
-49,Chung Wah,Koramangala 5th Block,560.0,37.7,122.0,54.1,16.5,837.0,₹80 off only for customers it brings in
-50,Donne Biriyani House,HSR,150.0,51.5,-787.0,49.8,-1.7,-213.0,₹20 off above ₹199 only for customers it brings in
-51,Sweet Truth,HSR,350.0,31.5,-624.0,37.2,5.7,-38.0,₹50 off only for customers it brings in
-52,Kumarakom,HSR,420.0,127.0,-2034.0,160.2,33.3,-134.0,₹60 off above ₹499 only for customers it brings in
-53,What's Cooking,HSR,210.0,14.9,-290.0,15.4,0.5,-64.0,₹30 off above ₹249 only for customers it brings in
-54,Cinnamon,HSR,380.0,85.6,-1599.0,108.4,22.7,419.0,₹60 off only for customers it brings in
-55,Cream Chemistry,HSR,350.0,38.6,-729.0,46.1,7.5,12.0,₹50 off only for customers it brings in
-56,Udupi Bhavan,HSR,280.0,48.9,-998.0,54.5,5.6,-218.0,₹40 off above ₹349 only for customers it brings in
-57,Onesta,HSR,420.0,271.2,-3868.0,345.8,74.6,-287.0,₹60 off above ₹499 only for customers it brings in
-58,NutBerry,HSR,150.0,23.6,-358.0,23.0,-0.7,-89.0,₹20 off above ₹199 only for customers it brings in
-59,Vintage Shack,HSR,630.0,54.2,1604.0,87.6,33.4,3011.0,₹90 off only for customers it brings in
-60,Atithi,HSR,560.0,60.3,692.0,90.8,30.4,2109.0,₹80 off only for customers it brings in
-61,HSR Agarval Bhavan,HSR,280.0,19.4,-390.0,21.8,2.4,-94.0,₹40 off above ₹349 only for customers it brings in
-62,Paratha Plaza,HSR,150.0,15.3,-236.0,14.8,-0.5,-71.0,₹20 off above ₹199 only for customers it brings in
-63,Punjabi Nukkad Pure Veg,HSR,350.0,116.7,-2278.0,138.5,21.8,-623.0,₹50 off above ₹449 only for customers it brings in
-64,Swad 'E' Punjab,HSR,350.0,26.5,-549.0,31.2,4.6,-112.0,₹50 off above ₹449 only for customers it brings in
-65,Sri Krishna Sagar,HSR,280.0,43.0,-829.0,48.4,5.4,-217.0,₹40 off above ₹349 only for customers it brings in
-66,Frozen Bottle,HSR,280.0,53.9,-1100.0,60.2,6.2,-176.0,₹40 off only for customers it brings in
-67,Bangaliana,HSR,420.0,60.7,-714.0,78.9,18.3,-4.0,₹60 off above ₹499 only for customers it brings in
-68,Mandya Gowdru Donne Biriyani,HSR,240.0,56.5,-1205.0,63.6,7.1,-285.0,₹40 off above ₹299 only for customers it brings in
-69,Poorvika Restro Cafe,HSR,490.0,26.2,83.0,37.6,11.4,58.0,₹70 off above ₹599 only for customers it brings in
-70,Mealsbaba,HSR,280.0,28.1,-581.0,31.2,3.1,-174.0,₹40 off above ₹349 only for customers it brings in
-71,Noon's,HSR,210.0,58.7,-1116.0,61.1,2.4,-350.0,₹30 off only for customers it brings in
-72,Birinz,HSR,450.0,48.1,-530.0,65.7,17.6,730.0,₹70 off only for customers it brings in
-73,Foodiesthan,HSR,420.0,30.1,-465.0,38.2,8.1,-39.0,₹60 off above ₹499 only for customers it brings in
-74,Priya Juice & Snacks,HSR,150.0,25.6,-387.0,24.9,-0.7,-113.0,₹20 off above ₹199 only for customers it brings in
-75,Dindigul Time Pass Restaurant,HSR,490.0,23.7,90.0,34.4,10.7,68.0,₹70 off above ₹599 only for customers it brings in
-76,GKT Biryani World,HSR,240.0,29.8,-646.0,33.3,3.6,-170.0,₹40 off above ₹299 only for customers it brings in
-77,Kitchens@HSR,HSR,150.0,41.3,-616.0,40.3,-1.0,-138.0,₹20 off above ₹199 only for customers it brings in
-78,Shree Khana Khazana,HSR,320.0,59.1,-1075.0,72.8,13.6,-62.0,₹50 off only for customers it brings in
-79,Uptown Sliders & Shakes,HSR,420.0,41.7,-478.0,54.1,12.4,363.0,₹60 off only for customers it brings in
-80,Intriicake,HSR,240.0,23.5,-537.0,25.9,2.4,-109.0,₹40 off above ₹299 only for customers it brings in
-81,New Udupi Grand,HSR,180.0,18.2,-355.0,19.0,0.7,-92.0,₹30 off above ₹249 only for customers it brings in
-82,Cream Stone,HSR,350.0,129.8,-2338.0,156.2,26.4,-647.0,₹50 off above ₹449 only for customers it brings in
-83,Mojo Pizza - 2X Toppings,HSR,420.0,63.0,-708.0,82.4,19.4,475.0,₹60 off only for customers it brings in
-84,Third Wave Coffee Roasters,HSR,560.0,49.7,1011.0,78.2,28.5,2234.0,₹80 off only for customers it brings in
-85,Kabab Magic,HSR,350.0,31.5,-469.0,39.0,7.5,-139.0,₹50 off above ₹449 only for customers it brings in
-86,Mishmash,HSR,980.0,119.8,43810.0,365.4,245.6,45459.0,₹150 off only for customers it brings in
-87,Chaat Street,HSR,180.0,48.0,-936.0,50.0,2.0,-205.0,₹30 off above ₹249 only for customers it brings in
-88,Tea Addict,HSR,210.0,30.8,-578.0,32.3,1.5,-165.0,₹30 off only for customers it brings in
-89,Hotel Salam,HSR,280.0,48.0,-939.0,54.0,6.0,-196.0,₹40 off only for customers it brings in
-90,Aaranya Restaurant,HSR,560.0,35.8,873.0,57.5,21.8,653.0,₹80 off above ₹649 only for customers it brings in
-91,The Paratha Company,HSR,280.0,62.3,-1257.0,69.6,7.3,-244.0,₹40 off only for customers it brings in
-92,Hungry Queen,HSR,210.0,19.9,-374.0,20.8,0.9,-113.0,₹30 off above ₹249 only for customers it brings in
-93,Juice Junction Food Court,HSR,150.0,52.0,-788.0,50.5,-1.4,-193.0,₹20 off above ₹199 only for customers it brings in
-94,Families Food Court,HSR,280.0,60.4,-1257.0,67.0,6.6,-227.0,₹40 off only for customers it brings in
-95,Kwality Cakes N Bakes,HSR,280.0,24.9,-481.0,28.1,3.3,-125.0,₹40 off above ₹349 only for customers it brings in
-96,Biryani Affair,HSR,240.0,36.5,-778.0,41.1,4.6,-160.0,₹40 off above ₹299 only for customers it brings in
-97,Sichuan,HSR,560.0,79.9,1385.0,123.5,43.7,3270.0,₹80 off only for customers it brings in
-98,Feastaurant,HSR,560.0,22.6,79.0,32.5,9.9,252.0,₹80 off above ₹649 only for customers it brings in
-99,Southinn,HSR,180.0,46.4,-905.0,48.2,1.9,-200.0,₹30 off above ₹249 only for customers it brings in
-100,Pathaan Sir,BTM,210.0,58.0,-906.0,64.3,6.4,-118.0,₹30 off only for customers it brings in
-101,Just Shawarma,BTM,210.0,57.6,-889.0,64.2,6.5,-110.0,₹30 off only for customers it brings in
-102,Hiyar Majhe Kolkata,BTM,280.0,67.7,-988.0,81.3,13.6,15.0,₹40 off only for customers it brings in
-103,Ammus Hot N Cool,BTM,210.0,31.2,-486.0,34.7,3.4,-71.0,₹30 off above ₹249 only for customers it brings in
-104,Nawab-E-Khana,BTM,350.0,14.6,-141.0,19.0,4.4,-22.0,₹50 off above ₹449 only for customers it brings in
-105,Dum Biryani Hub,BTM,490.0,42.4,435.0,63.5,21.1,1310.0,₹70 off only for customers it brings in
-106,Delight Food,BTM,320.0,29.8,-426.0,38.2,8.4,-56.0,₹50 off above ₹399 only for customers it brings in
-107,Bawarchi Inn,BTM,420.0,35.4,-146.0,48.8,13.5,228.0,₹60 off above ₹499 only for customers it brings in
-108,RBP Greens Garden,BTM,490.0,16.7,135.0,24.9,8.2,180.0,₹70 off above ₹599 only for customers it brings in
-109,Nanna Munna Paratha House,BTM,210.0,57.7,-905.0,64.0,6.3,-145.0,₹30 off only for customers it brings in
-110,Aramane Donne Biriyani,BTM,210.0,68.5,-1112.0,75.0,6.6,-155.0,₹30 off only for customers it brings in
-111,Tasty Magic,BTM,420.0,19.8,-46.0,27.7,7.9,71.0,₹60 off above ₹499 only for customers it brings in
-112,Kannur Food Point,BTM,150.0,64.9,-851.0,66.6,1.8,-142.0,₹20 off above ₹199 only for customers it brings in
-113,The Biriyani Factory,BTM,350.0,20.7,-342.0,25.3,4.6,6.0,₹50 off above ₹449 only for customers it brings in
-114,Krishna Sagar,BTM,210.0,39.3,-656.0,42.8,3.5,-85.0,₹30 off only for customers it brings in
-115,RB Food Point,BTM,210.0,34.5,-550.0,38.1,3.6,-71.0,₹30 off only for customers it brings in
-116,Food And You,BTM,240.0,30.5,-560.0,36.1,5.6,-58.0,₹40 off only for customers it brings in
-117,Xpress Chai,BTM,150.0,24.2,-319.0,24.8,0.6,-56.0,₹20 off above ₹199 only for customers it brings in
-118,Lassi Shop,BTM,150.0,32.2,-420.0,33.1,0.9,-96.0,₹20 off only for customers it brings in
-119,Tongue Twisters,BTM,240.0,58.6,-1059.0,69.6,11.1,-109.0,₹40 off above ₹299 only for customers it brings in
-120,Sankranthi Veg Restaurant,BTM,420.0,28.2,-103.0,39.2,11.0,159.0,₹60 off above ₹499 only for customers it brings in
-121,SGS Non Veg - Gundu Pulav,BTM,280.0,28.3,-447.0,33.5,5.2,46.0,₹40 off only for customers it brings in
-122,Eatery Have U Been,BTM,350.0,17.8,-153.0,23.4,5.6,11.0,₹50 off above ₹449 only for customers it brings in
-123,Gyani Da Punjabi Dhaba,BTM,350.0,155.4,-1901.0,197.6,42.2,-82.0,₹50 off above ₹449 only for customers it brings in
-124,Snack Knack,BTM,150.0,13.8,-180.0,14.2,0.4,-27.0,₹20 off above ₹199 only for customers it brings in
-125,Kataria's Home Food,BTM,180.0,14.9,-243.0,16.8,1.8,-34.0,₹30 off above ₹249 only for customers it brings in
-126,Just Chill,BTM,180.0,22.1,-355.0,24.7,2.6,-47.0,₹30 off above ₹249 only for customers it brings in
-127,DeliBox.in,BTM,150.0,38.6,-502.0,39.7,1.1,-67.0,₹20 off above ₹199 only for customers it brings in
-128,Sagar Fast Food,BTM,210.0,32.4,-502.0,36.0,3.7,-122.0,₹30 off above ₹249 only for customers it brings in
-129,Ilyazsab The House Of Chicken,BTM,180.0,62.9,-1079.0,69.1,6.2,-145.0,₹30 off above ₹249 only for customers it brings in
-130,Tandoor Garden,BTM,240.0,41.2,-790.0,48.0,6.8,-127.0,₹40 off above ₹299 only for customers it brings in
-131,Sri Lakshmi Dhaba,BTM,180.0,43.4,-745.0,47.7,4.3,-131.0,₹30 off above ₹249 only for customers it brings in
-132,Zeeshan,BTM,490.0,32.2,383.0,48.8,16.6,346.0,₹70 off above ₹599 only for customers it brings in
-133,Chicken Magic,BTM,210.0,51.0,-777.0,56.8,5.8,-140.0,₹30 off above ₹249 only for customers it brings in
-134,Hang10 Resto N Cafe,BTM,560.0,51.1,1170.0,81.4,30.3,2400.0,₹80 off only for customers it brings in
-135,Biryani Pot,BTM,350.0,135.5,-1557.0,173.3,37.8,-30.0,₹50 off above ₹449 only for customers it brings in
-136,Bun Town,BTM,350.0,73.2,-868.0,93.6,20.4,386.0,₹50 off only for customers it brings in
-137,Chai Point,BTM,180.0,50.3,-844.0,55.7,5.4,-119.0,₹30 off above ₹249 only for customers it brings in
-138,Night Restro,BTM,350.0,35.7,-344.0,46.4,10.7,68.0,₹50 off above ₹449 only for customers it brings in
-139,Swadista Aahar,BTM,210.0,138.6,-2223.0,152.6,14.0,-303.0,₹30 off above ₹249 only for customers it brings in
-140,High n Hungry,BTM,490.0,24.8,310.0,37.8,12.9,321.0,₹70 off above ₹599 only for customers it brings in
-141,Crunch Pizzas,BTM,420.0,47.5,-218.0,65.4,17.8,244.0,₹60 off above ₹499 only for customers it brings in
-142,On The Nose,BTM,420.0,102.5,-335.0,141.8,39.3,660.0,₹60 off above ₹499 only for customers it brings in
-143,Hotel Godavari,BTM,350.0,66.6,-615.0,87.0,20.4,519.0,₹50 off only for customers it brings in
-144,Nadan Thattukada,BTM,150.0,28.3,-368.0,29.1,0.8,-56.0,₹20 off above ₹199 only for customers it brings in
-145,Mangalore Lunch Home,BTM,180.0,27.0,-466.0,29.6,2.6,-44.0,₹30 off above ₹249 only for customers it brings in
-146,Beijing Bites,BTM,600.0,87.3,4691.0,159.2,72.0,3627.0,₹90 off above ₹699 only for customers it brings in
-147,Odissi Restaurant,BTM,350.0,15.9,-82.0,21.6,5.7,6.0,₹50 off above ₹449 only for customers it brings in
-148,Empire Restaurant,BTM,280.0,40.1,-575.0,48.4,8.3,-97.0,₹40 off above ₹349 only for customers it brings in
-149,Thanco's Natural Ice Cream,BTM,320.0,30.0,-474.0,37.9,7.8,5.0,₹50 off above ₹399 only for customers it brings in
-150,eat.fit,Indiranagar,350.0,92.0,-2894.0,96.1,4.1,-1695.0,₹50 off above ₹449 only for customers it brings in
-151,Stoner,Indiranagar,380.0,140.9,-4324.0,159.7,18.8,-1666.0,₹60 off only for customers it brings in
-152,Smally's Resto Cafe,Indiranagar,450.0,67.5,-2009.0,80.1,12.6,-432.0,₹70 off only for customers it brings in
-153,Woodstok,Indiranagar,980.0,78.3,18791.0,196.4,118.1,19281.0,₹150 off only for customers it brings in
-154,YumYumDilli,Indiranagar,350.0,12.8,-384.0,13.6,0.8,-242.0,₹50 off above ₹449 only for customers it brings in
-155,Grow Fit,Indiranagar,350.0,21.5,-667.0,22.6,1.2,-392.0,₹50 off only for customers it brings in
-156,Oye Amritsar,Indiranagar,420.0,90.0,-2689.0,101.1,11.0,-932.0,₹60 off only for customers it brings in
-157,Little Italy,Indiranagar,980.0,143.2,33166.0,354.9,211.7,34639.0,₹150 off only for customers it brings in
-158,Infinitea Tea Room & Tea Store,Indiranagar,700.0,90.1,1541.0,136.4,46.3,3897.0,₹100 off only for customers it brings in
-159,Fresh Aahar,Indiranagar,280.0,16.3,-476.0,16.0,-0.3,-228.0,₹40 off above ₹349 only for customers it brings in
-160,Shaap,Indiranagar,350.0,33.4,-1005.0,35.5,2.1,-544.0,₹50 off only for customers it brings in
-161,Cafe Coffee Day,Indiranagar,630.0,18.7,173.0,27.3,8.7,533.0,₹90 off only for customers it brings in
-162,The Pizza Bakery,Indiranagar,840.0,140.1,17729.0,295.6,155.5,19971.0,₹130 off only for customers it brings in
-163,Gobble Up Churros Cafe,Indiranagar,280.0,51.6,-1518.0,50.7,-0.9,-736.0,₹40 off only for customers it brings in
-164,Kobe Sizzlers,Indiranagar,1000.0,97.9,24903.0,246.0,148.1,25850.0,₹150 off only for customers it brings in
-165,Sri Udupi Park,Indiranagar,210.0,75.1,-1935.0,68.3,-6.8,-953.0,₹30 off above ₹249 only for customers it brings in
-166,Cream Stone,Indiranagar,210.0,82.4,-2083.0,75.8,-6.6,-1017.0,₹30 off only for customers it brings in
-167,Aagaman Veg,Indiranagar,630.0,52.2,219.0,75.3,23.1,1254.0,₹90 off only for customers it brings in
-168,Maravanthe,Indiranagar,700.0,80.4,1855.0,125.4,45.0,3638.0,₹100 off only for customers it brings in
-169,Burger King,Indiranagar,420.0,85.5,-2498.0,96.5,11.0,-883.0,₹60 off only for customers it brings in
-170,Gundappa Donne Biryani,Indiranagar,210.0,14.0,-345.0,13.0,-1.0,-157.0,₹30 off above ₹249 only for customers it brings in
-171,Shalimar,Indiranagar,490.0,29.5,-652.0,36.3,6.8,-111.0,₹70 off only for customers it brings in
-172,Pizza Hut,Indiranagar,520.0,63.5,-1230.0,83.0,19.6,-384.0,₹80 off above ₹599 only for customers it brings in
-173,Chetty's Coffee,Indiranagar,150.0,16.2,-321.0,13.8,-2.3,-169.0,₹20 off only for customers it brings in
-174,McDonald's,Indiranagar,350.0,39.6,-1224.0,41.6,2.1,-581.0,₹50 off only for customers it brings in
-175,Bhavani Sri,Indiranagar,420.0,14.9,-431.0,16.8,1.9,-268.0,₹60 off above ₹499 only for customers it brings in
-176,Paratha Plaza,Indiranagar,210.0,26.5,-669.0,24.3,-2.2,-324.0,₹30 off above ₹249 only for customers it brings in
-177,Chung Wah Express,Indiranagar,420.0,15.8,-513.0,17.3,1.6,-229.0,₹60 off above ₹499 only for customers it brings in
-178,Rajdhani Thali Restaurant,Indiranagar,700.0,88.7,1814.0,136.8,48.1,3495.0,₹100 off only for customers it brings in
-179,Krispy Kreme,Indiranagar,210.0,47.0,-1192.0,43.2,-3.9,-562.0,₹30 off only for customers it brings in
-180,Dal Roti Sabji,Indiranagar,150.0,21.1,-422.0,17.8,-3.4,-216.0,₹20 off above ₹199 only for customers it brings in
-181,Nando's,Indiranagar,840.0,101.4,10315.0,202.6,101.3,11934.0,₹130 off only for customers it brings in
-182,Chillikum,Indiranagar,240.0,11.6,-334.0,11.4,-0.2,-138.0,₹40 off above ₹299 only for customers it brings in
-183,Sethji Home Made Food,Indiranagar,240.0,26.9,-781.0,26.6,-0.4,-372.0,₹40 off above ₹299 only for customers it brings in
-184,KFC,Indiranagar,320.0,35.0,-1102.0,36.8,1.8,-516.0,₹50 off above ₹399 only for customers it brings in
-185,Pulimunchi,Indiranagar,700.0,73.5,2016.0,116.3,42.8,3551.0,₹100 off only for customers it brings in
-186,Ooty Chocolates,Indiranagar,210.0,15.6,-390.0,14.4,-1.2,-188.0,₹30 off only for customers it brings in
-187,Chai Point,Indiranagar,180.0,43.7,-1089.0,39.7,-3.9,-479.0,₹30 off above ₹249 only for customers it brings in
-188,Drunken Monkey,Indiranagar,350.0,30.6,-933.0,32.4,1.7,-446.0,₹50 off only for customers it brings in
-189,Achayyan's,Indiranagar,240.0,47.7,-1390.0,46.9,-0.8,-579.0,₹40 off above ₹299 only for customers it brings in
-190,Salt Mango Tree,Indiranagar,560.0,50.2,-759.0,65.6,15.3,481.0,₹80 off only for customers it brings in
-191,Paradise,Indiranagar,560.0,125.4,-1932.0,163.5,38.0,701.0,₹80 off only for customers it brings in
-192,Cup Chronicles Cafe,Indiranagar,320.0,15.2,-468.0,16.1,0.8,-219.0,₹50 off only for customers it brings in
-193,Cup Shup,Indiranagar,350.0,15.0,-463.0,15.8,0.8,-285.0,₹50 off above ₹449 only for customers it brings in
-194,Just Khao Suey,Indiranagar,420.0,38.9,-1184.0,43.3,4.4,-433.0,₹60 off only for customers it brings in
-195,The Humming Tree,Indiranagar,980.0,112.0,25788.0,276.8,164.8,26737.0,₹150 off only for customers it brings in
-196,BOX8- Desi Meals,Indiranagar,350.0,55.8,-1738.0,58.5,2.7,-1011.0,₹50 off above ₹449 only for customers it brings in
-197,Food Lover,Indiranagar,280.0,13.3,-383.0,13.2,-0.1,-150.0,₹40 off above ₹349 only for customers it brings in
-198,Cafe Braqa,Indiranagar,490.0,29.9,-663.0,36.8,7.0,-476.0,₹70 off above ₹599 only for customers it brings in
-199,Gokul Kuteera,Indiranagar,450.0,47.4,-1439.0,56.0,8.6,-543.0,₹70 off only for customers it brings in
-200,McDonald's,Jayanagar,350.0,34.6,-754.0,40.1,5.5,-370.0,₹50 off above ₹449 only for customers it brings in
-201,Salut,Jayanagar,840.0,68.9,11260.0,158.4,89.6,12694.0,₹130 off only for customers it brings in
-202,Biryanis And More,Jayanagar,520.0,84.3,-27.0,123.8,39.5,1731.0,₹80 off only for customers it brings in
-203,Ishta Cafe,Jayanagar,350.0,21.7,-493.0,25.0,3.3,-202.0,₹50 off above ₹449 only for customers it brings in
-204,Pani Kum Chai,Jayanagar,150.0,29.5,-482.0,27.7,-1.8,-143.0,₹20 off above ₹199 only for customers it brings in
-205,The Belgian Waffle Co.,Jayanagar,240.0,38.8,-957.0,41.3,2.5,-268.0,₹40 off above ₹299 only for customers it brings in
-206,Cakewala,Jayanagar,350.0,100.1,-2259.0,115.4,15.3,-1036.0,₹50 off above ₹449 only for customers it brings in
-207,Chutney Chang,Jayanagar,1000.0,153.5,45189.0,419.4,265.9,47227.0,₹150 off only for customers it brings in
-208,Havmor,Jayanagar,150.0,22.0,-357.0,20.7,-1.2,-113.0,₹20 off above ₹199 only for customers it brings in
-209,The Airos,Jayanagar,450.0,38.7,-412.0,52.8,14.0,418.0,₹70 off only for customers it brings in
-210,New Prashanth Hotel,Jayanagar,520.0,31.2,-15.0,45.3,14.1,289.0,₹80 off above ₹599 only for customers it brings in
-211,Samskruti - Sanman Gardenia,Jayanagar,380.0,39.7,-845.0,49.4,9.7,-257.0,₹60 off above ₹449 only for customers it brings in
-212,Prems Graama Bhojanam,Jayanagar,280.0,65.4,-1534.0,70.0,4.6,-540.0,₹40 off only for customers it brings in
-213,Sandwich Mama's And Frozen Monster,Jayanagar,180.0,19.4,-406.0,19.5,0.1,-135.0,₹30 off above ₹249 only for customers it brings in
-214,Punjabi Raswada,Jayanagar,560.0,48.6,484.0,72.0,23.4,507.0,₹80 off above ₹649 only for customers it brings in
-215,Wahab,Jayanagar,240.0,25.9,-631.0,27.7,1.8,-215.0,₹40 off above ₹299 only for customers it brings in
-216,Cable Car,Jayanagar,700.0,136.4,6598.0,232.8,96.5,9897.0,₹100 off only for customers it brings in
-217,Keventers,Jayanagar,280.0,36.6,-829.0,39.6,3.0,-279.0,₹40 off only for customers it brings in
-218,Chai Point,Jayanagar,180.0,30.0,-644.0,29.8,-0.2,-199.0,₹30 off above ₹249 only for customers it brings in
-219,Kalpavriksha Upahara,Jayanagar,280.0,40.6,-956.0,43.4,2.8,-389.0,₹40 off only for customers it brings in
-220,Kapoor's Cafe,Jayanagar,560.0,48.6,155.0,70.4,21.8,1229.0,₹80 off only for customers it brings in
-221,Rustic Stove,Jayanagar,630.0,60.6,1908.0,98.4,37.7,1061.0,₹90 off above ₹749 only for customers it brings in
-222,Fusion Theory,Jayanagar,490.0,63.8,-595.0,85.6,21.7,575.0,₹70 off only for customers it brings in
-223,Roll Over,Jayanagar,350.0,81.7,-1971.0,92.7,11.0,-791.0,₹50 off above ₹449 only for customers it brings in
-224,Pizza Hut,Jayanagar,520.0,78.2,-56.0,113.8,35.6,273.0,₹80 off above ₹599 only for customers it brings in
-225,Kanti Sweets,Jayanagar,280.0,45.4,-1115.0,47.9,2.5,-292.0,₹40 off only for customers it brings in
-226,Just Shawarma,Jayanagar,210.0,113.6,-2428.0,113.1,-0.5,-803.0,₹30 off above ₹249 only for customers it brings in
-227,Mangalore Pearl,Jayanagar,450.0,53.5,-828.0,71.0,17.5,-211.0,₹70 off above ₹549 only for customers it brings in
-228,Jayanagara Donne Biryani,Jayanagar,280.0,22.5,-532.0,24.0,1.5,-204.0,₹40 off above ₹349 only for customers it brings in
-229,Mug N Bean,Jayanagar,280.0,52.7,-1241.0,56.3,3.6,-323.0,₹40 off only for customers it brings in
-230,Willys Top Cafe,Jayanagar,520.0,46.4,498.0,71.7,25.3,1396.0,₹80 off only for customers it brings in
-231,Corner House Ice Cream,Jayanagar,280.0,124.5,-2960.0,132.8,8.3,-1016.0,₹40 off only for customers it brings in
-232,Brews N Bites,Jayanagar,450.0,11.4,-54.0,16.3,4.9,-53.0,₹70 off above ₹549 only for customers it brings in
-233,Burger King,Jayanagar,420.0,114.2,-2304.0,138.9,24.7,-15.0,₹60 off only for customers it brings in
-234,Biriyani Mane,Jayanagar,490.0,36.2,-333.0,48.1,11.9,393.0,₹70 off only for customers it brings in
-235,City Durbar,Jayanagar,320.0,29.8,-754.0,33.6,3.9,-333.0,₹50 off above ₹399 only for customers it brings in
-236,De Thaali,Jayanagar,380.0,42.6,-1009.0,51.7,9.1,-7.0,₹60 off only for customers it brings in
-237,Sri Udupi Food Hub,Jayanagar,350.0,52.2,-1212.0,59.6,7.4,-197.0,₹50 off only for customers it brings in
-238,Thyme & Whisk,Jayanagar,560.0,39.5,295.0,57.8,18.3,1013.0,₹80 off only for customers it brings in
-239,Ice Cream Works,Jayanagar,210.0,46.7,-1008.0,46.3,-0.4,-355.0,₹30 off above ₹249 only for customers it brings in
-240,Food Springs,Jayanagar,280.0,52.2,-1241.0,55.7,3.4,-418.0,₹40 off only for customers it brings in
-241,Shakes Theory,Jayanagar,210.0,57.8,-1236.0,57.4,-0.3,-504.0,₹30 off only for customers it brings in
-242,Donne Biriyani House,Jayanagar,280.0,44.7,-1026.0,48.2,3.5,-419.0,₹40 off above ₹349 only for customers it brings in
-243,Chef Master,Jayanagar,210.0,31.8,-679.0,31.7,-0.1,-220.0,₹30 off above ₹249 only for customers it brings in
-244,Sukh Sagar,Jayanagar,320.0,42.8,-1077.0,48.7,5.9,-355.0,₹50 off above ₹399 only for customers it brings in
-245,Upahara Darshini,Jayanagar,280.0,55.0,-1286.0,58.9,3.9,-477.0,₹40 off only for customers it brings in
-246,Andhra Ruchulu,Jayanagar,700.0,84.2,4821.0,148.0,63.8,6819.0,₹100 off only for customers it brings in
-247,Desi Cream Junction,Jayanagar,450.0,17.4,-241.0,23.1,5.7,-23.0,₹70 off above ₹549 only for customers it brings in
-248,Domino's Pizza,Jayanagar,280.0,56.7,-1334.0,60.6,3.9,-523.0,₹40 off above ₹349 only for customers it brings in
-249,Freeze It,Jayanagar,210.0,13.7,-296.0,13.6,-0.1,-138.0,₹30 off above ₹249 only for customers it brings in
-250,Burger King,Whitefield,420.0,152.8,-3746.0,179.3,26.5,-1907.0,₹60 off above ₹499 only for customers it brings in
-251,The Beer Cafe,Whitefield,980.0,97.7,24903.0,251.9,154.2,25884.0,₹150 off only for customers it brings in
-252,KA53,Whitefield,210.0,22.0,-509.0,21.1,-0.9,-219.0,₹30 off above ₹249 only for customers it brings in
-253,BIB-Breakfast in the Box,Whitefield,420.0,28.1,-643.0,33.4,5.3,-75.0,₹60 off only for customers it brings in
-254,Foodies Delight,Whitefield,280.0,48.2,-1302.0,48.9,0.7,-512.0,₹40 off above ₹349 only for customers it brings in
-255,Chefactory Gold by Flechazo,Whitefield,490.0,55.0,-939.0,70.0,15.0,-572.0,₹70 off above ₹599 only for customers it brings in
-256,Indian Aroma Cafe,Whitefield,210.0,18.2,-427.0,17.4,-0.8,-186.0,₹30 off above ₹249 only for customers it brings in
-257,Mist n Creams,Whitefield,280.0,21.1,-548.0,21.8,0.7,-292.0,₹40 off above ₹349 only for customers it brings in
-258,Beyond Elements,Whitefield,630.0,108.0,1076.0,160.3,52.3,3475.0,₹90 off only for customers it brings in
-259,Boondock Bistro,Whitefield,630.0,126.0,1311.0,186.7,60.7,3818.0,₹90 off only for customers it brings in
-260,eat.fit,Whitefield,350.0,131.0,-3521.0,144.2,13.2,-1907.0,₹50 off above ₹449 only for customers it brings in
-261,One For The Road,Whitefield,840.0,42.6,6735.0,96.9,54.3,7225.0,₹130 off only for customers it brings in
-262,Subway,Whitefield,420.0,10.1,-198.0,12.3,2.3,-115.0,₹60 off above ₹499 only for customers it brings in
-263,Foreign CafÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ©,Whitefield,350.0,21.4,-586.0,23.3,2.0,-291.0,₹50 off above ₹449 only for customers it brings in
-264,Cold Stone Creamery,Whitefield,280.0,93.5,-2508.0,95.4,1.9,-1212.0,₹40 off above ₹349 only for customers it brings in
-265,Vijayas Biryani Palace,Whitefield,280.0,16.0,-409.0,16.7,0.6,-199.0,₹40 off above ₹349 only for customers it brings in
-266,Ji Hazoor,Whitefield,770.0,169.0,14353.0,330.2,161.2,18100.0,₹120 off only for customers it brings in
-267,Coastal Hub,Whitefield,490.0,66.9,-1097.0,85.4,18.6,165.0,₹70 off only for customers it brings in
-268,Dehati Murgee,Whitefield,420.0,43.3,-1042.0,51.3,8.0,-124.0,₹60 off only for customers it brings in
-269,Kshatriya's Kitchen,Whitefield,210.0,15.9,-382.0,15.0,-0.9,-207.0,₹30 off above ₹249 only for customers it brings in
-270,The Coffee Bean & Tea Leaf,Whitefield,490.0,10.8,-117.0,14.4,3.5,-84.0,₹70 off above ₹599 only for customers it brings in
-271,Rishitha Restaurant,Whitefield,350.0,25.0,-627.0,27.9,3.0,-371.0,₹50 off above ₹449 only for customers it brings in
-272,Hyderabad Chefs,Whitefield,560.0,60.6,-354.0,83.7,23.1,923.0,₹80 off only for customers it brings in
-273,Behrouz Biryani,Whitefield,450.0,64.1,-1516.0,79.8,15.7,17.0,₹70 off only for customers it brings in
-274,Chinese Street,Whitefield,450.0,22.3,-406.0,29.1,6.7,-230.0,₹70 off above ₹549 only for customers it brings in
-275,Punjabi Kitchen,Whitefield,280.0,40.0,-1052.0,41.2,1.1,-475.0,₹40 off above ₹349 only for customers it brings in
-276,Kerala Restaurant,Whitefield,320.0,20.4,-556.0,22.6,2.2,-298.0,₹50 off above ₹399 only for customers it brings in
-277,The Punjabi Park,Whitefield,350.0,17.4,-465.0,19.1,1.7,-249.0,₹50 off above ₹449 only for customers it brings in
-278,YumYumSouth,Whitefield,420.0,19.0,-403.0,23.0,4.0,-238.0,₹60 off above ₹499 only for customers it brings in + ₹20 Brand Pack reward for regulars
-279,Happy Singh,Whitefield,630.0,67.9,1068.0,103.4,35.5,2651.0,₹90 off only for customers it brings in
-280,WOW! Momo,Whitefield,280.0,11.3,-292.0,11.7,0.4,-150.0,₹40 off above ₹349 only for customers it brings in
-281,Cafe Coffee Day,Whitefield,450.0,15.2,-206.0,20.3,5.2,-142.0,₹70 off above ₹549 only for customers it brings in
-282,NH8,Whitefield,560.0,87.0,-281.0,121.3,34.3,1690.0,₹80 off only for customers it brings in
-283,Imperio Restaurant,Whitefield,490.0,210.8,-4052.0,265.3,54.5,500.0,₹70 off only for customers it brings in
-284,Grill Point,Whitefield,350.0,11.8,-326.0,13.0,1.1,-148.0,₹50 off above ₹449 only for customers it brings in
-285,Imperia Restaurant,Whitefield,350.0,18.9,-531.0,20.4,1.6,-251.0,₹50 off above ₹449 only for customers it brings in
-286,Aryan's Kitchen,Whitefield,350.0,24.6,-681.0,26.8,2.2,-288.0,₹50 off above ₹449 only for customers it brings in
-287,Mithai Time,Whitefield,150.0,14.9,-266.0,13.5,-1.5,-111.0,₹20 off above ₹199 only for customers it brings in
-288,YumYumDilli,Whitefield,350.0,14.5,-406.0,15.8,1.2,-207.0,₹50 off above ₹449 only for customers it brings in
-289,U.P. Dhaba,Whitefield,240.0,40.4,-1096.0,41.2,0.9,-440.0,₹40 off above ₹299 only for customers it brings in
-290,Izakaya Gastro Pub,Whitefield,840.0,32.9,5295.0,74.9,42.0,6093.0,₹130 off only for customers it brings in
-291,Noodle Bar,Whitefield,980.0,109.9,29854.0,289.6,179.8,31256.0,₹150 off only for customers it brings in
-292,Punjab Junction,Whitefield,240.0,12.0,-316.0,12.4,0.4,-131.0,₹40 off above ₹299 only for customers it brings in + ₹10 Brand Pack reward for regulars
-293,Sweet Truth,Whitefield,350.0,18.3,-454.0,20.6,2.3,-190.0,₹50 off only for customers it brings in
-294,Lemon Krust,Whitefield,150.0,27.1,-480.0,24.5,-2.6,-182.0,₹20 off above ₹199 only for customers it brings in
-295,Harry's Bar + Cafe,Whitefield,840.0,125.9,16476.0,269.2,143.3,18773.0,₹130 off only for customers it brings in
-296,New Punjabi Tasty Khana,Whitefield,280.0,23.0,-611.0,23.5,0.6,-317.0,₹40 off above ₹349 only for customers it brings in
-297,Abhiruchi Andhra Mess,Whitefield,210.0,15.4,-363.0,14.7,-0.7,-189.0,₹30 off above ₹249 only for customers it brings in
-298,The Hyderabad Chefs,Whitefield,420.0,12.1,-251.0,14.7,2.6,-156.0,₹60 off above ₹499 only for customers it brings in
-299,Roti Ghar Ki,Whitefield,280.0,43.0,-1162.0,43.7,0.7,-543.0,₹40 off only for customers it brings in
+0,North Indian #0,Koramangala 5th Block,280.0,23.5,-626.0,24.0,0.5,-298.0,₹40 off only for customers it brings in
+1,Desserts #1,Koramangala 5th Block,280.0,130.2,-3542.0,132.1,1.9,-1390.0,₹40 off only for customers it brings in
+2,Juices #2,Koramangala 5th Block,150.0,34.7,-628.0,31.1,-3.6,-254.0,₹20 off above ₹199 only for customers it brings in
+3,Finger Food #3,Koramangala 5th Block,840.0,102.4,14378.0,224.1,121.7,16484.0,₹130 off only for customers it brings in
+4,Burger #4,Koramangala 5th Block,350.0,32.9,-882.0,36.2,3.3,-554.0,₹50 off above ₹449 only for customers it brings in
+5,Kerala #5,Koramangala 5th Block,420.0,43.0,-1171.0,49.5,6.5,-484.0,₹60 off above ₹499 only for customers it brings in
+6,Desserts #6,Koramangala 5th Block,280.0,91.3,-2488.0,92.6,1.3,-1243.0,₹40 off only for customers it brings in
+7,Cafe #7,Koramangala 5th Block,420.0,13.8,-305.0,16.4,2.7,-73.0,₹60 off only for customers it brings in
+8,Chinese #8,Koramangala 5th Block,380.0,69.4,-1906.0,81.1,11.7,-521.0,₹60 off only for customers it brings in
+9,North Indian #9,Koramangala 5th Block,420.0,37.7,-822.0,45.4,7.7,-140.0,₹60 off only for customers it brings in
+10,Chinese #10,Koramangala 5th Block,980.0,188.9,42825.0,460.4,271.4,43222.0,₹150 off only for customers it brings in
+11,North Indian #11,Koramangala 5th Block,380.0,33.1,-923.0,38.5,5.4,-355.0,₹60 off above ₹449 only for customers it brings in
+12,Fast Food #12,Koramangala 5th Block,210.0,13.6,-316.0,13.0,-0.6,-126.0,₹30 off above ₹249 only for customers it brings in
+13,North Indian #13,Koramangala 5th Block,700.0,33.3,1011.0,53.4,20.1,322.0,₹100 off above ₹849 only for customers it brings in
+14,Desserts #14,Koramangala 5th Block,210.0,55.1,-1322.0,52.0,-3.1,-747.0,₹30 off only for customers it brings in
+15,Cafe #15,Koramangala 5th Block,450.0,119.3,-2723.0,149.4,30.1,-17.0,₹70 off only for customers it brings in
+16,North Indian #16,Koramangala 5th Block,700.0,62.7,2660.0,104.5,41.8,4203.0,₹100 off only for customers it brings in
+17,North Indian #17,Koramangala 5th Block,520.0,203.1,-2860.0,273.4,70.3,1604.0,₹80 off only for customers it brings in
+18,Turkish #18,Koramangala 5th Block,180.0,24.7,-580.0,23.4,-1.3,-230.0,₹30 off above ₹249 only for customers it brings in
+19,Cafe #19,Koramangala 5th Block,420.0,72.3,-1657.0,86.4,14.1,-347.0,₹60 off only for customers it brings in
+20,Cafe #20,Koramangala 5th Block,840.0,28.4,4705.0,65.1,36.7,5078.0,₹130 off only for customers it brings in
+21,North Indian #21,Koramangala 5th Block,350.0,40.3,-1115.0,44.0,3.7,-514.0,₹50 off above ₹449 only for customers it brings in
+22,North Indian #22,Koramangala 5th Block,420.0,92.0,-2310.0,107.5,15.4,-350.0,₹60 off only for customers it brings in
+23,Bengali #23,Koramangala 5th Block,350.0,19.4,-544.0,21.1,1.7,-316.0,₹50 off above ₹449 only for customers it brings in
+24,Ice Cream #24,Koramangala 5th Block,350.0,37.1,-1032.0,40.3,3.2,-362.0,₹50 off only for customers it brings in
+25,Fast Food #25,Koramangala 5th Block,280.0,73.5,-1995.0,74.5,1.1,-1027.0,₹40 off above ₹349 only for customers it brings in
+26,Arabian #26,Koramangala 5th Block,520.0,107.1,-1134.0,147.0,39.9,1113.0,₹80 off only for customers it brings in
+27,Arabian #27,Koramangala 5th Block,150.0,17.2,-315.0,15.2,-1.9,-134.0,₹20 off above ₹199 only for customers it brings in
+28,Beverages #28,Koramangala 5th Block,280.0,19.3,-513.0,19.9,0.5,-237.0,₹40 off only for customers it brings in
+29,Desserts #29,Koramangala 5th Block,280.0,41.9,-1144.0,42.5,0.6,-426.0,₹40 off only for customers it brings in
+30,Street Food #30,Koramangala 5th Block,150.0,34.1,-612.0,30.6,-3.5,-262.0,₹20 off above ₹199 only for customers it brings in
+31,Ice Cream #31,Koramangala 5th Block,350.0,157.3,-4401.0,170.7,13.4,-1854.0,₹50 off only for customers it brings in
+32,Ice Cream #32,Koramangala 5th Block,150.0,25.2,-460.0,22.5,-2.8,-192.0,₹20 off above ₹199 only for customers it brings in
+33,Burger #33,Koramangala 5th Block,350.0,37.4,-1018.0,41.1,3.6,-497.0,₹50 off above ₹449 only for customers it brings in
+34,Arabian #34,Koramangala 5th Block,210.0,15.8,-368.0,15.1,-0.7,-164.0,₹30 off above ₹249 only for customers it brings in + ₹10 Brand Pack reward for regulars
+35,Beverages #35,Koramangala 5th Block,150.0,20.3,-375.0,18.0,-2.3,-172.0,₹20 off only for customers it brings in
+36,Beverages #36,Koramangala 5th Block,150.0,39.0,-717.0,34.5,-4.5,-312.0,₹20 off above ₹199 only for customers it brings in
+37,Tibetan #37,Koramangala 5th Block,280.0,68.6,-1854.0,69.7,1.1,-804.0,₹40 off only for customers it brings in
+38,Desserts #38,Koramangala 5th Block,350.0,49.8,-1352.0,54.6,4.8,-734.0,₹50 off above ₹449 only for customers it brings in
+39,Desserts #39,Koramangala 5th Block,280.0,20.0,-542.0,20.4,0.3,-276.0,₹40 off above ₹349 only for customers it brings in
+40,Tibetan #40,Koramangala 5th Block,420.0,44.7,-1008.0,53.2,8.5,-177.0,₹60 off only for customers it brings in
+41,Desserts #41,Koramangala 5th Block,240.0,41.6,-1124.0,42.5,0.9,-435.0,₹40 off above ₹299 only for customers it brings in
+42,Asian #42,Koramangala 5th Block,1000.0,185.6,44472.0,457.9,272.3,47542.0,₹150 off only for customers it brings in
+43,South Indian #43,Koramangala 5th Block,150.0,23.3,-440.0,20.4,-3.0,-209.0,₹20 off above ₹199 only for customers it brings in
+44,Burger #44,Koramangala 5th Block,420.0,16.1,-398.0,18.9,2.8,-168.0,₹60 off above ₹499 only for customers it brings in
+45,Pizza #45,Koramangala 5th Block,520.0,20.0,-71.0,28.6,8.7,339.0,₹80 off only for customers it brings in
+46,Biryani #46,Koramangala 5th Block,560.0,79.0,-578.0,107.2,28.2,1378.0,₹80 off only for customers it brings in
+47,Biryani #47,Koramangala 5th Block,520.0,66.0,-700.0,90.6,24.6,841.0,₹80 off only for customers it brings in
+48,Mughlai #48,Koramangala 5th Block,520.0,26.3,71.0,38.9,12.6,83.0,₹80 off above ₹599 only for customers it brings in
+49,Chinese #49,Koramangala 5th Block,560.0,37.7,122.0,54.1,16.5,837.0,₹80 off only for customers it brings in
+50,Biryani #50,HSR,150.0,51.5,-787.0,49.8,-1.7,-213.0,₹20 off above ₹199 only for customers it brings in
+51,Bakery #51,HSR,350.0,31.5,-624.0,37.2,5.7,-38.0,₹50 off only for customers it brings in
+52,Kerala #52,HSR,420.0,127.0,-2034.0,160.2,33.3,-134.0,₹60 off above ₹499 only for customers it brings in
+53,North Indian #53,HSR,210.0,14.9,-290.0,15.4,0.5,-64.0,₹30 off above ₹249 only for customers it brings in
+54,North Indian #54,HSR,380.0,85.6,-1599.0,108.4,22.7,419.0,₹60 off only for customers it brings in
+55,Ice Cream #55,HSR,350.0,38.6,-729.0,46.1,7.5,12.0,₹50 off only for customers it brings in
+56,Chinese #56,HSR,280.0,48.9,-998.0,54.5,5.6,-218.0,₹40 off above ₹349 only for customers it brings in
+57,Pizza #57,HSR,420.0,271.2,-3868.0,345.8,74.6,-287.0,₹60 off above ₹499 only for customers it brings in
+58,Beverages #58,HSR,150.0,23.6,-358.0,23.0,-0.7,-89.0,₹20 off above ₹199 only for customers it brings in
+59,North Indian #59,HSR,630.0,54.2,1604.0,87.6,33.4,3011.0,₹90 off only for customers it brings in
+60,North Indian #60,HSR,560.0,60.3,692.0,90.8,30.4,2109.0,₹80 off only for customers it brings in
+61,South Indian #61,HSR,280.0,19.4,-390.0,21.8,2.4,-94.0,₹40 off above ₹349 only for customers it brings in
+62,North Indian #62,HSR,150.0,15.3,-236.0,14.8,-0.5,-71.0,₹20 off above ₹199 only for customers it brings in
+63,North Indian #63,HSR,350.0,116.7,-2278.0,138.5,21.8,-623.0,₹50 off above ₹449 only for customers it brings in
+64,North Indian #64,HSR,350.0,26.5,-549.0,31.2,4.6,-112.0,₹50 off above ₹449 only for customers it brings in
+65,South Indian #65,HSR,280.0,43.0,-829.0,48.4,5.4,-217.0,₹40 off above ₹349 only for customers it brings in
+66,Beverages #66,HSR,280.0,53.9,-1100.0,60.2,6.2,-176.0,₹40 off only for customers it brings in
+67,Bengali #67,HSR,420.0,60.7,-714.0,78.9,18.3,-4.0,₹60 off above ₹499 only for customers it brings in
+68,Biryani #68,HSR,240.0,56.5,-1205.0,63.6,7.1,-285.0,₹40 off above ₹299 only for customers it brings in
+69,Chinese #69,HSR,490.0,26.2,83.0,37.6,11.4,58.0,₹70 off above ₹599 only for customers it brings in
+70,North Indian #70,HSR,280.0,28.1,-581.0,31.2,3.1,-174.0,₹40 off above ₹349 only for customers it brings in
+71,Biryani #71,HSR,210.0,58.7,-1116.0,61.1,2.4,-350.0,₹30 off only for customers it brings in
+72,Biryani #72,HSR,450.0,48.1,-530.0,65.7,17.6,730.0,₹70 off only for customers it brings in
+73,Cafe #73,HSR,420.0,30.1,-465.0,38.2,8.1,-39.0,₹60 off above ₹499 only for customers it brings in
+74,Beverages #74,HSR,150.0,25.6,-387.0,24.9,-0.7,-113.0,₹20 off above ₹199 only for customers it brings in
+75,South Indian #75,HSR,490.0,23.7,90.0,34.4,10.7,68.0,₹70 off above ₹599 only for customers it brings in
+76,Biryani #76,HSR,240.0,29.8,-646.0,33.3,3.6,-170.0,₹40 off above ₹299 only for customers it brings in
+77,Biryani #77,HSR,150.0,41.3,-616.0,40.3,-1.0,-138.0,₹20 off above ₹199 only for customers it brings in
+78,North Indian #78,HSR,320.0,59.1,-1075.0,72.8,13.6,-62.0,₹50 off only for customers it brings in
+79,Burger #79,HSR,420.0,41.7,-478.0,54.1,12.4,363.0,₹60 off only for customers it brings in
+80,Bakery #80,HSR,240.0,23.5,-537.0,25.9,2.4,-109.0,₹40 off above ₹299 only for customers it brings in
+81,South Indian #81,HSR,180.0,18.2,-355.0,19.0,0.7,-92.0,₹30 off above ₹249 only for customers it brings in
+82,Desserts #82,HSR,350.0,129.8,-2338.0,156.2,26.4,-647.0,₹50 off above ₹449 only for customers it brings in
+83,Pizza #83,HSR,420.0,63.0,-708.0,82.4,19.4,475.0,₹60 off only for customers it brings in
+84,Cafe #84,HSR,560.0,49.7,1011.0,78.2,28.5,2234.0,₹80 off only for customers it brings in
+85,North Indian #85,HSR,350.0,31.5,-469.0,39.0,7.5,-139.0,₹50 off above ₹449 only for customers it brings in
+86,Mediterranean #86,HSR,980.0,119.8,43810.0,365.4,245.6,45459.0,₹150 off only for customers it brings in
+87,Street Food #87,HSR,180.0,48.0,-936.0,50.0,2.0,-205.0,₹30 off above ₹249 only for customers it brings in
+88,Cafe #88,HSR,210.0,30.8,-578.0,32.3,1.5,-165.0,₹30 off only for customers it brings in
+89,North Indian #89,HSR,280.0,48.0,-939.0,54.0,6.0,-196.0,₹40 off only for customers it brings in
+90,North Indian #90,HSR,560.0,35.8,873.0,57.5,21.8,653.0,₹80 off above ₹649 only for customers it brings in
+91,North Indian #91,HSR,280.0,62.3,-1257.0,69.6,7.3,-244.0,₹40 off only for customers it brings in
+92,North Indian #92,HSR,210.0,19.9,-374.0,20.8,0.9,-113.0,₹30 off above ₹249 only for customers it brings in
+93,Juices #93,HSR,150.0,52.0,-788.0,50.5,-1.4,-193.0,₹20 off above ₹199 only for customers it brings in
+94,North Indian #94,HSR,280.0,60.4,-1257.0,67.0,6.6,-227.0,₹40 off only for customers it brings in
+95,Bakery #95,HSR,280.0,24.9,-481.0,28.1,3.3,-125.0,₹40 off above ₹349 only for customers it brings in
+96,Biryani #96,HSR,240.0,36.5,-778.0,41.1,4.6,-160.0,₹40 off above ₹299 only for customers it brings in
+97,Chinese #97,HSR,560.0,79.9,1385.0,123.5,43.7,3270.0,₹80 off only for customers it brings in
+98,Bengali #98,HSR,560.0,22.6,79.0,32.5,9.9,252.0,₹80 off above ₹649 only for customers it brings in
+99,South Indian #99,HSR,180.0,46.4,-905.0,48.2,1.9,-200.0,₹30 off above ₹249 only for customers it brings in
+100,Rolls #100,BTM,210.0,58.0,-906.0,64.3,6.4,-118.0,₹30 off only for customers it brings in
+101,Arabian #101,BTM,210.0,57.6,-889.0,64.2,6.5,-110.0,₹30 off only for customers it brings in
+102,Bengali #102,BTM,280.0,67.7,-988.0,81.3,13.6,15.0,₹40 off only for customers it brings in
+103,North Indian #103,BTM,210.0,31.2,-486.0,34.7,3.4,-71.0,₹30 off above ₹249 only for customers it brings in
+104,North Indian #104,BTM,350.0,14.6,-141.0,19.0,4.4,-22.0,₹50 off above ₹449 only for customers it brings in
+105,Biryani #105,BTM,490.0,42.4,435.0,63.5,21.1,1310.0,₹70 off only for customers it brings in
+106,Andhra #106,BTM,320.0,29.8,-426.0,38.2,8.4,-56.0,₹50 off above ₹399 only for customers it brings in
+107,North Indian #107,BTM,420.0,35.4,-146.0,48.8,13.5,228.0,₹60 off above ₹499 only for customers it brings in
+108,North Indian #108,BTM,490.0,16.7,135.0,24.9,8.2,180.0,₹70 off above ₹599 only for customers it brings in
+109,North Indian #109,BTM,210.0,57.7,-905.0,64.0,6.3,-145.0,₹30 off only for customers it brings in
+110,Biryani #110,BTM,210.0,68.5,-1112.0,75.0,6.6,-155.0,₹30 off only for customers it brings in
+111,Chinese #111,BTM,420.0,19.8,-46.0,27.7,7.9,71.0,₹60 off above ₹499 only for customers it brings in
+112,Kerala #112,BTM,150.0,64.9,-851.0,66.6,1.8,-142.0,₹20 off above ₹199 only for customers it brings in
+113,North Indian #113,BTM,350.0,20.7,-342.0,25.3,4.6,6.0,₹50 off above ₹449 only for customers it brings in
+114,South Indian #114,BTM,210.0,39.3,-656.0,42.8,3.5,-85.0,₹30 off only for customers it brings in
+115,North Indian #115,BTM,210.0,34.5,-550.0,38.1,3.6,-71.0,₹30 off only for customers it brings in
+116,North Indian #116,BTM,240.0,30.5,-560.0,36.1,5.6,-58.0,₹40 off only for customers it brings in
+117,Tea #117,BTM,150.0,24.2,-319.0,24.8,0.6,-56.0,₹20 off above ₹199 only for customers it brings in
+118,Beverages #118,BTM,150.0,32.2,-420.0,33.1,0.9,-96.0,₹20 off only for customers it brings in
+119,Bengali #119,BTM,240.0,58.6,-1059.0,69.6,11.1,-109.0,₹40 off above ₹299 only for customers it brings in
+120,South Indian #120,BTM,420.0,28.2,-103.0,39.2,11.0,159.0,₹60 off above ₹499 only for customers it brings in
+121,Biryani #121,BTM,280.0,28.3,-447.0,33.5,5.2,46.0,₹40 off only for customers it brings in
+122,Cafe #122,BTM,350.0,17.8,-153.0,23.4,5.6,11.0,₹50 off above ₹449 only for customers it brings in
+123,North Indian #123,BTM,350.0,155.4,-1901.0,197.6,42.2,-82.0,₹50 off above ₹449 only for customers it brings in
+124,North Indian #124,BTM,150.0,13.8,-180.0,14.2,0.4,-27.0,₹20 off above ₹199 only for customers it brings in
+125,North Indian #125,BTM,180.0,14.9,-243.0,16.8,1.8,-34.0,₹30 off above ₹249 only for customers it brings in
+126,Beverages #126,BTM,180.0,22.1,-355.0,24.7,2.6,-47.0,₹30 off above ₹249 only for customers it brings in
+127,South Indian #127,BTM,150.0,38.6,-502.0,39.7,1.1,-67.0,₹20 off above ₹199 only for customers it brings in
+128,South Indian #128,BTM,210.0,32.4,-502.0,36.0,3.7,-122.0,₹30 off above ₹249 only for customers it brings in
+129,Rolls #129,BTM,180.0,62.9,-1079.0,69.1,6.2,-145.0,₹30 off above ₹249 only for customers it brings in
+130,North Indian #130,BTM,240.0,41.2,-790.0,48.0,6.8,-127.0,₹40 off above ₹299 only for customers it brings in
+131,North Indian #131,BTM,180.0,43.4,-745.0,47.7,4.3,-131.0,₹30 off above ₹249 only for customers it brings in
+132,North Indian #132,BTM,490.0,32.2,383.0,48.8,16.6,346.0,₹70 off above ₹599 only for customers it brings in
+133,Chinese #133,BTM,210.0,51.0,-777.0,56.8,5.8,-140.0,₹30 off above ₹249 only for customers it brings in
+134,North Indian #134,BTM,560.0,51.1,1170.0,81.4,30.3,2400.0,₹80 off only for customers it brings in
+135,Biryani #135,BTM,350.0,135.5,-1557.0,173.3,37.8,-30.0,₹50 off above ₹449 only for customers it brings in
+136,Cafe #136,BTM,350.0,73.2,-868.0,93.6,20.4,386.0,₹50 off only for customers it brings in
+137,Tea #137,BTM,180.0,50.3,-844.0,55.7,5.4,-119.0,₹30 off above ₹249 only for customers it brings in
+138,North Indian #138,BTM,350.0,35.7,-344.0,46.4,10.7,68.0,₹50 off above ₹449 only for customers it brings in
+139,South Indian #139,BTM,210.0,138.6,-2223.0,152.6,14.0,-303.0,₹30 off above ₹249 only for customers it brings in
+140,North Indian #140,BTM,490.0,24.8,310.0,37.8,12.9,321.0,₹70 off above ₹599 only for customers it brings in
+141,Italian #141,BTM,420.0,47.5,-218.0,65.4,17.8,244.0,₹60 off above ₹499 only for customers it brings in
+142,Cafe #142,BTM,420.0,102.5,-335.0,141.8,39.3,660.0,₹60 off above ₹499 only for customers it brings in
+143,Andhra #143,BTM,350.0,66.6,-615.0,87.0,20.4,519.0,₹50 off only for customers it brings in
+144,Kerala #144,BTM,150.0,28.3,-368.0,29.1,0.8,-56.0,₹20 off above ₹199 only for customers it brings in
+145,North Indian #145,BTM,180.0,27.0,-466.0,29.6,2.6,-44.0,₹30 off above ₹249 only for customers it brings in
+146,Chinese #146,BTM,600.0,87.3,4691.0,159.2,72.0,3627.0,₹90 off above ₹699 only for customers it brings in
+147,Oriya #147,BTM,350.0,15.9,-82.0,21.6,5.7,6.0,₹50 off above ₹449 only for customers it brings in
+148,Kerala #148,BTM,280.0,40.1,-575.0,48.4,8.3,-97.0,₹40 off above ₹349 only for customers it brings in
+149,Ice Cream #149,BTM,320.0,30.0,-474.0,37.9,7.8,5.0,₹50 off above ₹399 only for customers it brings in
+150,Healthy Food #150,Indiranagar,350.0,92.0,-2894.0,96.1,4.1,-1695.0,₹50 off above ₹449 only for customers it brings in
+151,Ice Cream #151,Indiranagar,380.0,140.9,-4324.0,159.7,18.8,-1666.0,₹60 off only for customers it brings in
+152,Cafe #152,Indiranagar,450.0,67.5,-2009.0,80.1,12.6,-432.0,₹70 off only for customers it brings in
+153,Continental #153,Indiranagar,980.0,78.3,18791.0,196.4,118.1,19281.0,₹150 off only for customers it brings in
+154,North Indian #154,Indiranagar,350.0,12.8,-384.0,13.6,0.8,-242.0,₹50 off above ₹449 only for customers it brings in
+155,Healthy Food #155,Indiranagar,350.0,21.5,-667.0,22.6,1.2,-392.0,₹50 off only for customers it brings in
+156,North Indian #156,Indiranagar,420.0,90.0,-2689.0,101.1,11.0,-932.0,₹60 off only for customers it brings in
+157,Italian #157,Indiranagar,980.0,143.2,33166.0,354.9,211.7,34639.0,₹150 off only for customers it brings in
+158,Continental #158,Indiranagar,700.0,90.1,1541.0,136.4,46.3,3897.0,₹100 off only for customers it brings in
+159,Biryani #159,Indiranagar,280.0,16.3,-476.0,16.0,-0.3,-228.0,₹40 off above ₹349 only for customers it brings in
+160,Kerala #160,Indiranagar,350.0,33.4,-1005.0,35.5,2.1,-544.0,₹50 off only for customers it brings in
+161,Cafe #161,Indiranagar,630.0,18.7,173.0,27.3,8.7,533.0,₹90 off only for customers it brings in
+162,Italian #162,Indiranagar,840.0,140.1,17729.0,295.6,155.5,19971.0,₹130 off only for customers it brings in
+163,Street Food #163,Indiranagar,280.0,51.6,-1518.0,50.7,-0.9,-736.0,₹40 off only for customers it brings in
+164,American #164,Indiranagar,1000.0,97.9,24903.0,246.0,148.1,25850.0,₹150 off only for customers it brings in
+165,South Indian #165,Indiranagar,210.0,75.1,-1935.0,68.3,-6.8,-953.0,₹30 off above ₹249 only for customers it brings in
+166,Desserts #166,Indiranagar,210.0,82.4,-2083.0,75.8,-6.6,-1017.0,₹30 off only for customers it brings in
+167,North Indian #167,Indiranagar,630.0,52.2,219.0,75.3,23.1,1254.0,₹90 off only for customers it brings in
+168,Seafood #168,Indiranagar,700.0,80.4,1855.0,125.4,45.0,3638.0,₹100 off only for customers it brings in
+169,Burger #169,Indiranagar,420.0,85.5,-2498.0,96.5,11.0,-883.0,₹60 off only for customers it brings in
+170,Biryani #170,Indiranagar,210.0,14.0,-345.0,13.0,-1.0,-157.0,₹30 off above ₹249 only for customers it brings in
+171,North Indian #171,Indiranagar,490.0,29.5,-652.0,36.3,6.8,-111.0,₹70 off only for customers it brings in
+172,Pizza #172,Indiranagar,520.0,63.5,-1230.0,83.0,19.6,-384.0,₹80 off above ₹599 only for customers it brings in
+173,South Indian #173,Indiranagar,150.0,16.2,-321.0,13.8,-2.3,-169.0,₹20 off only for customers it brings in
+174,Burger #174,Indiranagar,350.0,39.6,-1224.0,41.6,2.1,-581.0,₹50 off only for customers it brings in
+175,Chinese #175,Indiranagar,420.0,14.9,-431.0,16.8,1.9,-268.0,₹60 off above ₹499 only for customers it brings in
+176,North Indian #176,Indiranagar,210.0,26.5,-669.0,24.3,-2.2,-324.0,₹30 off above ₹249 only for customers it brings in
+177,Chinese #177,Indiranagar,420.0,15.8,-513.0,17.3,1.6,-229.0,₹60 off above ₹499 only for customers it brings in
+178,North Indian #178,Indiranagar,700.0,88.7,1814.0,136.8,48.1,3495.0,₹100 off only for customers it brings in
+179,Desserts #179,Indiranagar,210.0,47.0,-1192.0,43.2,-3.9,-562.0,₹30 off only for customers it brings in
+180,North Indian #180,Indiranagar,150.0,21.1,-422.0,17.8,-3.4,-216.0,₹20 off above ₹199 only for customers it brings in
+181,Portuguese #181,Indiranagar,840.0,101.4,10315.0,202.6,101.3,11934.0,₹130 off only for customers it brings in
+182,North Indian #182,Indiranagar,240.0,11.6,-334.0,11.4,-0.2,-138.0,₹40 off above ₹299 only for customers it brings in
+183,North Indian #183,Indiranagar,240.0,26.9,-781.0,26.6,-0.4,-372.0,₹40 off above ₹299 only for customers it brings in
+184,Burger #184,Indiranagar,320.0,35.0,-1102.0,36.8,1.8,-516.0,₹50 off above ₹399 only for customers it brings in
+185,Mangalorean #185,Indiranagar,700.0,73.5,2016.0,116.3,42.8,3551.0,₹100 off only for customers it brings in
+186,Desserts #186,Indiranagar,210.0,15.6,-390.0,14.4,-1.2,-188.0,₹30 off only for customers it brings in
+187,Fast Food #187,Indiranagar,180.0,43.7,-1089.0,39.7,-3.9,-479.0,₹30 off above ₹249 only for customers it brings in
+188,Beverages #188,Indiranagar,350.0,30.6,-933.0,32.4,1.7,-446.0,₹50 off only for customers it brings in
+189,Kerala #189,Indiranagar,240.0,47.7,-1390.0,46.9,-0.8,-579.0,₹40 off above ₹299 only for customers it brings in
+190,Kerala #190,Indiranagar,560.0,50.2,-759.0,65.6,15.3,481.0,₹80 off only for customers it brings in
+191,Biryani #191,Indiranagar,560.0,125.4,-1932.0,163.5,38.0,701.0,₹80 off only for customers it brings in
+192,Continental #192,Indiranagar,320.0,15.2,-468.0,16.1,0.8,-219.0,₹50 off only for customers it brings in
+193,Cafe #193,Indiranagar,350.0,15.0,-463.0,15.8,0.8,-285.0,₹50 off above ₹449 only for customers it brings in
+194,Burmese #194,Indiranagar,420.0,38.9,-1184.0,43.3,4.4,-433.0,₹60 off only for customers it brings in
+195,Fast Food #195,Indiranagar,980.0,112.0,25788.0,276.8,164.8,26737.0,₹150 off only for customers it brings in
+196,North Indian #196,Indiranagar,350.0,55.8,-1738.0,58.5,2.7,-1011.0,₹50 off above ₹449 only for customers it brings in
+197,North Indian #197,Indiranagar,280.0,13.3,-383.0,13.2,-0.1,-150.0,₹40 off above ₹349 only for customers it brings in
+198,Cafe #198,Indiranagar,490.0,29.9,-663.0,36.8,7.0,-476.0,₹70 off above ₹599 only for customers it brings in
+199,North Indian #199,Indiranagar,450.0,47.4,-1439.0,56.0,8.6,-543.0,₹70 off only for customers it brings in
+200,Fast Food #200,Jayanagar,350.0,34.6,-754.0,40.1,5.5,-370.0,₹50 off above ₹449 only for customers it brings in
+201,Continental #201,Jayanagar,840.0,68.9,11260.0,158.4,89.6,12694.0,₹130 off only for customers it brings in
+202,Biryani #202,Jayanagar,520.0,84.3,-27.0,123.8,39.5,1731.0,₹80 off only for customers it brings in
+203,Pizza #203,Jayanagar,350.0,21.7,-493.0,25.0,3.3,-202.0,₹50 off above ₹449 only for customers it brings in
+204,Fast Food #204,Jayanagar,150.0,29.5,-482.0,27.7,-1.8,-143.0,₹20 off above ₹199 only for customers it brings in
+205,Desserts #205,Jayanagar,240.0,38.8,-957.0,41.3,2.5,-268.0,₹40 off above ₹299 only for customers it brings in
+206,Bakery #206,Jayanagar,350.0,100.1,-2259.0,115.4,15.3,-1036.0,₹50 off above ₹449 only for customers it brings in
+207,North Indian #207,Jayanagar,1000.0,153.5,45189.0,419.4,265.9,47227.0,₹150 off only for customers it brings in
+208,Ice Cream #208,Jayanagar,150.0,22.0,-357.0,20.7,-1.2,-113.0,₹20 off above ₹199 only for customers it brings in
+209,Cafe #209,Jayanagar,450.0,38.7,-412.0,52.8,14.0,418.0,₹70 off only for customers it brings in
+210,South Indian #210,Jayanagar,520.0,31.2,-15.0,45.3,14.1,289.0,₹80 off above ₹599 only for customers it brings in
+211,North Indian #211,Jayanagar,380.0,39.7,-845.0,49.4,9.7,-257.0,₹60 off above ₹449 only for customers it brings in
+212,South Indian #212,Jayanagar,280.0,65.4,-1534.0,70.0,4.6,-540.0,₹40 off only for customers it brings in
+213,Ice Cream #213,Jayanagar,180.0,19.4,-406.0,19.5,0.1,-135.0,₹30 off above ₹249 only for customers it brings in
+214,North Indian #214,Jayanagar,560.0,48.6,484.0,72.0,23.4,507.0,₹80 off above ₹649 only for customers it brings in
+215,North Indian #215,Jayanagar,240.0,25.9,-631.0,27.7,1.8,-215.0,₹40 off above ₹299 only for customers it brings in
+216,North Indian #216,Jayanagar,700.0,136.4,6598.0,232.8,96.5,9897.0,₹100 off only for customers it brings in
+217,Desserts #217,Jayanagar,280.0,36.6,-829.0,39.6,3.0,-279.0,₹40 off only for customers it brings in
+218,Tea #218,Jayanagar,180.0,30.0,-644.0,29.8,-0.2,-199.0,₹30 off above ₹249 only for customers it brings in
+219,South Indian #219,Jayanagar,280.0,40.6,-956.0,43.4,2.8,-389.0,₹40 off only for customers it brings in
+220,North Indian #220,Jayanagar,560.0,48.6,155.0,70.4,21.8,1229.0,₹80 off only for customers it brings in
+221,North Indian #221,Jayanagar,630.0,60.6,1908.0,98.4,37.7,1061.0,₹90 off above ₹749 only for customers it brings in
+222,Continental #222,Jayanagar,490.0,63.8,-595.0,85.6,21.7,575.0,₹70 off only for customers it brings in
+223,Ice Cream #223,Jayanagar,350.0,81.7,-1971.0,92.7,11.0,-791.0,₹50 off above ₹449 only for customers it brings in
+224,Pizza #224,Jayanagar,520.0,78.2,-56.0,113.8,35.6,273.0,₹80 off above ₹599 only for customers it brings in
+225,Mithai #225,Jayanagar,280.0,45.4,-1115.0,47.9,2.5,-292.0,₹40 off only for customers it brings in
+226,Arabian #226,Jayanagar,210.0,113.6,-2428.0,113.1,-0.5,-803.0,₹30 off above ₹249 only for customers it brings in
+227,Mangalorean #227,Jayanagar,450.0,53.5,-828.0,71.0,17.5,-211.0,₹70 off above ₹549 only for customers it brings in
+228,Biryani #228,Jayanagar,280.0,22.5,-532.0,24.0,1.5,-204.0,₹40 off above ₹349 only for customers it brings in
+229,Cafe #229,Jayanagar,280.0,52.7,-1241.0,56.3,3.6,-323.0,₹40 off only for customers it brings in
+230,Cafe #230,Jayanagar,520.0,46.4,498.0,71.7,25.3,1396.0,₹80 off only for customers it brings in
+231,Ice Cream #231,Jayanagar,280.0,124.5,-2960.0,132.8,8.3,-1016.0,₹40 off only for customers it brings in
+232,Chinese #232,Jayanagar,450.0,11.4,-54.0,16.3,4.9,-53.0,₹70 off above ₹549 only for customers it brings in
+233,Burger #233,Jayanagar,420.0,114.2,-2304.0,138.9,24.7,-15.0,₹60 off only for customers it brings in
+234,Biryani #234,Jayanagar,490.0,36.2,-333.0,48.1,11.9,393.0,₹70 off only for customers it brings in
+235,North Indian #235,Jayanagar,320.0,29.8,-754.0,33.6,3.9,-333.0,₹50 off above ₹399 only for customers it brings in
+236,North Indian #236,Jayanagar,380.0,42.6,-1009.0,51.7,9.1,-7.0,₹60 off only for customers it brings in
+237,South Indian #237,Jayanagar,350.0,52.2,-1212.0,59.6,7.4,-197.0,₹50 off only for customers it brings in
+238,Asian #238,Jayanagar,560.0,39.5,295.0,57.8,18.3,1013.0,₹80 off only for customers it brings in
+239,Desserts #239,Jayanagar,210.0,46.7,-1008.0,46.3,-0.4,-355.0,₹30 off above ₹249 only for customers it brings in
+240,South Indian #240,Jayanagar,280.0,52.2,-1241.0,55.7,3.4,-418.0,₹40 off only for customers it brings in
+241,Beverages #241,Jayanagar,210.0,57.8,-1236.0,57.4,-0.3,-504.0,₹30 off only for customers it brings in
+242,Biryani #242,Jayanagar,280.0,44.7,-1026.0,48.2,3.5,-419.0,₹40 off above ₹349 only for customers it brings in
+243,Kerala #243,Jayanagar,210.0,31.8,-679.0,31.7,-0.1,-220.0,₹30 off above ₹249 only for customers it brings in
+244,South Indian #244,Jayanagar,320.0,42.8,-1077.0,48.7,5.9,-355.0,₹50 off above ₹399 only for customers it brings in
+245,South Indian #245,Jayanagar,280.0,55.0,-1286.0,58.9,3.9,-477.0,₹40 off only for customers it brings in
+246,Andhra #246,Jayanagar,700.0,84.2,4821.0,148.0,63.8,6819.0,₹100 off only for customers it brings in
+247,Chinese #247,Jayanagar,450.0,17.4,-241.0,23.1,5.7,-23.0,₹70 off above ₹549 only for customers it brings in
+248,Pizza #248,Jayanagar,280.0,56.7,-1334.0,60.6,3.9,-523.0,₹40 off above ₹349 only for customers it brings in
+249,Ice Cream #249,Jayanagar,210.0,13.7,-296.0,13.6,-0.1,-138.0,₹30 off above ₹249 only for customers it brings in
+250,Burger #250,Whitefield,420.0,152.8,-3746.0,179.3,26.5,-1907.0,₹60 off above ₹499 only for customers it brings in
+251,Finger Food #251,Whitefield,980.0,97.7,24903.0,251.9,154.2,25884.0,₹150 off only for customers it brings in
+252,North Indian #252,Whitefield,210.0,22.0,-509.0,21.1,-0.9,-219.0,₹30 off above ₹249 only for customers it brings in
+253,American #253,Whitefield,420.0,28.1,-643.0,33.4,5.3,-75.0,₹60 off only for customers it brings in
+254,North Indian #254,Whitefield,280.0,48.2,-1302.0,48.9,0.7,-512.0,₹40 off above ₹349 only for customers it brings in
+255,North Indian #255,Whitefield,490.0,55.0,-939.0,70.0,15.0,-572.0,₹70 off above ₹599 only for customers it brings in
+256,North Indian #256,Whitefield,210.0,18.2,-427.0,17.4,-0.8,-186.0,₹30 off above ₹249 only for customers it brings in
+257,Ice Cream #257,Whitefield,280.0,21.1,-548.0,21.8,0.7,-292.0,₹40 off above ₹349 only for customers it brings in
+258,Cafe #258,Whitefield,630.0,108.0,1076.0,160.3,52.3,3475.0,₹90 off only for customers it brings in
+259,Steak #259,Whitefield,630.0,126.0,1311.0,186.7,60.7,3818.0,₹90 off only for customers it brings in
+260,Healthy Food #260,Whitefield,350.0,131.0,-3521.0,144.2,13.2,-1907.0,₹50 off above ₹449 only for customers it brings in
+261,Continental #261,Whitefield,840.0,42.6,6735.0,96.9,54.3,7225.0,₹130 off only for customers it brings in
+262,Salad #262,Whitefield,420.0,10.1,-198.0,12.3,2.3,-115.0,₹60 off above ₹499 only for customers it brings in
+263,Continental #263,Whitefield,350.0,21.4,-586.0,23.3,2.0,-291.0,₹50 off above ₹449 only for customers it brings in
+264,Ice Cream #264,Whitefield,280.0,93.5,-2508.0,95.4,1.9,-1212.0,₹40 off above ₹349 only for customers it brings in
+265,Biryani #265,Whitefield,280.0,16.0,-409.0,16.7,0.6,-199.0,₹40 off above ₹349 only for customers it brings in
+266,Mughlai #266,Whitefield,770.0,169.0,14353.0,330.2,161.2,18100.0,₹120 off only for customers it brings in
+267,Kerala #267,Whitefield,490.0,66.9,-1097.0,85.4,18.6,165.0,₹70 off only for customers it brings in
+268,North Indian #268,Whitefield,420.0,43.3,-1042.0,51.3,8.0,-124.0,₹60 off only for customers it brings in
+269,Andhra #269,Whitefield,210.0,15.9,-382.0,15.0,-0.9,-207.0,₹30 off above ₹249 only for customers it brings in
+270,Cafe #270,Whitefield,490.0,10.8,-117.0,14.4,3.5,-84.0,₹70 off above ₹599 only for customers it brings in
+271,North Indian #271,Whitefield,350.0,25.0,-627.0,27.9,3.0,-371.0,₹50 off above ₹449 only for customers it brings in
+272,Hyderabadi #272,Whitefield,560.0,60.6,-354.0,83.7,23.1,923.0,₹80 off only for customers it brings in
+273,Biryani #273,Whitefield,450.0,64.1,-1516.0,79.8,15.7,17.0,₹70 off only for customers it brings in
+274,Chinese #274,Whitefield,450.0,22.3,-406.0,29.1,6.7,-230.0,₹70 off above ₹549 only for customers it brings in
+275,Chinese #275,Whitefield,280.0,40.0,-1052.0,41.2,1.1,-475.0,₹40 off above ₹349 only for customers it brings in
+276,Kerala #276,Whitefield,320.0,20.4,-556.0,22.6,2.2,-298.0,₹50 off above ₹399 only for customers it brings in
+277,North Indian #277,Whitefield,350.0,17.4,-465.0,19.1,1.7,-249.0,₹50 off above ₹449 only for customers it brings in
+278,South Indian #278,Whitefield,420.0,19.0,-403.0,23.0,4.0,-238.0,₹60 off above ₹499 only for customers it brings in + ₹20 Brand Pack reward for regulars
+279,Chinese #279,Whitefield,630.0,67.9,1068.0,103.4,35.5,2651.0,₹90 off only for customers it brings in
+280,Tibetan #280,Whitefield,280.0,11.3,-292.0,11.7,0.4,-150.0,₹40 off above ₹349 only for customers it brings in
+281,Cafe #281,Whitefield,450.0,15.2,-206.0,20.3,5.2,-142.0,₹70 off above ₹549 only for customers it brings in
+282,Rajasthani #282,Whitefield,560.0,87.0,-281.0,121.3,34.3,1690.0,₹80 off only for customers it brings in
+283,North Indian #283,Whitefield,490.0,210.8,-4052.0,265.3,54.5,500.0,₹70 off only for customers it brings in
+284,North Indian #284,Whitefield,350.0,11.8,-326.0,13.0,1.1,-148.0,₹50 off above ₹449 only for customers it brings in
+285,North Indian #285,Whitefield,350.0,18.9,-531.0,20.4,1.6,-251.0,₹50 off above ₹449 only for customers it brings in
+286,North Indian #286,Whitefield,350.0,24.6,-681.0,26.8,2.2,-288.0,₹50 off above ₹449 only for customers it brings in
+287,Mithai #287,Whitefield,150.0,14.9,-266.0,13.5,-1.5,-111.0,₹20 off above ₹199 only for customers it brings in
+288,North Indian #288,Whitefield,350.0,14.5,-406.0,15.8,1.2,-207.0,₹50 off above ₹449 only for customers it brings in
+289,North Indian #289,Whitefield,240.0,40.4,-1096.0,41.2,0.9,-440.0,₹40 off above ₹299 only for customers it brings in
+290,North Indian #290,Whitefield,840.0,32.9,5295.0,74.9,42.0,6093.0,₹130 off only for customers it brings in
+291,Chinese #291,Whitefield,980.0,109.9,29854.0,289.6,179.8,31256.0,₹150 off only for customers it brings in
+292,North Indian #292,Whitefield,240.0,12.0,-316.0,12.4,0.4,-131.0,₹40 off above ₹299 only for customers it brings in + ₹10 Brand Pack reward for regulars
+293,Bakery #293,Whitefield,350.0,18.3,-454.0,20.6,2.3,-190.0,₹50 off only for customers it brings in
+294,Bakery #294,Whitefield,150.0,27.1,-480.0,24.5,-2.6,-182.0,₹20 off above ₹199 only for customers it brings in
+295,Asian #295,Whitefield,840.0,125.9,16476.0,269.2,143.3,18773.0,₹130 off only for customers it brings in
+296,North Indian #296,Whitefield,280.0,23.0,-611.0,23.5,0.6,-317.0,₹40 off above ₹349 only for customers it brings in
+297,Andhra #297,Whitefield,210.0,15.4,-363.0,14.7,-0.7,-189.0,₹30 off above ₹249 only for customers it brings in
+298,North Indian #298,Whitefield,420.0,12.1,-251.0,14.7,2.6,-156.0,₹60 off above ₹499 only for customers it brings in
+299,North Indian #299,Whitefield,280.0,43.0,-1162.0,43.7,0.7,-543.0,₹40 off only for customers it brings in

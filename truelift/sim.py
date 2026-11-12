@@ -27,6 +27,11 @@ import pandas as pd
 from .economics import Terms, split
 
 TYPES = ("loyal", "casual", "deal_seeker", "infrequent")
+
+
+def display_name(r) -> str:
+    """How a restaurant is shown: cuisine and number (real listing details, no real name)."""
+    return f"{str(r['cuisines']).split(',')[0].strip()} #{int(r['restaurant_id'])}"
 SLOTS = ("lunch", "3-6 pm", "dinner")
 
 

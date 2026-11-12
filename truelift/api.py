@@ -31,7 +31,7 @@ from pydantic import BaseModel, Field
 
 from .economics import Terms, weekly_example
 from .engine import Design, Engine, weekly_message
-from .sim import (Config, Market, build_history, recent_visits, restaurant_baskets,
+from .sim import (Config, Market, build_history, display_name, recent_visits, restaurant_baskets,
                   status_quo_policy)
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -124,11 +124,6 @@ def logged(name: str, t0: float, **info):
     s = st()
     s.calls.append({"hook": name, "ms": round((time.perf_counter() - t0) * 1000, 1), **info})
     s.calls[:] = s.calls[-30:]
-
-
-def display_name(r) -> str:
-    """Real listings, but no real names: simulated profits must not be pinned on real businesses."""
-    return f"{str(r['cuisines']).split(',')[0].strip()} #{int(r['restaurant_id'])}"
 
 
 def restaurant_card(s: State, rid: int) -> dict:

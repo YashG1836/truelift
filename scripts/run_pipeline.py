@@ -37,7 +37,8 @@ sys.path.insert(0, str(ROOT))
 from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine, fit_topup_value  # noqa: E402
 from truelift.model import UpliftModel, qini_coefficient  # noqa: E402
-from truelift.sim import Config, Market, Policy, build_history, recent_visits, restaurant_baskets  # noqa: E402
+from truelift.sim import (Config, Market, Policy, build_history, display_name, recent_visits,  # noqa: E402
+                          restaurant_baskets)
 
 EVAL_WEEKS = (1, 2, 3, 4)
 
@@ -293,7 +294,7 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
     # per-restaurant table and the demo restaurant
     pr = {k: worlds[k]["per_rest"] for k in ("no_offer", "today_blanket", "truelift")}
     tab = pd.DataFrame({
-        "restaurant_id": range(n), "name": R["name"], "locality": R["locality"], "aov": aov,
+        "restaurant_id": range(n), "name": [display_name(r) for _, r in R.iterrows()], "locality": R["locality"], "aov": aov,
         "orders_no_offer": pr["no_offer"]["orders"].round(1),
         "blanket_profit_change": (pr["today_blanket"]["profit"] - pr["no_offer"]["profit"]).round(0),
         "blanket_redemptions": pr["today_blanket"]["redemptions"].round(1),

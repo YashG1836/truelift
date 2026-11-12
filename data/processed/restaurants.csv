@@ -1,301 +1,301 @@
-restaurant_id,name,locality,cuisines,cost_for_two,rating,votes
-0,Madeena Hotel,Koramangala 5th Block,"North Indian, Mughlai",400,3.9,89
-1,Berry'd Alive,Koramangala 5th Block,Desserts,400,4.3,1902
-2,Juice Junction,Koramangala 5th Block,"Juices, Fast Food",200,4.0,139
-3,What's In A Name,Koramangala 5th Block,"Finger Food, Asian",1200,4.1,1798
-4,Leon Grill,Koramangala 5th Block,"Burger, Fast Food",500,4.3,172
-5,Thalassery Restaurant,Koramangala 5th Block,"Kerala, Biryani",600,3.6,383
-6,XO Belgian Waffle,Koramangala 5th Block,"Desserts, Beverages",400,4.5,835
-7,Billionaires Cafe,Koramangala 5th Block,"Cafe, Italian",600,3.8,47
-8,Popsies,Koramangala 5th Block,"Chinese, Momos",550,3.9,823
-9,1722 Urban Bistro,Koramangala 5th Block,"North Indian, Chinese",600,4.1,226
-10,Tim Tai,Koramangala 5th Block,"Chinese, Thai",1400,4.4,3677
-11,Namaste Kitchen,Koramangala 5th Block,"North Indian, South Indian",550,3.8,172
-12,Smoke de Burger,Koramangala 5th Block,Fast Food,300,3.7,37
-13,The Paramount Hotel,Koramangala 5th Block,"North Indian, Seafood",1000,3.6,243
-14,99 Pancakes,Koramangala 5th Block,"Desserts, Beverages",300,4.5,360
-15,Smally's Resto Cafe,Koramangala 5th Block,"Cafe, Italian",650,4.2,1722
-16,Beer Adda,Koramangala 5th Block,"North Indian, Chinese",1000,4.3,554
-17,Empire Restaurant,Koramangala 5th Block,"North Indian, Mughlai",750,4.1,6959
-18,The Marash,Koramangala 5th Block,"Turkish, Desserts",250,4.3,70
-19,Cafe D'hide,Koramangala 5th Block,"Cafe, American",600,4.2,877
-20,Fresh Pressery Cafe,Koramangala 5th Block,"Cafe, Healthy Food",1200,4.1,147
-21,Purani Dilli By Anand Sweets,Koramangala 5th Block,"North Indian, Continental",500,4.1,238
-22,Bathinda Junction,Koramangala 5th Block,"North Indian, Mughlai",600,4.1,1251
-23,Sonar Bangala,Koramangala 5th Block,"Bengali, North Indian",500,3.8,76
-24,Cream Chemistry,Koramangala 5th Block,"Ice Cream, Desserts",500,3.9,234
-25,Tall Blonde French,Koramangala 5th Block,Fast Food,400,4.3,726
-26,Karama Restaurant,Koramangala 5th Block,"Arabian, North Indian",750,4.1,1574
-27,The Shawarma Inc,Koramangala 5th Block,"Arabian, Fast Food",200,3.4,95
-28,Makers of Milkshakes,Koramangala 5th Block,Beverages,400,4.2,56
-29,Keventers,Koramangala 5th Block,"Desserts, Beverages",400,4.0,169
-30,Goli Vada Pav No. 1,Koramangala 5th Block,Street Food,200,3.7,215
-31,Stoner,Koramangala 5th Block,"Ice Cream, Cafe",500,4.5,2668
-32,Gelato Italiano,Koramangala 5th Block,"Ice Cream, Bakery",200,3.9,110
-33,McDonald's,Koramangala 5th Block,"Burger, Fast Food",500,3.8,295
-34,1000 B.C,Koramangala 5th Block,"Arabian, Sandwich",300,3.2,49
-35,Coffee Tea & More,Koramangala 5th Block,"Beverages, Sandwich",150,4.0,64
-36,Lassi Shop,Koramangala 5th Block,"Beverages, Ice Cream",200,4.1,216
-37,30 Square,Koramangala 5th Block,"Tibetan, Nepalese",400,4.2,559
-38,Cream Stone,Koramangala 5th Block,"Desserts, Ice Cream",500,4.2,346
-39,WAFL Co,Koramangala 5th Block,"Desserts, Beverages",400,4.2,53
-40,Tibetan Kitchen,Koramangala 5th Block,"Tibetan, Chinese",600,4.3,247
-41,The Belgian Waffle Co.,Koramangala 5th Block,"Desserts, Beverages",350,4.2,184
-42,Asia Kitchen By Mainland China,Koramangala 5th Block,"Asian, Chinese",1500,4.9,2256
-43,Dosa Plaza,Koramangala 5th Block,"South Indian, North Indian",200,3.8,141
-44,Burger Lounge,Koramangala 5th Block,"Burger, Fast Food",600,3.5,76
-45,Pizza Hut,Koramangala 5th Block,"Pizza, Fast Food",750,3.7,116
-46,Shanmukha,Koramangala 5th Block,"Biryani, Andhra",800,4.1,790
-47,Mani's Dum Biryani,Koramangala 5th Block,"Biryani, Andhra",750,3.9,784
-48,7 Plates,Koramangala 5th Block,"Mughlai, Fast Food",750,3.7,259
-49,Chung Wah,Koramangala 5th Block,"Chinese, Thai",800,4.0,314
-50,Donne Biriyani House,HSR,Biryani,200,3.8,278
-51,Sweet Truth,HSR,"Bakery, Desserts",500,4.0,48
-52,Kumarakom,HSR,"Kerala, Seafood",600,3.8,1168
-53,What's Cooking,HSR,North Indian,300,3.1,35
-54,Cinnamon,HSR,"North Indian, Chinese",550,3.9,450
-55,Cream Chemistry,HSR,"Ice Cream, Desserts",500,3.9,75
-56,Udupi Bhavan,HSR,"Chinese, North Indian",400,3.8,184
-57,Onesta,HSR,"Pizza, Cafe",600,4.4,3859
-58,NutBerry,HSR,"Beverages, Desserts",150,3.8,34
-59,Vintage Shack,HSR,"North Indian, Continental",900,3.9,163
-60,Atithi,HSR,"North Indian, Chinese",800,3.9,224
-61,HSR Agarval Bhavan,HSR,"South Indian, Street Food",400,3.2,68
-62,Paratha Plaza,HSR,North Indian,200,3.1,82
-63,Punjabi Nukkad Pure Veg,HSR,"North Indian, Chinese",500,4.0,795
-64,Swad 'E' Punjab,HSR,"North Indian, Chinese",500,3.6,51
-65,Sri Krishna Sagar,HSR,"South Indian, North Indian",400,3.5,237
-66,Frozen Bottle,HSR,"Beverages, Desserts",400,4.1,187
-67,Bangaliana,HSR,Bengali,600,3.7,311
-68,Mandya Gowdru Donne Biriyani,HSR,"Biryani, South Indian",350,3.8,283
-69,Poorvika Restro Cafe,HSR,"Chinese, North Indian",700,3.7,76
-70,Mealsbaba,HSR,North Indian,400,3.7,57
-71,Noon's,HSR,Biryani,300,4.2,166
-72,Birinz,HSR,"Biryani, Kebab",650,4.3,83
-73,Foodiesthan,HSR,"Cafe, Fast Food",600,3.7,59
-74,Priya Juice & Snacks,HSR,"Beverages, Juices",200,3.7,78
-75,Dindigul Time Pass Restaurant,HSR,"South Indian, North Indian",700,3.2,115
-76,GKT Biryani World,HSR,"Biryani, Italian",350,3.7,85
-77,Kitchens@HSR,HSR,"Biryani, Kerala",200,3.1,247
-78,Shree Khana Khazana,HSR,"North Indian, Chinese",450,3.9,356
-79,Uptown Sliders & Shakes,HSR,"Burger, Fast Food",600,3.9,115
-80,Intriicake,HSR,"Bakery, Desserts",350,3.8,34
-81,New Udupi Grand,HSR,"South Indian, North Indian",250,3.7,36
-82,Cream Stone,HSR,"Desserts, Beverages",500,4.2,1023
-83,Mojo Pizza - 2X Toppings,HSR,Pizza,600,4.2,218
-84,Third Wave Coffee Roasters,HSR,"Cafe, Continental",800,4.1,142
-85,Kabab Magic,HSR,"North Indian, Kebab",500,3.1,283
-86,Mishmash,HSR,"Mediterranean, Continental",1400,3.9,1252
-87,Chaat Street,HSR,"Street Food, North Indian",250,3.8,192
-88,Tea Addict,HSR,"Cafe, Beverages",300,4.0,77
-89,Hotel Salam,HSR,"North Indian, Chinese",400,4.1,130
-90,Aaranya Restaurant,HSR,"North Indian, Chinese",800,3.4,212
-91,The Paratha Company,HSR,North Indian,400,4.3,169
-92,Hungry Queen,HSR,"North Indian, Chinese",300,3.6,46
-93,Juice Junction Food Court,HSR,"Juices, South Indian",200,3.8,215
-94,Families Food Court,HSR,"North Indian, Chinese",400,3.9,261
-95,Kwality Cakes N Bakes,HSR,"Bakery, Desserts",400,3.7,94
-96,Biryani Affair,HSR,Biryani,350,3.5,147
-97,Sichuan,HSR,"Chinese, Asian",800,4.0,494
-98,Feastaurant,HSR,"Bengali, Chinese",800,3.7,30
-99,Southinn,HSR,"South Indian, Fast Food",250,3.8,191
-100,Pathaan Sir,BTM,"Rolls, Chinese",300,3.9,184
-101,Just Shawarma,BTM,Arabian,300,3.9,201
-102,Hiyar Majhe Kolkata,BTM,"Bengali, North Indian",400,3.9,257
-103,Ammus Hot N Cool,BTM,"North Indian, Fast Food",300,3.5,85
-104,Nawab-E-Khana,BTM,"North Indian, Biryani",500,3.2,30
-105,Dum Biryani Hub,BTM,Biryani,700,3.9,68
-106,Delight Food,BTM,"Andhra, Chinese",450,2.6,175
-107,Bawarchi Inn,BTM,"North Indian, Biryani",600,3.1,140
-108,RBP Greens Garden,BTM,"North Indian, Chinese",700,2.7,48
-109,Nanna Munna Paratha House,BTM,North Indian,300,4.0,109
-110,Aramane Donne Biriyani,BTM,"Biryani, Fast Food",300,3.9,192
-111,Tasty Magic,BTM,"Chinese, North Indian",600,2.7,74
-112,Kannur Food Point,BTM,"Kerala, Chinese",200,3.7,217
-113,The Biriyani Factory,BTM,"North Indian, Biryani",500,3.1,31
-114,Krishna Sagar,BTM,"South Indian, North Indian",300,3.9,52
-115,RB Food Point,BTM,"North Indian, Chinese",300,3.9,44
-116,Food And You,BTM,"North Indian, South Indian",350,3.9,35
-117,Xpress Chai,BTM,Tea,150,3.7,32
-118,Lassi Shop,BTM,"Beverages, Ice Cream",200,3.9,40
-119,Tongue Twisters,BTM,"Bengali, North Indian",350,3.5,283
-120,Sankranthi Veg Restaurant,BTM,"South Indian, North Indian",600,3.0,102
-121,SGS Non Veg - Gundu Pulav,BTM,"Biryani, Fast Food",400,3.6,41
-122,Eatery Have U Been,BTM,"Cafe, Chinese",500,3.4,36
-123,Gyani Da Punjabi Dhaba,BTM,"North Indian, Chinese",500,3.9,1190
-124,Snack Knack,BTM,"North Indian, Chinese",200,3.0,37
-125,Kataria's Home Food,BTM,"North Indian, Chinese",250,3.1,40
-126,Just Chill,BTM,Beverages,250,3.4,54
-127,DeliBox.in,BTM,South Indian,150,3.7,67
-128,Sagar Fast Food,BTM,"South Indian, Chinese",300,3.7,67
-129,Ilyazsab The House Of Chicken,BTM,"Rolls, Kebab",250,4.0,120
-130,Tandoor Garden,BTM,"North Indian, Chinese",350,3.6,71
-131,Sri Lakshmi Dhaba,BTM,North Indian,250,3.0,262
-132,Zeeshan,BTM,"North Indian, Mughlai",700,2.8,178
-133,Chicken Magic,BTM,"Chinese, North Indian",300,3.6,214
-134,Hang10 Resto N Cafe,BTM,"North Indian, Chinese",800,3.8,102
-135,Biryani Pot,BTM,Biryani,500,3.8,1081
-136,Bun Town,BTM,"Cafe, Bakery",500,4.0,207
-137,Chai Point,BTM,"Tea, Beverages",250,4.0,113
-138,Night Restro,BTM,"North Indian, Chinese",500,3.1,224
-139,Swadista Aahar,BTM,"South Indian, North Indian",300,4.1,790
-140,High n Hungry,BTM,"North Indian, South Indian",700,2.9,95
-141,Crunch Pizzas,BTM,"Italian, Pizza",600,2.6,473
-142,On The Nose,BTM,"Cafe, Italian",600,3.8,618
-143,Hotel Godavari,BTM,"Andhra, Chinese",500,3.9,227
-144,Nadan Thattukada,BTM,"Kerala, South Indian",200,3.7,36
-145,Mangalore Lunch Home,BTM,"North Indian, South Indian",250,3.6,43
-146,Beijing Bites,BTM,"Chinese, Thai",850,3.7,479
-147,Odissi Restaurant,BTM,"Oriya, Bengali",500,2.9,67
-148,Empire Restaurant,BTM,"Kerala, Seafood",400,3.8,106
-149,Thanco's Natural Ice Cream,BTM,"Ice Cream, Desserts",450,3.8,32
-150,eat.fit,Indiranagar,"Healthy Food, North Indian",500,4.4,882
-151,Stoner,Indiranagar,"Ice Cream, Pizza",550,4.4,2699
-152,Smally's Resto Cafe,Indiranagar,"Cafe, Italian",650,4.1,427
-153,Woodstok,Indiranagar,"Continental, Italian",1400,4.1,1054
-154,YumYumDilli,Indiranagar,North Indian,500,3.6,54
-155,Grow Fit,Indiranagar,"Healthy Food, North Indian",500,3.9,113
-156,Oye Amritsar,Indiranagar,North Indian,600,3.9,1489
-157,Little Italy,Indiranagar,"Italian, Pizza",1400,4.2,3307
-158,Infinitea Tea Room & Tea Store,Indiranagar,"Continental, Cafe",1000,4.3,771
-159,Fresh Aahar,Indiranagar,"Biryani, Mangalorean",400,3.9,43
-160,Shaap,Indiranagar,"Kerala, Seafood",500,4.0,243
-161,Cafe Coffee Day,Indiranagar,"Cafe, Fast Food",900,3.7,72
-162,The Pizza Bakery,Indiranagar,"Italian, Pizza",1200,4.8,1785
-163,Gobble Up Churros Cafe,Indiranagar,"Street Food, Continental",400,4.3,379
-164,Kobe Sizzlers,Indiranagar,"American, Continental",1500,4.1,1503
-165,Sri Udupi Park,Indiranagar,"South Indian, North Indian",300,4.2,781
-166,Cream Stone,Indiranagar,"Desserts, Beverages",300,4.2,743
-167,Aagaman Veg,Indiranagar,"North Indian, Chinese",900,4.0,560
-168,Maravanthe,Indiranagar,"Seafood, Mangalorean",1000,4.4,711
-169,Burger King,Indiranagar,"Burger, Fast Food",600,4.0,1400
-170,Gundappa Donne Biryani,Indiranagar,Biryani,300,2.5,90
-171,Shalimar,Indiranagar,"North Indian, Chinese",700,4.0,160
-172,Pizza Hut,Indiranagar,"Pizza, Fast Food",750,3.7,835
-173,Chetty's Coffee,Indiranagar,South Indian,150,3.9,45
-174,McDonald's,Indiranagar,"Burger, Fast Food",500,3.9,388
-175,Bhavani Sri,Indiranagar,"Chinese, North Indian",600,3.0,112
-176,Paratha Plaza,Indiranagar,North Indian,300,3.7,156
-177,Chung Wah Express,Indiranagar,"Chinese, Thai",600,2.8,97
-178,Rajdhani Thali Restaurant,Indiranagar,North Indian,1000,4.0,1137
-179,Krispy Kreme,Indiranagar,"Desserts, Beverages",300,4.1,261
-180,Dal Roti Sabji,Indiranagar,North Indian,150,4.1,86
-181,Nando's,Indiranagar,"Portuguese, Wraps",1200,4.3,1240
-182,Chillikum,Indiranagar,North Indian,350,3.6,38
-183,Sethji Home Made Food,Indiranagar,North Indian,350,3.5,229
-184,KFC,Indiranagar,"Burger, Fast Food",450,3.1,668
-185,Pulimunchi,Indiranagar,"Mangalorean, Seafood",1000,4.3,695
-186,Ooty Chocolates,Indiranagar,Desserts,300,3.8,55
-187,Chai Point,Indiranagar,"Fast Food, Beverages",250,4.3,179
-188,Drunken Monkey,Indiranagar,"Beverages, Fast Food",500,3.9,210
-189,Achayyan's,Indiranagar,"Kerala, South Indian",350,3.8,410
-190,Salt Mango Tree,Indiranagar,Kerala,800,4.2,255
-191,Paradise,Indiranagar,"Biryani, North Indian",800,4.0,3268
-192,Cup Chronicles Cafe,Indiranagar,"Continental, Desserts",450,3.9,58
-193,Cup Shup,Indiranagar,"Cafe, Continental",500,2.8,185
-194,Just Khao Suey,Indiranagar,Burmese,600,4.0,183
-195,The Humming Tree,Indiranagar,"Fast Food, European",1400,4.0,2418
-196,BOX8- Desi Meals,Indiranagar,"North Indian, Mughlai",500,4.3,314
-197,Food Lover,Indiranagar,"North Indian, Chinese",400,3.7,35
-198,Cafe Braqa,Indiranagar,"Cafe, Italian",700,4.1,147
-199,Gokul Kuteera,Indiranagar,"North Indian, Chinese",650,3.9,260
-200,McDonald's,Jayanagar,"Fast Food, Burger",500,3.7,181
-201,Salut,Jayanagar,"Continental, Finger Food",1200,4.1,447
-202,Biryanis And More,Jayanagar,"Biryani, North Indian",750,4.1,631
-203,Ishta Cafe,Jayanagar,"Pizza, South Indian",500,3.9,42
-204,Pani Kum Chai,Jayanagar,Fast Food,200,3.9,67
-205,The Belgian Waffle Co.,Jayanagar,"Desserts, Beverages",350,3.8,152
-206,Cakewala,Jayanagar,"Bakery, Desserts",500,4.3,673
-207,Chutney Chang,Jayanagar,"North Indian, Chinese",1500,4.1,2365
-208,Havmor,Jayanagar,"Ice Cream, Desserts",200,3.8,37
-209,The Airos,Jayanagar,"Cafe, Italian",650,4.1,130
-210,New Prashanth Hotel,Jayanagar,"South Indian, Biryani",750,3.6,143
-211,Samskruti - Sanman Gardenia,Jayanagar,"North Indian, Chinese",550,4.0,142
-212,Prems Graama Bhojanam,Jayanagar,South Indian,400,4.3,326
-213,Sandwich Mama's And Frozen Monster,Jayanagar,"Ice Cream, Beverages",250,3.8,55
-214,Punjabi Raswada,Jayanagar,North Indian,800,3.5,432
-215,Wahab,Jayanagar,"North Indian, Mughlai",350,3.7,98
-216,Cable Car,Jayanagar,"North Indian, Italian",1000,4.3,1257
-217,Keventers,Jayanagar,"Desserts, Beverages",400,3.9,212
-218,Chai Point,Jayanagar,"Tea, Beverages",250,3.2,209
-219,Kalpavriksha Upahara,Jayanagar,"South Indian, North Indian",400,4.0,128
-220,Kapoor's Cafe,Jayanagar,North Indian,800,4.0,201
-221,Rustic Stove,Jayanagar,"North Indian, South Indian",900,3.7,582
-222,Fusion Theory,Jayanagar,"Continental, Biryani",700,4.1,336
-223,Roll Over,Jayanagar,"Ice Cream, Beverages",500,4.1,439
-224,Pizza Hut,Jayanagar,"Pizza, Fast Food",750,3.8,706
-225,Kanti Sweets,Jayanagar,"Mithai, Street Food",400,3.9,148
-226,Just Shawarma,Jayanagar,Arabian,300,4.3,794
-227,Mangalore Pearl,Jayanagar,"Mangalorean, Seafood",650,3.8,246
-228,Jayanagara Donne Biryani,Jayanagar,"Biryani, South Indian",400,3.6,62
-229,Mug N Bean,Jayanagar,"Cafe, Continental",400,3.9,247
-230,Willys Top Cafe,Jayanagar,"Cafe, Continental",750,4.0,310
-231,Corner House Ice Cream,Jayanagar,"Ice Cream, Desserts",400,4.5,847
-232,Brews N Bites,Jayanagar,"Chinese, Fast Food",650,2.9,63
-233,Burger King,Jayanagar,"Burger, Fast Food",600,3.9,1075
-234,Biriyani Mane,Jayanagar,"Biryani, Chinese",700,3.7,159
-235,City Durbar,Jayanagar,"North Indian, Chinese",450,3.7,72
-236,De Thaali,Jayanagar,"North Indian, Chinese",550,3.9,145
-237,Sri Udupi Food Hub,Jayanagar,"South Indian, North Indian",500,4.1,176
-238,Thyme & Whisk,Jayanagar,"Asian, Chinese",800,4.2,109
-239,Ice Cream Works,Jayanagar,"Desserts, Ice Cream",300,4.1,194
-240,Food Springs,Jayanagar,"South Indian, Chinese",400,4.0,233
-241,Shakes Theory,Jayanagar,"Beverages, Sandwich",300,4.5,155
-242,Donne Biriyani House,Jayanagar,"Biryani, Andhra",400,3.5,408
-243,Chef Master,Jayanagar,"Kerala, North Indian",300,3.8,76
-244,Sukh Sagar,Jayanagar,"South Indian, North Indian",450,3.8,156
-245,Upahara Darshini,Jayanagar,"South Indian, North Indian",400,3.9,340
-246,Andhra Ruchulu,Jayanagar,"Andhra, Biryani",1000,4.1,682
-247,Desi Cream Junction,Jayanagar,"Chinese, North Indian",650,3.7,36
-248,Domino's Pizza,Jayanagar,"Pizza, Fast Food",400,3.7,466
-249,Freeze It,Jayanagar,Ice Cream,300,3.5,35
-250,Burger King,Whitefield,"Burger, Fast Food",600,4.0,1972
-251,The Beer Cafe,Whitefield,"Finger Food, North Indian",1400,4.1,673
-252,KA53,Whitefield,"North Indian, Chinese",300,3.9,45
-253,BIB-Breakfast in the Box,Whitefield,"American, Sandwich",600,3.8,62
-254,Foodies Delight,Whitefield,"North Indian, Fast Food",400,3.8,184
-255,Chefactory Gold by Flechazo,Whitefield,"North Indian, Biryani",700,3.7,355
-256,Indian Aroma Cafe,Whitefield,"North Indian, Chinese",300,2.8,84
-257,Mist n Creams,Whitefield,Ice Cream,400,3.8,49
-258,Beyond Elements,Whitefield,"Cafe, Italian",900,4.1,869
-259,Boondock Bistro,Whitefield,"Steak, Continental",900,3.9,1649
-260,eat.fit,Whitefield,"Healthy Food, North Indian",500,4.4,1061
-261,One For The Road,Whitefield,"Continental, North Indian",1200,4.1,137
-262,Subway,Whitefield,"Salad, Fast Food",600,2.8,52
-263,Foreign CafÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂÃÂ©,Whitefield,Continental,500,3.6,43
-264,Cold Stone Creamery,Whitefield,"Ice Cream, Desserts",400,4.3,512
-265,Vijayas Biryani Palace,Whitefield,"Biryani, Chinese",400,3.8,36
-266,Ji Hazoor,Whitefield,"Mughlai, North Indian",1100,4.0,2856
-267,Coastal Hub,Whitefield,"Kerala, Seafood",700,4.0,364
-268,Dehati Murgee,Whitefield,"North Indian, Mughlai",600,4.0,155
-269,Kshatriya's Kitchen,Whitefield,"Andhra, South Indian",300,3.7,55
-270,The Coffee Bean & Tea Leaf,Whitefield,"Cafe, Coffee",700,3.0,38
-271,Rishitha Restaurant,Whitefield,"North Indian, Andhra",500,3.8,90
-272,Hyderabad Chefs,Whitefield,"Hyderabadi, Andhra",800,4.0,277
-273,Behrouz Biryani,Whitefield,Biryani,650,4.0,183
-274,Chinese Street,Whitefield,Chinese,650,3.1,134
-275,Punjabi Kitchen,Whitefield,"Chinese, North Indian",400,3.6,205
-276,Kerala Restaurant,Whitefield,"Kerala, Biryani",450,3.4,66
-277,The Punjabi Park,Whitefield,North Indian,500,3.5,31
-278,YumYumSouth,Whitefield,South Indian,600,3.5,51
-279,Happy Singh,Whitefield,"Chinese, North Indian",900,3.8,515
-280,WOW! Momo,Whitefield,"Tibetan, Momos",400,2.9,46
-281,Cafe Coffee Day,Whitefield,Cafe,650,3.6,45
-282,NH8,Whitefield,Rajasthani,800,4.2,482
-283,Imperio Restaurant,Whitefield,"North Indian, Arabian",700,4.4,2382
-284,Grill Point,Whitefield,"North Indian, Mughlai",500,2.9,30
-285,Imperia Restaurant,Whitefield,"North Indian, Chinese",500,2.5,129
-286,Aryan's Kitchen,Whitefield,"North Indian, Fast Food",500,3.1,97
-287,Mithai Time,Whitefield,"Mithai, North Indian",200,3.0,56
-288,YumYumDilli,Whitefield,North Indian,500,3.4,35
-289,U.P. Dhaba,Whitefield,"North Indian, Chinese",350,2.8,515
-290,Izakaya Gastro Pub,Whitefield,"North Indian, Continental",1200,3.8,129
-291,Noodle Bar,Whitefield,"Chinese, Momos",1400,4.0,1070
-292,Punjab Junction,Whitefield,North Indian,350,3.2,31
-293,Sweet Truth,Whitefield,"Bakery, Desserts",500,3.9,40
-294,Lemon Krust,Whitefield,"Bakery, Fast Food",150,4.0,39
-295,Harry's Bar + Cafe,Whitefield,"Asian, American",1200,4.1,1218
-296,New Punjabi Tasty Khana,Whitefield,"North Indian, Biryani",400,3.0,177
-297,Abhiruchi Andhra Mess,Whitefield,"Andhra, Biryani",300,3.1,62
-298,The Hyderabad Chefs,Whitefield,"North Indian, Hyderabadi",600,2.8,64
-299,Roti Ghar Ki,Whitefield,"North Indian, Chinese",400,4.0,132
+restaurant_id,locality,cuisines,cost_for_two,rating,votes
+0,Koramangala 5th Block,"North Indian, Mughlai",400,3.9,89
+1,Koramangala 5th Block,Desserts,400,4.3,1902
+2,Koramangala 5th Block,"Juices, Fast Food",200,4.0,139
+3,Koramangala 5th Block,"Finger Food, Asian",1200,4.1,1798
+4,Koramangala 5th Block,"Burger, Fast Food",500,4.3,172
+5,Koramangala 5th Block,"Kerala, Biryani",600,3.6,383
+6,Koramangala 5th Block,"Desserts, Beverages",400,4.5,835
+7,Koramangala 5th Block,"Cafe, Italian",600,3.8,47
+8,Koramangala 5th Block,"Chinese, Momos",550,3.9,823
+9,Koramangala 5th Block,"North Indian, Chinese",600,4.1,226
+10,Koramangala 5th Block,"Chinese, Thai",1400,4.4,3677
+11,Koramangala 5th Block,"North Indian, South Indian",550,3.8,172
+12,Koramangala 5th Block,Fast Food,300,3.7,37
+13,Koramangala 5th Block,"North Indian, Seafood",1000,3.6,243
+14,Koramangala 5th Block,"Desserts, Beverages",300,4.5,360
+15,Koramangala 5th Block,"Cafe, Italian",650,4.2,1722
+16,Koramangala 5th Block,"North Indian, Chinese",1000,4.3,554
+17,Koramangala 5th Block,"North Indian, Mughlai",750,4.1,6959
+18,Koramangala 5th Block,"Turkish, Desserts",250,4.3,70
+19,Koramangala 5th Block,"Cafe, American",600,4.2,877
+20,Koramangala 5th Block,"Cafe, Healthy Food",1200,4.1,147
+21,Koramangala 5th Block,"North Indian, Continental",500,4.1,238
+22,Koramangala 5th Block,"North Indian, Mughlai",600,4.1,1251
+23,Koramangala 5th Block,"Bengali, North Indian",500,3.8,76
+24,Koramangala 5th Block,"Ice Cream, Desserts",500,3.9,234
+25,Koramangala 5th Block,Fast Food,400,4.3,726
+26,Koramangala 5th Block,"Arabian, North Indian",750,4.1,1574
+27,Koramangala 5th Block,"Arabian, Fast Food",200,3.4,95
+28,Koramangala 5th Block,Beverages,400,4.2,56
+29,Koramangala 5th Block,"Desserts, Beverages",400,4.0,169
+30,Koramangala 5th Block,Street Food,200,3.7,215
+31,Koramangala 5th Block,"Ice Cream, Cafe",500,4.5,2668
+32,Koramangala 5th Block,"Ice Cream, Bakery",200,3.9,110
+33,Koramangala 5th Block,"Burger, Fast Food",500,3.8,295
+34,Koramangala 5th Block,"Arabian, Sandwich",300,3.2,49
+35,Koramangala 5th Block,"Beverages, Sandwich",150,4.0,64
+36,Koramangala 5th Block,"Beverages, Ice Cream",200,4.1,216
+37,Koramangala 5th Block,"Tibetan, Nepalese",400,4.2,559
+38,Koramangala 5th Block,"Desserts, Ice Cream",500,4.2,346
+39,Koramangala 5th Block,"Desserts, Beverages",400,4.2,53
+40,Koramangala 5th Block,"Tibetan, Chinese",600,4.3,247
+41,Koramangala 5th Block,"Desserts, Beverages",350,4.2,184
+42,Koramangala 5th Block,"Asian, Chinese",1500,4.9,2256
+43,Koramangala 5th Block,"South Indian, North Indian",200,3.8,141
+44,Koramangala 5th Block,"Burger, Fast Food",600,3.5,76
+45,Koramangala 5th Block,"Pizza, Fast Food",750,3.7,116
+46,Koramangala 5th Block,"Biryani, Andhra",800,4.1,790
+47,Koramangala 5th Block,"Biryani, Andhra",750,3.9,784
+48,Koramangala 5th Block,"Mughlai, Fast Food",750,3.7,259
+49,Koramangala 5th Block,"Chinese, Thai",800,4.0,314
+50,HSR,Biryani,200,3.8,278
+51,HSR,"Bakery, Desserts",500,4.0,48
+52,HSR,"Kerala, Seafood",600,3.8,1168
+53,HSR,North Indian,300,3.1,35
+54,HSR,"North Indian, Chinese",550,3.9,450
+55,HSR,"Ice Cream, Desserts",500,3.9,75
+56,HSR,"Chinese, North Indian",400,3.8,184
+57,HSR,"Pizza, Cafe",600,4.4,3859
+58,HSR,"Beverages, Desserts",150,3.8,34
+59,HSR,"North Indian, Continental",900,3.9,163
+60,HSR,"North Indian, Chinese",800,3.9,224
+61,HSR,"South Indian, Street Food",400,3.2,68
+62,HSR,North Indian,200,3.1,82
+63,HSR,"North Indian, Chinese",500,4.0,795
+64,HSR,"North Indian, Chinese",500,3.6,51
+65,HSR,"South Indian, North Indian",400,3.5,237
+66,HSR,"Beverages, Desserts",400,4.1,187
+67,HSR,Bengali,600,3.7,311
+68,HSR,"Biryani, South Indian",350,3.8,283
+69,HSR,"Chinese, North Indian",700,3.7,76
+70,HSR,North Indian,400,3.7,57
+71,HSR,Biryani,300,4.2,166
+72,HSR,"Biryani, Kebab",650,4.3,83
+73,HSR,"Cafe, Fast Food",600,3.7,59
+74,HSR,"Beverages, Juices",200,3.7,78
+75,HSR,"South Indian, North Indian",700,3.2,115
+76,HSR,"Biryani, Italian",350,3.7,85
+77,HSR,"Biryani, Kerala",200,3.1,247
+78,HSR,"North Indian, Chinese",450,3.9,356
+79,HSR,"Burger, Fast Food",600,3.9,115
+80,HSR,"Bakery, Desserts",350,3.8,34
+81,HSR,"South Indian, North Indian",250,3.7,36
+82,HSR,"Desserts, Beverages",500,4.2,1023
+83,HSR,Pizza,600,4.2,218
+84,HSR,"Cafe, Continental",800,4.1,142
+85,HSR,"North Indian, Kebab",500,3.1,283
+86,HSR,"Mediterranean, Continental",1400,3.9,1252
+87,HSR,"Street Food, North Indian",250,3.8,192
+88,HSR,"Cafe, Beverages",300,4.0,77
+89,HSR,"North Indian, Chinese",400,4.1,130
+90,HSR,"North Indian, Chinese",800,3.4,212
+91,HSR,North Indian,400,4.3,169
+92,HSR,"North Indian, Chinese",300,3.6,46
+93,HSR,"Juices, South Indian",200,3.8,215
+94,HSR,"North Indian, Chinese",400,3.9,261
+95,HSR,"Bakery, Desserts",400,3.7,94
+96,HSR,Biryani,350,3.5,147
+97,HSR,"Chinese, Asian",800,4.0,494
+98,HSR,"Bengali, Chinese",800,3.7,30
+99,HSR,"South Indian, Fast Food",250,3.8,191
+100,BTM,"Rolls, Chinese",300,3.9,184
+101,BTM,Arabian,300,3.9,201
+102,BTM,"Bengali, North Indian",400,3.9,257
+103,BTM,"North Indian, Fast Food",300,3.5,85
+104,BTM,"North Indian, Biryani",500,3.2,30
+105,BTM,Biryani,700,3.9,68
+106,BTM,"Andhra, Chinese",450,2.6,175
+107,BTM,"North Indian, Biryani",600,3.1,140
+108,BTM,"North Indian, Chinese",700,2.7,48
+109,BTM,North Indian,300,4.0,109
+110,BTM,"Biryani, Fast Food",300,3.9,192
+111,BTM,"Chinese, North Indian",600,2.7,74
+112,BTM,"Kerala, Chinese",200,3.7,217
+113,BTM,"North Indian, Biryani",500,3.1,31
+114,BTM,"South Indian, North Indian",300,3.9,52
+115,BTM,"North Indian, Chinese",300,3.9,44
+116,BTM,"North Indian, South Indian",350,3.9,35
+117,BTM,Tea,150,3.7,32
+118,BTM,"Beverages, Ice Cream",200,3.9,40
+119,BTM,"Bengali, North Indian",350,3.5,283
+120,BTM,"South Indian, North Indian",600,3.0,102
+121,BTM,"Biryani, Fast Food",400,3.6,41
+122,BTM,"Cafe, Chinese",500,3.4,36
+123,BTM,"North Indian, Chinese",500,3.9,1190
+124,BTM,"North Indian, Chinese",200,3.0,37
+125,BTM,"North Indian, Chinese",250,3.1,40
+126,BTM,Beverages,250,3.4,54
+127,BTM,South Indian,150,3.7,67
+128,BTM,"South Indian, Chinese",300,3.7,67
+129,BTM,"Rolls, Kebab",250,4.0,120
+130,BTM,"North Indian, Chinese",350,3.6,71
+131,BTM,North Indian,250,3.0,262
+132,BTM,"North Indian, Mughlai",700,2.8,178
+133,BTM,"Chinese, North Indian",300,3.6,214
+134,BTM,"North Indian, Chinese",800,3.8,102
+135,BTM,Biryani,500,3.8,1081
+136,BTM,"Cafe, Bakery",500,4.0,207
+137,BTM,"Tea, Beverages",250,4.0,113
+138,BTM,"North Indian, Chinese",500,3.1,224
+139,BTM,"South Indian, North Indian",300,4.1,790
+140,BTM,"North Indian, South Indian",700,2.9,95
+141,BTM,"Italian, Pizza",600,2.6,473
+142,BTM,"Cafe, Italian",600,3.8,618
+143,BTM,"Andhra, Chinese",500,3.9,227
+144,BTM,"Kerala, South Indian",200,3.7,36
+145,BTM,"North Indian, South Indian",250,3.6,43
+146,BTM,"Chinese, Thai",850,3.7,479
+147,BTM,"Oriya, Bengali",500,2.9,67
+148,BTM,"Kerala, Seafood",400,3.8,106
+149,BTM,"Ice Cream, Desserts",450,3.8,32
+150,Indiranagar,"Healthy Food, North Indian",500,4.4,882
+151,Indiranagar,"Ice Cream, Pizza",550,4.4,2699
+152,Indiranagar,"Cafe, Italian",650,4.1,427
+153,Indiranagar,"Continental, Italian",1400,4.1,1054
+154,Indiranagar,North Indian,500,3.6,54
+155,Indiranagar,"Healthy Food, North Indian",500,3.9,113
+156,Indiranagar,North Indian,600,3.9,1489
+157,Indiranagar,"Italian, Pizza",1400,4.2,3307
+158,Indiranagar,"Continental, Cafe",1000,4.3,771
+159,Indiranagar,"Biryani, Mangalorean",400,3.9,43
+160,Indiranagar,"Kerala, Seafood",500,4.0,243
+161,Indiranagar,"Cafe, Fast Food",900,3.7,72
+162,Indiranagar,"Italian, Pizza",1200,4.8,1785
+163,Indiranagar,"Street Food, Continental",400,4.3,379
+164,Indiranagar,"American, Continental",1500,4.1,1503
+165,Indiranagar,"South Indian, North Indian",300,4.2,781
+166,Indiranagar,"Desserts, Beverages",300,4.2,743
+167,Indiranagar,"North Indian, Chinese",900,4.0,560
+168,Indiranagar,"Seafood, Mangalorean",1000,4.4,711
+169,Indiranagar,"Burger, Fast Food",600,4.0,1400
+170,Indiranagar,Biryani,300,2.5,90
+171,Indiranagar,"North Indian, Chinese",700,4.0,160
+172,Indiranagar,"Pizza, Fast Food",750,3.7,835
+173,Indiranagar,South Indian,150,3.9,45
+174,Indiranagar,"Burger, Fast Food",500,3.9,388
+175,Indiranagar,"Chinese, North Indian",600,3.0,112
+176,Indiranagar,North Indian,300,3.7,156
+177,Indiranagar,"Chinese, Thai",600,2.8,97
+178,Indiranagar,North Indian,1000,4.0,1137
+179,Indiranagar,"Desserts, Beverages",300,4.1,261
+180,Indiranagar,North Indian,150,4.1,86
+181,Indiranagar,"Portuguese, Wraps",1200,4.3,1240
+182,Indiranagar,North Indian,350,3.6,38
+183,Indiranagar,North Indian,350,3.5,229
+184,Indiranagar,"Burger, Fast Food",450,3.1,668
+185,Indiranagar,"Mangalorean, Seafood",1000,4.3,695
+186,Indiranagar,Desserts,300,3.8,55
+187,Indiranagar,"Fast Food, Beverages",250,4.3,179
+188,Indiranagar,"Beverages, Fast Food",500,3.9,210
+189,Indiranagar,"Kerala, South Indian",350,3.8,410
+190,Indiranagar,Kerala,800,4.2,255
+191,Indiranagar,"Biryani, North Indian",800,4.0,3268
+192,Indiranagar,"Continental, Desserts",450,3.9,58
+193,Indiranagar,"Cafe, Continental",500,2.8,185
+194,Indiranagar,Burmese,600,4.0,183
+195,Indiranagar,"Fast Food, European",1400,4.0,2418
+196,Indiranagar,"North Indian, Mughlai",500,4.3,314
+197,Indiranagar,"North Indian, Chinese",400,3.7,35
+198,Indiranagar,"Cafe, Italian",700,4.1,147
+199,Indiranagar,"North Indian, Chinese",650,3.9,260
+200,Jayanagar,"Fast Food, Burger",500,3.7,181
+201,Jayanagar,"Continental, Finger Food",1200,4.1,447
+202,Jayanagar,"Biryani, North Indian",750,4.1,631
+203,Jayanagar,"Pizza, South Indian",500,3.9,42
+204,Jayanagar,Fast Food,200,3.9,67
+205,Jayanagar,"Desserts, Beverages",350,3.8,152
+206,Jayanagar,"Bakery, Desserts",500,4.3,673
+207,Jayanagar,"North Indian, Chinese",1500,4.1,2365
+208,Jayanagar,"Ice Cream, Desserts",200,3.8,37
+209,Jayanagar,"Cafe, Italian",650,4.1,130
+210,Jayanagar,"South Indian, Biryani",750,3.6,143
+211,Jayanagar,"North Indian, Chinese",550,4.0,142
+212,Jayanagar,South Indian,400,4.3,326
+213,Jayanagar,"Ice Cream, Beverages",250,3.8,55
+214,Jayanagar,North Indian,800,3.5,432
+215,Jayanagar,"North Indian, Mughlai",350,3.7,98
+216,Jayanagar,"North Indian, Italian",1000,4.3,1257
+217,Jayanagar,"Desserts, Beverages",400,3.9,212
+218,Jayanagar,"Tea, Beverages",250,3.2,209
+219,Jayanagar,"South Indian, North Indian",400,4.0,128
+220,Jayanagar,North Indian,800,4.0,201
+221,Jayanagar,"North Indian, South Indian",900,3.7,582
+222,Jayanagar,"Continental, Biryani",700,4.1,336
+223,Jayanagar,"Ice Cream, Beverages",500,4.1,439
+224,Jayanagar,"Pizza, Fast Food",750,3.8,706
+225,Jayanagar,"Mithai, Street Food",400,3.9,148
+226,Jayanagar,Arabian,300,4.3,794
+227,Jayanagar,"Mangalorean, Seafood",650,3.8,246
+228,Jayanagar,"Biryani, South Indian",400,3.6,62
+229,Jayanagar,"Cafe, Continental",400,3.9,247
+230,Jayanagar,"Cafe, Continental",750,4.0,310
+231,Jayanagar,"Ice Cream, Desserts",400,4.5,847
+232,Jayanagar,"Chinese, Fast Food",650,2.9,63
+233,Jayanagar,"Burger, Fast Food",600,3.9,1075
+234,Jayanagar,"Biryani, Chinese",700,3.7,159
+235,Jayanagar,"North Indian, Chinese",450,3.7,72
+236,Jayanagar,"North Indian, Chinese",550,3.9,145
+237,Jayanagar,"South Indian, North Indian",500,4.1,176
+238,Jayanagar,"Asian, Chinese",800,4.2,109
+239,Jayanagar,"Desserts, Ice Cream",300,4.1,194
+240,Jayanagar,"South Indian, Chinese",400,4.0,233
+241,Jayanagar,"Beverages, Sandwich",300,4.5,155
+242,Jayanagar,"Biryani, Andhra",400,3.5,408
+243,Jayanagar,"Kerala, North Indian",300,3.8,76
+244,Jayanagar,"South Indian, North Indian",450,3.8,156
+245,Jayanagar,"South Indian, North Indian",400,3.9,340
+246,Jayanagar,"Andhra, Biryani",1000,4.1,682
+247,Jayanagar,"Chinese, North Indian",650,3.7,36
+248,Jayanagar,"Pizza, Fast Food",400,3.7,466
+249,Jayanagar,Ice Cream,300,3.5,35
+250,Whitefield,"Burger, Fast Food",600,4.0,1972
+251,Whitefield,"Finger Food, North Indian",1400,4.1,673
+252,Whitefield,"North Indian, Chinese",300,3.9,45
+253,Whitefield,"American, Sandwich",600,3.8,62
+254,Whitefield,"North Indian, Fast Food",400,3.8,184
+255,Whitefield,"North Indian, Biryani",700,3.7,355
+256,Whitefield,"North Indian, Chinese",300,2.8,84
+257,Whitefield,Ice Cream,400,3.8,49
+258,Whitefield,"Cafe, Italian",900,4.1,869
+259,Whitefield,"Steak, Continental",900,3.9,1649
+260,Whitefield,"Healthy Food, North Indian",500,4.4,1061
+261,Whitefield,"Continental, North Indian",1200,4.1,137
+262,Whitefield,"Salad, Fast Food",600,2.8,52
+263,Whitefield,Continental,500,3.6,43
+264,Whitefield,"Ice Cream, Desserts",400,4.3,512
+265,Whitefield,"Biryani, Chinese",400,3.8,36
+266,Whitefield,"Mughlai, North Indian",1100,4.0,2856
+267,Whitefield,"Kerala, Seafood",700,4.0,364
+268,Whitefield,"North Indian, Mughlai",600,4.0,155
+269,Whitefield,"Andhra, South Indian",300,3.7,55
+270,Whitefield,"Cafe, Coffee",700,3.0,38
+271,Whitefield,"North Indian, Andhra",500,3.8,90
+272,Whitefield,"Hyderabadi, Andhra",800,4.0,277
+273,Whitefield,Biryani,650,4.0,183
+274,Whitefield,Chinese,650,3.1,134
+275,Whitefield,"Chinese, North Indian",400,3.6,205
+276,Whitefield,"Kerala, Biryani",450,3.4,66
+277,Whitefield,North Indian,500,3.5,31
+278,Whitefield,South Indian,600,3.5,51
+279,Whitefield,"Chinese, North Indian",900,3.8,515
+280,Whitefield,"Tibetan, Momos",400,2.9,46
+281,Whitefield,Cafe,650,3.6,45
+282,Whitefield,Rajasthani,800,4.2,482
+283,Whitefield,"North Indian, Arabian",700,4.4,2382
+284,Whitefield,"North Indian, Mughlai",500,2.9,30
+285,Whitefield,"North Indian, Chinese",500,2.5,129
+286,Whitefield,"North Indian, Fast Food",500,3.1,97
+287,Whitefield,"Mithai, North Indian",200,3.0,56
+288,Whitefield,North Indian,500,3.4,35
+289,Whitefield,"North Indian, Chinese",350,2.8,515
+290,Whitefield,"North Indian, Continental",1200,3.8,129
+291,Whitefield,"Chinese, Momos",1400,4.0,1070
+292,Whitefield,North Indian,350,3.2,31
+293,Whitefield,"Bakery, Desserts",500,3.9,40
+294,Whitefield,"Bakery, Fast Food",150,4.0,39
+295,Whitefield,"Asian, American",1200,4.1,1218
+296,Whitefield,"North Indian, Biryani",400,3.0,177
+297,Whitefield,"Andhra, Biryani",300,3.1,62
+298,Whitefield,"North Indian, Hyderabadi",600,2.8,64
+299,Whitefield,"North Indian, Chinese",400,4.0,132
