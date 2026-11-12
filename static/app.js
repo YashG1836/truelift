@@ -131,7 +131,7 @@ function render() {
 // ---------------- screens ----------------
 function headHTML() {
   const c = S.card;
-  return `<div class="rhead"><h1>${esc(c.name)}</h1><div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · ★ ${c.rating}</div></div>`;
+  return `<div class="rhead"><h1>${esc(c.name)}</h1><div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · ★ ${c.rating} · <span class="tag">simulated data</span></div></div>`;
 }
 
 function homeHTML() {
@@ -390,6 +390,7 @@ async function renderEvidence() {
     ${row("Share of loyal customers' occasions going to Swiggy", (p) => p.swiggy_share_loyal, (v) => (v * 100).toFixed(1) + "%")}
   </table>
   <p class="note">No-offer world for reference: ${P.no_offer.orders_per_week.toLocaleString("en-IN")} orders a week; loyal customers' Swiggy share ${(P.no_offer.swiggy_share_loyal * 100).toFixed(1)}%. TrueLift's figures include the cost of its 10% control group. The last column is a warning, not a feature: when Zomato pays half the discount for customers new to Zomato without measuring its own gain, it spends ${lakh(P.zomato_cofund_naive.zomato_funded_discount)} a week for about ${P.zomato_cofund_naive.extra_orders_vs_no_offer - tl.extra_orders_vs_no_offer} more orders.</p>
+  ${realDataHTML(E.real_data_criteo)}
   <h2>Are TrueLift's weekly numbers right?</h2>
   <p>For every TrueLift offer we compare its estimate of extra profit with the true value. "Own control group only" uses just the restaurant's 10% holdout; "model only" uses just the learned model; TrueLift combines them.</p>
   <table class="t"><tr><th>After</th><th>Offers</th><th>Truth inside 80% range (profit)</th><th>Truth inside 80% range (orders)</th><th>Avg error: own control group only</th><th>Model only</th><th>TrueLift combined</th><th>Right sign</th></tr>
@@ -405,6 +406,46 @@ async function renderEvidence() {
   <p>The market is simulated: customer types, price sensitivity and the Swiggy option are our assumptions, chosen to be plausible and then varied. The point is that TrueLift's method finds the truth when there is one to find, and how much better targeted offers do than blanket ones under those assumptions. Real numbers need Zomato's own offer logs or a silent test on live offers.</p>`;
   el.dataset.done = "1";
   bindTips(el);
+}
+
+function realDataHTML(R) {
+  if (!R) return "";
+  const v = R.results.find((r) => r.label === "visit"), c = R.results.find((r) => r.label === "conversion");
+  return `<h2>On real data: Criteo's randomised ad holdouts</h2>
+  <p>The same model, trained on ${(R.train_rows / 1e6).toFixed(0)} million users of Criteo's open incrementality tests (a random 15% of people were held out of advertising, like TrueLift's control group), ranked ${(v.test_rows / 1e6).toFixed(1)} million users it had never seen. Advertising, not food discounts: this tests the method, not Zomato's numbers.</p>
+  <div class="charts">
+    <div class="chart"><h3>Extra visits found, by share of people targeted</h3><div class="s">Share of all the extra visits the full campaign created</div>
+      ${qiniChart(v.curve)}
+      <div class="legend"><span><i style="background:var(--series)"></i>TrueLift's model</span><span><i style="background:var(--series-mute)"></i>Random targeting</span></div></div>
+    <div class="chart"><h3>What it means</h3>
+      <div class="row"><span class="k">Visits: held out vs shown ads</span><span class="v">${(v.rate_control * 100).toFixed(2)}% → ${(v.rate_treated * 100).toFixed(2)}%</span></div>
+      <div class="row"><span class="k">Qini score, model vs random (visits)</span><span class="v">${v.qini_t_learner} vs ${v.qini_random}</span></div>
+      <div class="row"><span class="k">Extra visits in the top 30% the model picks</span><span class="v">${pct(v.top30_share_of_total_lift)}</span></div>
+      <div class="row"><span class="k">Qini score, model vs random (purchases, rare)</span><span class="v">${c.qini_t_learner} vs ${c.qini_random}</span></div>
+      <div class="row"><span class="k">Extra purchases in the top 30%</span><span class="v">${pct(c.top30_share_of_total_lift)}</span></div>
+      <p class="note">If a campaign could reach only 30% of people, the model's choice would capture ${pct(v.top30_share_of_total_lift)} of all the extra visits the full campaign creates; random choice captures about 30%.</p></div>
+  </div>`;
+}
+
+function qiniChart(cu) {
+  // two series on one axis: model and random line; legend below, direct labels at the right end
+  const W = 460, H = 236, L = 44, Rm = 20, T = 16, B = 46;
+  const xs = cu.share_targeted, ys = [...cu.model, ...cu.random];
+  const ymax = Math.max(1, ...ys), ymin = Math.min(0, ...ys);
+  const x = (v) => L + v * (W - L - Rm), y = (v) => T + (1 - (v - ymin) / (ymax - ymin)) * (H - T - B);
+  const path = (arr) => arr.map((v, i) => `${i ? "L" : "M"}${x(xs[i]).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const grid = [0, 0.25, 0.5, 0.75, 1].map((g) => `<line x1="${L}" x2="${W - Rm}" y1="${y(g)}" y2="${y(g)}" stroke="#e1e0d9"></line><text x="${L - 6}" y="${y(g) + 4}" text-anchor="end">${Math.round(g * 100)}%</text>`).join("");
+  const xt = [0, 0.25, 0.5, 0.75, 1].map((g) => `<text x="${x(g)}" y="${H - B + 16}" text-anchor="middle">${Math.round(g * 100)}%</text>`).join("");
+  const n = xs.length - 1;
+  const hits = xs.map((f, i) => `<rect class="hit" x="${x(f) - (W - L - Rm) / n / 2}" y="${T}" width="${(W - L - Rm) / n}" height="${H - T - B}" fill="transparent"
+     data-tip="Target ${Math.round(f * 100)}% of people: model finds ${Math.round(cu.model[i] * 100)}% of the extra visits, random ${Math.round(cu.random[i] * 100)}%"></rect>`).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Qini curve">
+    ${grid}${xt}<text x="${(L + W - Rm) / 2}" y="${H - 4}" text-anchor="middle">share of people targeted (highest predicted uplift first)</text>
+    <path d="${path(cu.random)}" fill="none" stroke="var(--series-mute)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+    <path d="${path(cu.model)}" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+    <text class="lbl" x="${x(xs[Math.round(n * 0.3)]) + 6}" y="${y(cu.model[Math.round(n * 0.3)]) - 10}">Model</text>
+    <text x="${x(xs[Math.round(n * 0.7)]) + 8}" y="${y(cu.random[Math.round(n * 0.7)]) + 16}">Random</text>
+    ${hits}</svg>`;
 }
 
 function hbar(items, fmt) {
