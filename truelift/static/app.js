@@ -131,7 +131,7 @@ function render() {
 // ---------------- screens ----------------
 function headHTML() {
   const c = S.card;
-  return `<div class="rhead"><h1>${esc(c.name)}</h1><div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · ★ ${c.rating}</div></div>`;
+  return `<div class="rhead"><h1>${esc(c.name)}</h1><div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · ★ ${c.rating} · <span class="tag">simulated data</span></div></div>`;
 }
 
 function homeHTML() {

@@ -24,7 +24,8 @@ approval.
 | Swiggy's "Discount Self Serve" lets ~1 lakh restaurants set discounts, pick customer segments and track performance | Targeting by segment and redemption reports already exist; measuring what a discount *caused* does not | Swiggy blog, Apr 2024 |
 | Zomato "Brand Packs" reward repeat orders (4,000+ restaurants at launch) | The regulars' reward already exists; TrueLift uses it instead of inventing one | Business Standard, Jul 2024 |
 | Ola and Uber received consumer-authority notices over alleged phone-based price differences; the minister said food delivery would be looked at | Targeting must never use device, payment method or inferred income | Business Standard, Jan 2025 |
-| Meituan's MT-LIFT: 5.5M randomised food-delivery coupon records, 99 anonymised features, click and conversion labels only | Real data can prove targeting, not rupee profit; profit is shown in the simulator | GitHub MTDJDSP/MT-LIFT; arXiv 2608.11675 |
+| Meituan's MT-LIFT (5.5M randomised food-delivery coupon records): its download links are broken (open GitHub issues, Nov 2025 and Apr 2026), and one issue reports feature differences between coupon and no-coupon groups | Not usable now; we validate on Criteo's open incrementality data instead | GitHub MTDJDSP/MT-LIFT issues #2–#4 |
+| Criteo uplift benchmark: 14M users from ad incrementality tests (a random 15% held out of ads), open download | A real randomised test of the same holdout idea; proves targeting, not rupee profit | Hugging Face criteo/criteo-uplift; Diemert et al., AdKDD 2018 |
 
 Not found: any report on what happened after the 1 September deadline, or how the OTP flow looks
 today. These are questions for Eternal (section 10).
@@ -146,8 +147,8 @@ customer, not per redemption.
 - **Service** (`truelift/api.py`): the hooks above as a FastAPI app. A quote with 34 versions
   compared takes about 35 ms on a laptop (under 0.2 s under load); a serving decision for one
   customer takes about 1.5 ms and falls back to the owner's own audience rule if anything fails.
-- Restaurants are real Bengaluru listings (locality, cuisine, rating, price) shown by cuisine and
-  number, not by name, because their profits in the demo are simulated.
+- Restaurants are real Bengaluru listings (name, locality, cuisine, rating, price). Their customers,
+  orders and profits are simulated, and every screen carries a "simulated data" label.
 - **Partner-app screens** (`truelift/static/`): home → create offer with a live forecast and a
   better version → OTP approval that records what the owner was shown → weekly results (today's
   report vs TrueLift's measurement, range, WhatsApp text, itemised payout) → keep or stop.
@@ -226,6 +227,19 @@ visit correlates 0.59 with the true uplift, and the Qini score is 0.29 (0 = rand
 separate test with one fixed discount, model targeting captured about 60% of the profit a perfect
 oracle could add over blanket offers (₹4.75 lakh vs ₹4.12 lakh; oracle ₹5.17 lakh).
 
+**On real data, not just the simulator.** The same model, trained on 3 million users of Criteo's
+open incrementality tests (real randomised holdouts from advertising), ranked 4.2 million users it
+had never seen:
+
+| Outcome | Rate with ads vs held out | Qini: TrueLift's model | Qini: random | Share of all the extra outcomes found in the top 30% the model picks |
+|---|---|---|---|---|
+| Visits | 4.86% vs 3.81% | **0.34** | 0.005 | **84%** |
+| Purchases (rare) | 0.31% vs 0.18% | **0.06** | 0.015 | **67%** |
+
+In words: if a campaign could only reach 30% of people, the model's choice of who would capture 84%
+of all the extra visits the full campaign creates. This is advertising, not food discounts, so it
+supports the method, not Zomato's numbers. (`scripts/validate_uplift.py criteo`)
+
 **Are the weekly numbers right?**
 
 For each of the 300 TrueLift offers we compare its running estimate of extra profit with the
@@ -266,12 +280,12 @@ with customer details hidden.
 
 ## 8. Demo script (about 5 minutes)
 
-1. **The problem (45 s).** A BTM café (#142): ₹420 average order, about 120 orders a week, 30% of
-   them from 31 regulars. Show the break-even table: ₹60 off pays only if 32 of every 100 orders
-   using it are extra.
-2. **Before approval (60 s).** Create "₹60 off for everyone": the forecast shows how many orders
-   would come anyway and a wide range around a small gain. TrueLift suggests "₹60 off above ₹499,
-   only for customers it brings in"; tap "Use this version" and the forecast improves.
+1. **The problem (45 s).** Burger King, Jayanagar (simulated data on a real listing): ₹420 average
+   order. Show the break-even table: ₹60 off pays only if 32 of every 100 orders using it are extra.
+2. **Before approval (60 s).** Create "₹60 off for everyone": the forecast says about 70% of the
+   orders using it would come anyway and the extra profit is about ₹0. TrueLift suggests "₹60 off
+   only for customers it brings in" at about +₹1,700 a week; tap "Use this version". Domino's
+   (blanket loses money) and Empire (blanket works, TrueLift doubles it) are in the dropdown.
 3. **Consent (30 s).** OTP screen: what the owner approves, for how long, who pays. The consent
    record stores the forecast they saw.
 4. **While it runs (60 s).** Inside Zomato: a regular doesn't get the discount (they'd order anyway),
@@ -318,8 +332,9 @@ with customer details hidden.
   assumptions, varied ±30%. Real numbers need Zomato's data.
 - Long-term effects (a new customer becoming a regular, regulars drifting to Swiggy over months)
   are not modelled; measuring them needs longer holdouts.
-- MT-LIFT (real randomised coupon data) can validate targeting but has no rupee outcome. Its
-  download now needs a Google sign-in; we will add the check once it is downloaded.
+- The real-data check (Criteo) is advertising, with no rupee outcome. Meituan's food-delivery
+  coupon data (MT-LIFT) would be closer, but its download links are broken; the script also runs
+  on it if a copy turns up.
 
 ## Sources
 
@@ -332,6 +347,7 @@ with customer details hidden.
 - Business Standard, Brand Packs, Jul 2024: https://www.business-standard.com/companies/news/zomato-rolls-out-brand-packs-to-reward-repeat-orders-from-restaurants-124072600697_1.html
 - Business Standard, CCPA notices to Ola and Uber, Jan 2025: https://business-standard.com/industry/news/ccpa-issues-notices-to-ola-uber-over-differential-pricing-practice-125012301247_1.html
 - Inc42, customer contact sharing after consent: https://inc42.com/buzz/zomato-to-share-customer-contact-with-restaurants-only-after-consent-ceo-mangla
-- MT-LIFT: https://github.com/MTDJDSP/MT-LIFT
+- MT-LIFT: https://github.com/MTDJDSP/MT-LIFT (issues: https://github.com/MTDJDSP/MT-LIFT/issues)
+- Criteo uplift dataset: https://huggingface.co/datasets/criteo/criteo-uplift ; paper: https://openreview.net/pdf?id=Q83-QeTB9lS
 - FunnelCausalNet (notes MT-LIFT has no spend labels): https://arxiv.org/pdf/2608.11675
 - Kaggle, Zomato Bangalore Restaurants: https://www.kaggle.com/datasets/himanshupoddar/zomato-bangalore-restaurants

@@ -22,6 +22,8 @@ nav button { border: 0; background: none; padding: 6px 12px; border-radius: 6px;
 nav button.on { background: var(--plane); color: var(--ink); font-weight: 600; }
 .pick { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 .pick select { font: inherit; padding: 5px 8px; border: 1px solid var(--line); border-radius: 6px; max-width: 320px; }
+.sim-note { background: #fff8e6; border-bottom: 1px solid #f0dcaa; color: var(--ink-2); font-size: 12.5px;
+  padding: 6px 24px; text-align: center; }
 .tab { display: none; }
 .tab.on { display: block; }
 

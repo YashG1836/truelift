@@ -106,11 +106,7 @@ def main() -> int:
     allr = c.get("/api/restaurants").json()
     write(data / "restaurants.json", {"demo_restaurant": rids[0],
                                       "restaurants": [r for r in allr["restaurants"] if r["restaurant_id"] in rids]})
-    ev = c.get("/api/evidence").json()
-    for part in ev.values():  # keep real restaurant names out of the public site
-        if isinstance(part, dict) and isinstance(part.get("demo_restaurant"), dict):
-            part["demo_restaurant"].pop("name", None)
-    write(data / "evidence.json", ev)
+    write(data / "evidence.json", c.get("/api/evidence").json())
     write(data / "example.json", c.get("/api/example").json())
     with ProcessPoolExecutor(max_workers=len(rids)) as pool:
         timings = [t for part in pool.map(export_restaurant, rids) for t in part]

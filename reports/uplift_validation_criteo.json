@@ -1,0 +1,28 @@
+{
+  "dataset": "criteo",
+  "train_rows": 3000000,
+  "results": [
+    {
+      "arm": 1,
+      "label": "visit",
+      "test_rows": 4192088,
+      "share_treated": 0.85,
+      "rate_treated": 0.04855,
+      "rate_control": 0.03807,
+      "qini_t_learner": 0.339,
+      "qini_random": 0.005,
+      "top30_share_of_total_lift": 0.843
+    },
+    {
+      "arm": 1,
+      "label": "conversion",
+      "test_rows": 4192088,
+      "share_treated": 0.85,
+      "rate_treated": 0.0031,
+      "rate_control": 0.00183,
+      "qini_t_learner": 0.056,
+      "qini_random": 0.015,
+      "top30_share_of_total_lift": 0.674
+    }
+  ]
+}

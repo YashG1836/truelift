@@ -30,8 +30,9 @@ TYPES = ("loyal", "casual", "deal_seeker", "infrequent")
 
 
 def display_name(r) -> str:
-    """How a restaurant is shown: cuisine and number (real listing details, no real name)."""
-    return f"{str(r['cuisines']).split(',')[0].strip()} #{int(r['restaurant_id'])}"
+    """How a restaurant is shown: its real public listing name. Its orders and profits here are
+    simulated, and every screen that shows numbers says so."""
+    return str(r["name"])
 SLOTS = ("lunch", "3-6 pm", "dinner")
 
 

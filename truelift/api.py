@@ -37,6 +37,7 @@ from .sim import (Config, Market, build_history, display_name, recent_visits, re
 ROOT = Path(__file__).resolve().parents[1]
 STATIC = Path(__file__).resolve().parent / "static"
 CONSENT_WEEKS = 4
+DEMO_RESTAURANT = 233
 
 
 class DesignIn(BaseModel):
@@ -89,7 +90,8 @@ class State:
                              topup_value=art["topup_value"])
         visits = recent_visits(self.market, self.hist)
         self.visits = dict(tuple(visits.groupby("rest")))
-        self.demo_restaurant = int(art["demo_restaurant"])
+        # demo default: Burger King, Jayanagar (₹420 average order, close to the Round 1 ₹400 example)
+        self.demo_restaurant = DEMO_RESTAURANT if DEMO_RESTAURANT in set(self.R["restaurant_id"]) else int(art["demo_restaurant"])
         self.background = status_quo_policy(self.market, np.random.default_rng(4242), name="market")
         # the demo restaurant starts without an offer; its competitors keep today's offers
         self.background.discount[self.demo_restaurant] = 0.0
