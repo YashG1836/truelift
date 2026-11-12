@@ -1,0 +1,10 @@
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.DS_Store
+data/raw/
+data/processed/model.pkl
+site/
+reports/pipeline_log.txt
+reports/export_log.txt
