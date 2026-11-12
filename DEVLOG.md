@@ -73,6 +73,13 @@ five demo offers, the true value fell inside TrueLift's 80% range in 15 of 20 we
 **11. Data labelling.** Restaurant names and listing details are real public listings; their
 customers, orders and profits are simulated, and every screen says so.
 
+**12. Made it easy to present and to use alone.** The site was redesigned in the style of Zomato's
+partner app and gained a guided demo (10 steps with captions, keyboard controls), a How it works
+page (the problem as a picture, the four steps, a glossary, common questions), clearer weekly
+results (whole orders, "this week" vs "so far", a chart of the estimate against the truth) and a
+one-line summary of who sees the discount. A browser script runs the guided demo, every tab and a
+manual flow, and fails on any error or broken number.
+
 ## Reproduce
 
 ```bash

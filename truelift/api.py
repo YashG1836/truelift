@@ -196,7 +196,7 @@ def approve(oid: int, body: OtpIn):
     if off.status != "awaiting_otp":
         raise HTTPException(409, f"offer is {off.status}")
     if body.otp.strip() != off.otp:
-        raise HTTPException(403, "wrong OTP")
+        raise HTTPException(403, "Wrong OTP. Check the code and try again.")
     off.status = "active"
     off.consent = {"approved_at": time.strftime("%Y-%m-%d %H:%M"), "design": asdict(off.design),
                    "label": off.design.label(), "forecast_shown": off.quote,

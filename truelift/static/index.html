@@ -3,46 +3,63 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>TrueLift prototype</title>
+<title>TrueLift: discounts that pay for themselves</title>
+<meta name="description" content="TrueLift: forecast, target and measure restaurant discounts by the extra orders they create. Hackathon prototype for Zomato's restaurant partner app.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23e23744'/%3E%3Cpath d='M9 21l5-6 4 3 6-8' stroke='white' stroke-width='3' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@500;600;700&display=swap">
 <link rel="stylesheet" href="/static/style.css">
 </head>
 <body>
 <header class="top">
-  <div class="brand">TrueLift <span>prototype</span></div>
-  <nav>
+  <div class="brand">
+    <span class="logo" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 32 32"><path d="M6 23l7-8 5 4 8-11" stroke="#fff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+    <span>TrueLift<small>Prototype for Zomato's restaurant partner app · IITGN × Eternal hackathon</small></span>
+  </div>
+  <nav aria-label="Sections">
     <button data-tab="demo" class="on">Demo</button>
+    <button data-tab="how">How it works</button>
     <button data-tab="evidence">Evidence</button>
     <button data-tab="money">Money maths</button>
   </nav>
   <div class="pick">
-    <label for="rest">Restaurant</label>
+    <label for="rest" class="note">Restaurant</label>
     <select id="rest"></select>
+    <button class="btn-tour" id="tourBtn">▶ Guided demo</button>
   </div>
 </header>
-<div class="sim-note">Simulated data. Restaurant names and listing details (locality, cuisine, rating, price) are from public 2019 Zomato listings. Customers, orders and profits are simulated by our model; they are not these restaurants' real figures.</div>
+<div class="sim-note">Simulated data. Restaurant names and listing details (locality, cuisine, rating, price) are real public 2019 Zomato listings. Customers, orders and profits are simulated by our model; they are not these restaurants' real figures.</div>
 
 <main>
   <section id="tab-demo" class="tab on">
     <div class="demo">
       <div class="phone" aria-label="Restaurant partner app">
-        <div class="phone-bar"><span>Restaurant Partner</span><span id="clock"></span></div>
+        <div class="p-status"><span id="clock">9:41</span><span>Partner app</span></div>
+        <div class="p-head" id="phead"></div>
         <div id="screen" class="screen"></div>
+        <div class="p-nav" aria-hidden="true"><span><b>☰</b>Orders</span><span><b>▤</b>Menu</span><span class="on"><b>%</b>Offers</span><span><b>▥</b>Reports</span></div>
       </div>
-      <aside class="inside">
-        <h2>Inside Zomato</h2>
-        <p class="muted">What happens behind the owner's screen. Customers are synthetic. Restaurants are real Bengaluru listings; their orders and profits here are simulated.</p>
-        <div id="who"></div>
-        <div id="truth"></div>
-        <div id="calls"></div>
+      <aside class="inside" aria-label="Inside Zomato">
+        <div class="inside-title"><h2>Inside Zomato</h2><span class="note">what happens behind the owner's screen</span></div>
+        <div id="who" class="panel"></div>
+        <div id="truth" class="panel" hidden></div>
+        <details class="panel" id="callsBox"><summary>Service calls and speed</summary><div id="calls" class="calls"></div></details>
       </aside>
     </div>
   </section>
-
+  <section id="tab-how" class="tab"><div id="how" class="page"></div></section>
   <section id="tab-evidence" class="tab"><div id="evidence" class="page"></div></section>
   <section id="tab-money" class="tab"><div id="money" class="page"></div></section>
 </main>
+
+<div class="tour" id="tour" role="dialog" aria-live="polite" aria-label="Guided demo">
+  <div class="dots" id="tourDots"></div>
+  <div class="step" id="tourStep"></div>
+  <h4 id="tourTitle"></h4>
+  <p id="tourText"></p>
+  <div class="note" style="color:#9a9a9a;margin:-4px 0 10px">Keys: → next · Esc exit</div>
+  <div class="nav"><button class="exit" id="tourExit">Exit</button><button class="prev" id="tourPrev">Restart</button><button class="next" id="tourNext">Next</button></div>
+</div>
 <div id="tip" class="tip" role="tooltip"></div>
 <script src="/static/app.js"></script>
 </body>

@@ -14,11 +14,15 @@ Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi.
 | How we got here | [`DEVLOG.md`](DEVLOG.md): what failed, what we changed and why |
 | Round 1 | [`docs/round1_problem_statement.pdf`](docs/round1_problem_statement.pdf) |
 
-In the demo: pick a restaurant, create an offer, compare the forecast with the better version,
-approve it with the OTP, then simulate four weeks. The panel on the right shows who sees the
-discount and, because this is a simulation, the true effect next to TrueLift's estimate.
+Fastest way in: open the demo and press **▶ Guided demo**. It walks through one restaurant in 10
+steps (forecast, better version, who sees the discount, OTP approval, four weeks of results, the
+evidence) with a plain-language caption at each step; use → to advance. Or do it yourself: pick a
+restaurant, create an offer, approve it with the OTP and simulate the weeks. **How it works**
+explains every step and term; **Money maths** shows every rupee.
 
 ![Creating an offer: forecast, better version and who sees the discount](docs/demo_create_offer.png)
+
+![Four weeks later: TrueLift's estimate and range against the true effect](docs/demo_weekly_results.png)
 
 ## Results in one table (simulated market, per week, 300 restaurants)
 
@@ -40,6 +44,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/python scripts/run_pipeline.py        # ~6 min: simulate, train, evaluate -> reports/
 .venv/bin/uvicorn truelift.api:app --port 8000  # open http://localhost:8000
 .venv/bin/python -m pytest -q                   # tests
+node tests/ui_check.js reports/ui http://localhost:8000/  # browser check (npm i playwright-core)
 .venv/bin/python scripts/export_static.py 142 283 97  # static demo -> site/ (GitHub Pages)
 .venv/bin/python scripts/validate_uplift.py criteo  # check on real randomised data (Criteo)
 ```
@@ -53,7 +58,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 | `truelift/model.py` | Uplift model: chance of ordering with and without an offer; Qini check |
 | `truelift/engine.py` | The four decisions: quote, serve, funding, weekly measurement |
 | `truelift/api.py` | Service with Zomato-style hooks, plus the demo endpoints |
-| `truelift/static/` | Partner-app prototype, "Inside Zomato" panel, evidence and money pages |
+| `truelift/static/` | Partner-app prototype, "Inside Zomato" panel, guided demo, How it works, evidence and money pages |
 | `scripts/` | Build the restaurant list, run the evaluation pipeline, export the static site, check on real data |
 | `tests/` | Checks for the maths, the simulator, the measurement and the API |
 | `reports/` | Evaluation results (JSON, CSV) |

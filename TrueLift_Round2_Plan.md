@@ -149,6 +149,9 @@ customer, not per redemption.
   customer takes about 1.5 ms and falls back to the owner's own audience rule if anything fails.
 - Restaurants are real Bengaluru listings (name, locality, cuisine, rating, price). Their customers,
   orders and profits are simulated, and every screen carries a "simulated data" label.
+- **Guided demo**: a "▶ Guided demo" button walks through one restaurant in 10 captioned steps
+  (→ to advance), so anyone can present it or follow it alone; a **How it works** tab explains
+  the steps and terms.
 - **Partner-app screens** (`truelift/static/`): home → create offer with a live forecast and a
   better version → OTP approval that records what the owner was shown → weekly results (today's
   report vs TrueLift's measurement, range, WhatsApp text, itemised payout) → keep or stop.

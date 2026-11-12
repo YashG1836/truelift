@@ -1,6 +1,7 @@
 """Build the static demo for GitHub Pages (no server needed): site/ = UI + precomputed responses.
 
     .venv/bin/python scripts/export_static.py [restaurant_id ...]
+    .venv/bin/python scripts/export_static.py --assets    # refresh only the UI files of site/
 
 For each chosen restaurant and every design the screen's buttons can make, this calls the real
 TrueLift service in-process and saves its answers: the quote, who sees the discount, and the
@@ -89,26 +90,35 @@ def export_restaurant(rid: int) -> list:
     return timings
 
 
-def main() -> int:
-    from concurrent.futures import ProcessPoolExecutor
-    c = TestClient(app)
-    rids = [int(a) for a in sys.argv[1:]] or [st().demo_restaurant]
-    if SITE.exists():
-        shutil.rmtree(SITE)
-    shutil.copytree(ROOT / "truelift/static", SITE / "static")
+def write_assets() -> None:
+    """UI files: the same static files as the service, with the page pointed at data/."""
+    shutil.copytree(ROOT / "truelift/static", SITE / "static", dirs_exist_ok=True)
     html = (ROOT / "truelift/static/index.html").read_text()
     html = html.replace('<script src="/static/app.js"></script>',
                         '<script>window.TRUELIFT_STATIC = "data/";</script>\n<script src="static/app.js"></script>')
     html = html.replace('href="/static/style.css"', 'href="static/style.css"')
     (SITE / "index.html").write_text(html)
     (SITE / ".nojekyll").write_text("")
+
+
+def main() -> int:
+    from concurrent.futures import ProcessPoolExecutor
+    if sys.argv[1:] == ["--assets"]:
+        write_assets()
+        print(f"UI files refreshed in {SITE}")
+        return 0
+    c = TestClient(app)
+    rids = [int(a) for a in sys.argv[1:]] or [st().demo_restaurant]
+    if SITE.exists():
+        shutil.rmtree(SITE)
+    write_assets()
     data = SITE / "data"
     allr = c.get("/api/restaurants").json()
     write(data / "restaurants.json", {"demo_restaurant": rids[0],
                                       "restaurants": [r for r in allr["restaurants"] if r["restaurant_id"] in rids]})
     write(data / "evidence.json", c.get("/api/evidence").json())
     write(data / "example.json", c.get("/api/example").json())
-    with ProcessPoolExecutor(max_workers=len(rids)) as pool:
+    with ProcessPoolExecutor(max_workers=min(len(rids), 6)) as pool:  # each worker holds a full market
         timings = [t for part in pool.map(export_restaurant, rids) for t in part]
     med = lambda name: sorted(t for n, t in timings if n == name)[len([t for n, t in timings if n == name]) // 2]  # noqa: E731
     write(data / "calls.json", {"calls": [
