@@ -29,9 +29,16 @@ const LOCAL = { offers: {}, next: 1 };
 const dkey = (d) => `${Math.round(d.discount)}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`;
 
 async function sget(file) {
-  const r = await fetch(STATIC + file);
-  if (!r.ok) throw new Error("This combination isn't in the static demo; the live version answers any design.");
-  return r.json();
+  // one retry: a freshly published site can briefly miss files while the CDN catches up
+  for (let attempt = 0; attempt < 2; attempt++) {
+    try {
+      const r = await fetch(STATIC + file);
+      if (r.ok) return r.json();
+      if (r.status !== 404 || attempt) break;
+    } catch (e) { if (attempt) throw new Error("Couldn't load the demo data. Check your connection and try again."); }
+    await new Promise((res) => setTimeout(res, 1200));
+  }
+  throw new Error("This combination isn't in the static demo; the live version answers any design.");
 }
 
 function localView(id) {
