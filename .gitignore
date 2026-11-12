@@ -8,3 +8,4 @@ data/processed/model.pkl
 site/
 reports/pipeline_log.txt
 reports/export_log.txt
+LOG.md

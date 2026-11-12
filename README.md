@@ -5,8 +5,18 @@ Restaurant discounts on Zomato are judged by the orders that **use** them, not t
 orders and profit it creates, inside Zomato's existing offer flow (the owner's OTP approval).
 
 Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi.
-Live demo: https://yashg1836.github.io/truelift/ (static copy; the full service runs locally).
-Full write-up: `TrueLift_Round2_Plan.md`. Working log: `LOG.md`.
+## For judges
+
+| | |
+|---|---|
+| Live demo | https://yashg1836.github.io/truelift/ (static copy of the service's answers; the full service runs locally, see below) |
+| Write-up | [`TrueLift_Round2_Plan.md`](TrueLift_Round2_Plan.md): research, the money maths, how it works, evidence, limits |
+| How we got here | [`DEVLOG.md`](DEVLOG.md): what failed, what we changed and why |
+| Round 1 | [`docs/round1_problem_statement.pdf`](docs/round1_problem_statement.pdf) |
+
+In the demo: pick a restaurant, create an offer, compare the forecast with the better version,
+approve it with the OTP, then simulate four weeks. The panel on the right shows who sees the
+discount and, because this is a simulation, the true effect next to TrueLift's estimate.
 
 ![Creating an offer: forecast, better version and who sees the discount](docs/demo_create_offer.png)
 
