@@ -10,3 +10,5 @@ reports/pipeline_log.txt
 reports/export_log.txt
 LOG.md
 reports/ui/
+.claude/settings.local.json
+.claude/worktrees/

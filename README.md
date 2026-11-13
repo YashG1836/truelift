@@ -45,7 +45,7 @@ python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 .venv/bin/uvicorn truelift.api:app --port 8000  # open http://localhost:8000
 .venv/bin/python -m pytest -q                   # tests
 node tests/ui_check.js reports/ui http://localhost:8000/  # browser check (npm i playwright-core)
-.venv/bin/python scripts/export_static.py 142 283 97  # static demo -> site/ (GitHub Pages)
+.venv/bin/python scripts/export_static.py 233 248 17 142 191 273 84 172 57 146 283 31  # static demo -> site/
 .venv/bin/python scripts/validate_uplift.py criteo  # check on real randomised data (Criteo)
 ```
 
