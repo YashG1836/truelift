@@ -8,8 +8,10 @@ Last updated: 13 Nov 2026 by Yash (Claude). Overwrite lines that become wrong; d
   (before the UI redesign); `main` has the redesigned UI.
 - Branches: `main` (shared), `kshitish` (Kshitish's work), `gh-pages` (generated demo site, do not edit).
 - Teammates ksawesome (Kshitish) and BhavayGoyal have write access (invites sent 12 Nov).
-- On 13 Nov all commits were rewritten once to remove Claude co-author lines (same files, new hashes).
-  If your clone is older than that: `git stash` (if needed), `git pull --rebase`, `git stash pop`.
+- One-time history rewrite (13 Nov, run by Yash): drops the Claude co-author line from the old commits;
+  files, authors and dates stay the same, hashes change. It is done when
+  `git log origin/main --format=%B | grep -c anthropic` prints 0. If your clone is older than that:
+  `git stash` (if you have uncommitted work), `git pull --rebase`, `git stash pop`. Never merge old history back.
 
 ## Headline numbers (source: `reports/evaluation.json`, per week, 300 simulated restaurants)
 | | Blanket | Rule: new customers only | TrueLift |

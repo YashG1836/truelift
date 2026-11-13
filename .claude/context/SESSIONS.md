@@ -16,10 +16,10 @@ Template:
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main
 - Did: added this shared context (`CLAUDE.md`, `.claude/context/`), project settings that turn off Claude
   attribution, and `.claude/hooks/git_guard.py` (blocks AI attribution, force-pushes, and commits that do
-  not update the context). Rewrote all existing commits once to drop the Claude co-author line
-  (files unchanged, hashes changed; main, kshitish, gh-pages and the tag).
+  not update the context). Prepared a one-time rewrite that drops the Claude co-author line from old
+  commits (main, kshitish, gh-pages, tag); Claude's force-push was blocked by permissions, so Yash runs it.
 - Files: CLAUDE.md, .claude/, .gitignore, README.md (export command lists the 12 demo restaurants).
-- Checked: hook tested with sample inputs; tree of every rewritten commit compared with the original.
+- Checked: hook tested with 15 sample inputs; rewritten commits have identical trees, authors, dates.
 - Numbers changed: none.
 - Next / open: teammates pull with `git pull --rebase`; fill "Who is on what" in STATE.md.
 
