@@ -40,6 +40,10 @@ media = [
 validation = [
     "scikit-uplift>=0.5.1",
 ]
+# optional error tracking for a hosted service (TRUELIFT_SENTRY_DSN, plan D9); never used by the demos
+ops = [
+  "sentry-sdk>=2.0,<2.70",
+]
 
 [tool.uv]
 package = false
@@ -86,6 +90,10 @@ extend-exclude = ["plan", "site", "dist", "tests/ui/node_modules", ".claude"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM"]
 ignore = ["E731", "SIM108", "B008"]
+
+[tool.ruff.lint.per-file-ignores]
+# HTML and SVG templates of the pitch deck: long lines of markup read better unbroken
+"scripts/make_deck.py" = ["E501"]
 
 [tool.pyright]
 include = [

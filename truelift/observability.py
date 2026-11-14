@@ -73,6 +73,26 @@ def configure_logging(json_lines: bool) -> logging.Logger:
     return logger
 
 
+def init_error_tracking(dsn: str) -> bool:
+    """Send unhandled errors to Sentry when TRUELIFT_SENTRY_DSN is set (plan D9); off by default.
+
+    Errors only: no performance tracing, no request bodies, no cookies or headers, no customer ids
+    (send_default_pii=False). The static and offline demos have no server, so they never send
+    anything. Returns whether tracking is on.
+    """
+    if not dsn:
+        return False
+    try:
+        import sentry_sdk  # optional: uv sync --group ops
+    except ImportError:
+        logging.getLogger("truelift").warning(
+            "TRUELIFT_SENTRY_DSN is set but sentry-sdk is not installed (uv sync --group ops); error tracking is off"
+        )
+        return False
+    sentry_sdk.init(dsn=dsn, send_default_pii=False, traces_sample_rate=0.0, max_request_body_size="never")
+    return True
+
+
 REQUEST_LOG = logging.getLogger("truelift.request")
 
 SECURITY_HEADERS = {

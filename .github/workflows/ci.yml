@@ -83,7 +83,9 @@ jobs:
   site:
     name: Static site and live service in a browser
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    # The full 32-restaurant export takes about an hour on a hosted runner, so it runs only when the
+    # demo is about to be published; every other run exports two restaurants.
+    timeout-minutes: 150
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v7
@@ -101,11 +103,12 @@ jobs:
       - name: Export the static demo
         env:
           TRUELIFT_EXPORT_WORKERS: "4"
+          DEPLOYING: ${{ github.ref == 'refs/heads/kshitish' && ((github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy]')) || (github.event_name == 'workflow_dispatch' && inputs.deploy)) }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            uv run python tasks.py export 233 248      # two restaurants keep pull requests fast
+          if [ "$DEPLOYING" = "true" ]; then
+            uv run python tasks.py export              # the full demo set, for publishing
           else
-            uv run python tasks.py export              # the full demo set
+            uv run python tasks.py export 233 248      # two restaurants keep other runs fast
           fi
       - uses: actions/setup-node@v7
         with:

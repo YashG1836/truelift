@@ -1,6 +1,7 @@
 # Every number the documents state about the results, and where it comes from (audit A07 R1).
 # `python scripts/check_claims.py` computes each `expr` from reports/ (ev = evaluation.json,
 # criteo / hill = uplift_validation_*.json, pilot = pilot_sample_size.json, bench = learner_benchmark.json,
+# sens = sensitivity.json, lat = latency.json,
 # exp(name) = exp_<name>.json result, ex / pre = the money
 # example with commission after / before the discount, from truelift/economics.py), formats it,
 # and checks that every listed document contains `text` with the number in place of {}.
@@ -142,3 +143,71 @@ claims:
   - {id: state_criteo_conv_t, expr: "criteo.results[1]['rankings']['t_learner']['top30_share_of_total_lift']['value']", format: pct0, text: "purchases T-learner {} vs the shortcut", docs: [.claude/context/STATE.md]}
   - {id: state_criteo_conv_r, expr: "criteo.results[1]['rankings']['response']['top30_share_of_total_lift']['value']", format: pct0, text: "vs the shortcut {};", docs: [.claude/context/STATE.md]}
   - {id: state_draws_bias, expr: "round(exp('holdout_draws').mean_error_rs, -1)", format: inr, text: "over-states the truth by about {} an offer", docs: [.claude/context/STATE.md]}
+
+  # ---- the pitch: question bank (docs/pitch/questions.md). The deck and the one-pager are generated
+  # from the same expressions by scripts/make_deck.py, so they cannot drift.
+  - {id: q1_tl_orders, expr: "ev.main.policies.truelift.orders_per_week", format: int, text: "{} orders a week against 21,526", docs: [docs/pitch/questions.md]}
+  - {id: q1_bl_orders, expr: "ev.main.policies.today_blanket.orders_per_week", format: int, text: "orders a week against {}, which is", docs: [docs/pitch/questions.md]}
+  - {id: q1_fewer, expr: "1 - ev.main.policies.truelift.orders_per_week / ev.main.policies.today_blanket.orders_per_week", format: pct0, text: "which is {} fewer", docs: [docs/pitch/questions.md]}
+  - {id: q1_lose, expr: "ev.main.policies.today_blanket.offers_that_lose", text: "offers that lose {} of them money", docs: [docs/pitch/questions.md]}
+  - {id: q1_half, expr: "ev.main.consent_attrition.blanket_owners_decline_blind['50%'].orders_per_week", format: int, text: "blanket orders fall to {}.", docs: [docs/pitch/questions.md]}
+  - {id: q2_tl_comm, expr: "ev.main.policies.truelift.zomato_commission_change", format: lakh2, text: "with blanket offers: +{} a week", docs: [docs/pitch/questions.md]}
+  - {id: q2_bl_comm, expr: "ev.main.policies.today_blanket.zomato_commission_change", format: lakh2, text: "a week against +{}, in every one of", docs: [docs/pitch/questions.md]}
+  - {id: q2_seeds, expr: "len(ev.seeds.seeds) if ev.seeds.differences.truelift_minus_today_blanket.zomato_commission_change.same_sign_every_seed else -1", format: word, text: "in every one of {} market seeds, because", docs: [docs/pitch/questions.md]}
+  - {id: q2_tl_contrib, expr: "ev.main.policies.truelift.zomato_contribution_change", format: lakh2, text: "Contribution moves the same way: +{} against", docs: [docs/pitch/questions.md]}
+  - {id: q2_bl_contrib, expr: "ev.main.policies.today_blanket.zomato_contribution_change", format: lakh2, text: "same way: +₹2.22 lakh against +{}.", docs: [docs/pitch/questions.md]}
+  - {id: q3_tl_share, expr: "ev.main.zomato_ledger.platform_incremental_share_of_extra_orders.truelift", format: pct0, text: "{} of TrueLift's extra orders are new to Zomato", docs: [docs/pitch/questions.md]}
+  - {id: q3_bl_share, expr: "ev.main.zomato_ledger.platform_incremental_share_of_extra_orders.today_blanket", format: pct0, text: "against {} for blanket offers. The rest", docs: [docs/pitch/questions.md]}
+  - {id: q4_no_offer, expr: "ev.main.selection.no_offer_chosen", text: "advises no offer at {} of 300 restaurants", docs: [docs/pitch/questions.md]}
+  - {id: q5_latency, expr: "lat.serve_sequential.p95_ms", format: f1, text: "A lookup per menu open ({} ms at the 95th percentile", docs: [docs/pitch/questions.md]}
+  - {id: q5_control_cost, expr: "ev.main.zomato_ledger.control_group_cost_truelift.profit_forgone_a_week", format: inr, text: "the control group: {} of restaurant profit", docs: [docs/pitch/questions.md]}
+  - {id: q8_tl_ratio, expr: "ev.main.forecast.truelift_design_in_todays_market.ratio_forecast_to_truth", format: pct0, text: "the forecasts add up to {} of the true effect in today's market", docs: [docs/pitch/questions.md]}
+  - {id: q8_switched, expr: "ev.main.forecast.truelift_design_after_everyone_switches.ratio_forecast_to_truth", format: pct0, text: "and {} once every restaurant has switched", docs: [docs/pitch/questions.md]}
+  - {id: q8_bl_ratio, expr: "ev.main.forecast.owner_blanket_offer_in_todays_market.ratio_forecast_to_truth", format: pct0, text: "for blanket offers, {}. The 80%", docs: [docs/pitch/questions.md]}
+  - {id: q8_coverage, expr: "ev.main.forecast.truelift_design_in_todays_market.coverage_80", format: pct0, text: "The 80% ranges hold {} of the truths", docs: [docs/pitch/questions.md]}
+  - {id: q9_bl_losing, expr: "ev.main.detection.blanket_fixed_holdout.truly_losing_offers", text: "Of {} losing blanket offers given a control group", docs: [docs/pitch/questions.md]}
+  - {id: q9_flagged, expr: "ev.main.detection.blanket_fixed_holdout.by_week.week_4.losing_paused_or_warned", format: pct0, text: "control group, {} are warned about or paused within four weeks", docs: [docs/pitch/questions.md]}
+  - {id: q9_false, expr: "ev.main.detection.blanket_fixed_holdout.by_week.week_4.profitable_ever_paused", format: pct0, text: "while only {} of profitable ones are ever paused", docs: [docs/pitch/questions.md]}
+  - {id: q9_tl_losing, expr: "ev.main.detection.truelift_offers.truly_losing_offers", text: "TrueLift's own {} losing offers lose", docs: [docs/pitch/questions.md]}
+  - {id: q9_tl_loss, expr: "ev.main.consent_attrition.truelift_losing_owners_decline.own_offer_profit_effect - ev.main.consent_attrition.truelift_all_approve.own_offer_profit_effect", format: inr, text: "losing offers lose {} a week between them", docs: [docs/pitch/questions.md]}
+  - {id: q10_4, expr: "ev.main.aa_test.lifetime_false_pause_4_looks", format: pct1, text: "paused {} of the time over four weekly looks", docs: [docs/pitch/questions.md]}
+  - {id: q10_12, expr: "ev.main.aa_test.lifetime_false_pause_12_looks", format: pct1, text: "and {} over twelve", docs: [docs/pitch/questions.md]}
+  - {id: q10_4_before, expr: "ev.main.aa_test.lifetime_false_pause_4_looks_rule_before", format: pct1, text: "the old rule paused {} and", docs: [docs/pitch/questions.md]}
+  - {id: q10_12_before, expr: "ev.main.aa_test.lifetime_false_pause_12_looks_rule_before", format: pct1, text: "the old rule paused 18.4% and {}.", docs: [docs/pitch/questions.md]}
+  - {id: q11_t, expr: "bench.summary.t_learner.profit_top_30pct_vs_best_possible.mean", format: pct0, text: "it captures {} of the best possible profit", docs: [docs/pitch/questions.md]}
+  - {id: q11_response, expr: "bench.summary.response.profit_top_30pct_vs_best_possible.mean", format: pct0, text: "against {} for ranking by who is likely to order anyway", docs: [docs/pitch/questions.md]}
+  - {id: q12_adopters, expr: "ev.main.partial_adoption['10%'].adopters_profit_change_a_week", format: inr, text: "they gain {} a week and the others lose", docs: [docs/pitch/questions.md]}
+  - {id: q12_others, expr: "-ev.main.partial_adoption['10%'].others_profit_change_a_week", format: inr, text: "the others lose {}, because", docs: [docs/pitch/questions.md]}
+  - {id: q13_holdout_only, expr: "ev.main.control_set.holdout_only.qini", format: f3, text: "almost as well: Qini {} against", docs: [docs/pitch/questions.md]}
+  - {id: q13_all, expr: "ev.main.uplift_quality.qini_model", format: f3, text: "Qini 0.218 against {}. On real logs", docs: [docs/pitch/questions.md]}
+  - {id: q14_model, expr: "exp('depth_choice').model_picks_size.own_offer_profit_effect", format: lakh2, text: "(own-offer profit {} against", docs: [docs/pitch/questions.md]}
+  - {id: q14_owner, expr: "exp('depth_choice').owner_size_kept.own_offer_profit_effect", format: lakh2, text: "₹9.57 lakh against {}), but", docs: [docs/pitch/questions.md]}
+  - {id: q14_lose_before, expr: "exp('depth_choice').owner_size_kept.offers_that_lose", text: "losing offers rise from {} to", docs: [docs/pitch/questions.md]}
+  - {id: q14_lose_after, expr: "exp('depth_choice').model_picks_size.offers_that_lose", text: "rise from 10 to {}, because", docs: [docs/pitch/questions.md]}
+  - {id: q14_size_test, expr: "exp('depth_test').share_picking_the_truly_better_size", format: pct0, text: "picks the better size {} of the time in four weeks", docs: [docs/pitch/questions.md]}
+  - {id: q15_precision, expr: "precision_95(0.07, 0.10, 1000, 0.10)", format: f1, text: "own data gives ±{} points on a 3-point effect", docs: [docs/pitch/questions.md]}
+  - {id: q16_p95, expr: "lat.serve_sequential.p95_ms", format: f1, text: "A dictionary lookup and a hash: {} ms at the 95th percentile", docs: [docs/pitch/questions.md]}
+  - {id: q16_server, expr: "lat.serve_sequential.server_side.p95_ms", format: f2, text: "over HTTP, {} ms inside the service", docs: [docs/pitch/questions.md]}
+  - {id: q16_throughput, expr: "lat.serve_8_threads.throughput_per_second", format: int, text: "and {} decisions a second with eight callers", docs: [docs/pitch/questions.md]}
+  - {id: q18_ratio_flags, expr: "sum(w['sample_ratio_flags'] for w in ev.main.aa_test.by_week.values())", text: "it raised {} alarms in 2,736 weekly checks", docs: [docs/pitch/questions.md]}
+  - {id: q18_ratio_checks, expr: "ev.main.aa_test.offers * len(ev.main.aa_test.by_week)", format: int, text: "4 alarms in {} weekly checks over twelve weeks", docs: [docs/pitch/questions.md]}
+  - {id: q18_ratio_first_four, expr: "sum(ev.main.aa_test.by_week[k]['sample_ratio_flags'] for k in ['week_1', 'week_2', 'week_3', 'week_4'])", text: "over twelve weeks ({} in the first four)", docs: [docs/pitch/questions.md]}
+  - {id: q20_candidate, expr: "exp('retrain_loop').candidate_model.qini_on_holdout", format: f3, text: "(Qini {} against", docs: [docs/pitch/questions.md]}
+  - {id: q20_current, expr: "exp('retrain_loop').current_model.qini_on_holdout", format: f3, text: "Qini 0.231 against {}), so it would be promoted", docs: [docs/pitch/questions.md]}
+  - {id: q20_promote, expr: "1 if exp('retrain_loop').promote else 0", text: "{} if the candidate would be promoted: in our retraining test it was", docs: [], note: "the question bank says the candidate would be promoted; this must stay 1"}
+  - {id: q21_be, expr: "100 * (1 - ex.per_order_discounted.restaurant_profit / ex.per_order_full.restaurant_profit)", text: "the offer breaks even at {} extra orders in 100", docs: [docs/pitch/questions.md]}
+  - {id: q21_be_pre, expr: "100 * (1 - pre.per_order_discounted.restaurant_profit / pre.per_order_full.restaurant_profit)", text: "on the discounted bill, {} if on the full bill", docs: [docs/pitch/questions.md]}
+  - {id: q21_bl_pay, expr: "ev.pre_discount_commission.policies.today_blanket.offers_that_pay", text: "In the second case {} of 300 blanket offers pay", docs: [docs/pitch/questions.md]}
+  - {id: q21_tl_pay, expr: "ev.pre_discount_commission.policies.truelift.offers_that_pay", text: "TrueLift still finds {} that do", docs: [docs/pitch/questions.md]}
+  - {id: q22_bl_pay, expr: "ev.main.percentage_offers.proportional.policies.today_blanket.offers_that_pay", text: "{} of 300 blanket offers pay and", docs: [docs/pitch/questions.md]}
+  - {id: q22_tl_pay, expr: "ev.main.percentage_offers.proportional.policies.truelift.offers_that_pay", text: "pay and {} TrueLift offers do", docs: [docs/pitch/questions.md]}
+  - {id: q24_adaptive, expr: "ev.main.detection.blanket_adaptive_holdout.by_week.week_4.losing_paused_or_warned", format: pct0, text: "it flags {} of losing blanket offers within four weeks", docs: [docs/pitch/questions.md]}
+  - {id: q24_fixed, expr: "ev.main.detection.blanket_fixed_holdout.by_week.week_4.losing_paused_or_warned", format: pct0, text: "within four weeks against {}, so", docs: [docs/pitch/questions.md]}
+  - {id: q27_regulars, expr: "ev.main.fairness.truelift.by_segment.regular['regular here'].share_of_visits_offered_a_saving", format: pct0, text: "offered a saving on {} of visits", docs: [docs/pitch/questions.md]}
+  - {id: q27_others, expr: "ev.main.fairness.truelift.by_segment.regular['not a regular'].share_of_visits_offered_a_saving", format: pct0, text: "of visits against {} for others", docs: [docs/pitch/questions.md]}
+  - {id: q27_brand_pack, expr: "ev.main.fairness.brand_pack_for_regulars.by_segment.regular['regular here'].share_of_visits_offered_a_saving", format: pct0, text: "raises that to {} at no cost", docs: [docs/pitch/questions.md]}
+  - {id: q27_profit, expr: "ev.main.fairness.mitigations.brand_pack_for_regulars.own_offer_profit_effect", format: lakh2, text: "(+{} either way)", docs: [docs/pitch/questions.md]}
+  - {id: q27_profit_same, expr: "ev.main.policies.truelift.own_offer_profit_effect", format: lakh2, text: "(+{} either way)", docs: [docs/pitch/questions.md]}
+  - {id: q30_inflation, expr: "ev.main.selection.forecast_advantage_total / ev.main.selection.true_advantage_total", format: word, text: "about {} times its true one (though", docs: [docs/pitch/questions.md]}
+  - {id: q30_better, expr: "ev.main.selection.share_truly_better_than_owner", format: pct0, text: "(though {} truly beat the owner's)", docs: [docs/pitch/questions.md]}
+  - {id: q30_bias, expr: "exp('holdout_draws').mean_error_rs", format: inr, text: "over-states the truth by {} an offer. A shadow", docs: [docs/pitch/questions.md]}

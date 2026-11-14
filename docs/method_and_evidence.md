@@ -436,10 +436,12 @@ about 1% of customers to measure what offers do to habits over a quarter; and fo
 an offer brought in for eight weeks, to decide whether acquisition offers that lose money in week
 one are worth running.
 
-**Comparable work.** Ad platforms measure campaigns with "ghost ads" and conversion-lift holdouts,
-and food-delivery researchers have published randomised coupon data (Meituan's MT-LIFT). TrueLift
-applies the same holdout idea to restaurant-funded offers, puts the forecast where the owner decides
-(the OTP screen), and ties the weekly result to renewal.
+**Comparable work.** Ad platforms measure campaigns with "ghost ads" and conversion-lift holdouts.
+DoorDash, for example, measures what its restaurant ads add with ghost ads, and since March 2026
+sells brands a Sales Lift Measurement product. Food-delivery researchers have also published
+randomised coupon data (Meituan's MT-LIFT). TrueLift applies the same holdout idea to
+restaurant-funded offers, puts the forecast where the owner decides (the OTP screen), and ties the
+weekly result to renewal.
 
 ## 12. Limits, and what is not modelled
 
@@ -466,6 +468,8 @@ applies the same holdout idea to restaurant-funded offers, puts the forecast whe
 - Business Standard, Brand Packs, Jul 2024: https://www.business-standard.com/companies/news/zomato-rolls-out-brand-packs-to-reward-repeat-orders-from-restaurants-124072600697_1.html
 - Business Standard, CCPA notices to Ola and Uber, Jan 2025: https://business-standard.com/industry/news/ccpa-issues-notices-to-ola-uber-over-differential-pricing-practice-125012301247_1.html
 - MT-LIFT: https://github.com/MTDJDSP/MT-LIFT (issues: https://github.com/MTDJDSP/MT-LIFT/issues)
+- DoorDash Ads, "Measuring Restaurant Ads Incrementality with Ghost Ads": https://advertising.doordash.com/en-ca/resources/measuring-incrementality-with-ghost-ads-at-doordash
+- DoorDash, "DoorDash Ads Launches Sales Lift Measurement", Mar 2026: https://about.doordash.com/en-us/news/doordash-ads-launches-sales-lift-measurement
 - Criteo uplift dataset: https://huggingface.co/datasets/criteo/criteo-uplift ; paper: https://openreview.net/pdf?id=Q83-QeTB9lS
 - Hillstrom, MineThatData E-Mail Analytics and Data Mining Challenge (2008): http://www.minethatdata.com/Kevin_Hillstrom_MineThatData_E-MailAnalytics_DataMiningChallenge_2008.03.20.csv
 - Künzel, Sekhon, Bickel and Yu, "Metalearners for estimating heterogeneous treatment effects", PNAS 2019 (the X-learner).

@@ -15,6 +15,8 @@ Environment variables (all optional):
   TRUELIFT_LOG_JSON         1 to write one JSON log line per request (default 1)
   TRUELIFT_LANGUAGES        1 to offer the Hindi, Kannada and Gujarati drafts (default 0: they wait
                             for a native speaker's review, decision D4)
+  TRUELIFT_SENTRY_DSN       error tracking, off unless set (needs `uv sync --group ops`); sends errors
+                            only, never request bodies, customer ids or personal data (plan D9)
 """
 
 from __future__ import annotations
@@ -43,6 +45,7 @@ class Settings:
     session_idle_seconds: int
     log_json: bool
     languages: bool = False
+    sentry_dsn: str = ""
 
 
 def load_settings() -> Settings:
@@ -58,4 +61,5 @@ def load_settings() -> Settings:
         session_idle_seconds=int(_env("TRUELIFT_SESSION_IDLE", "3600")),
         log_json=_env("TRUELIFT_LOG_JSON", "1") == "1",
         languages=_env("TRUELIFT_LANGUAGES", "0") == "1",
+        sentry_dsn=_env("TRUELIFT_SENTRY_DSN", ""),
     )

@@ -542,7 +542,10 @@ function weekHTML(w, off) {
       <div class="row"><span class="k">Saw the offer</span><span class="v">${n0(e.shown_orders)} orders from ${n0(e.shown_visits)} visits (${rate(e.shown_orders, e.shown_visits)})</span></div>
       <div class="row"><span class="k">Held out (control group)</span><span class="v">${n0(e.control_orders)} orders from ${n0(e.control_visits)} visits (${rate(e.control_orders, e.control_visits)})</span></div>`}
       <p class="note">With few held-out visits the comparison is noisy, so the estimate also leans on the model learned from all restaurants (${pct(p.weight_on_own_data)} of the weight is on your own control group now).</p></details>
-    ${(() => { const wa = (LANG.code !== "en" && w.whatsapp_i18n?.[LANG.code]) || w.whatsapp; return `<details><summary>WhatsApp summary sent to the owner${wa !== w.whatsapp ? " (draft translation)" : ""}</summary><div class="wa" lang="${wa !== w.whatsapp ? LANG.code : "en"}">${esc(wa)}</div>
+    ${(() => { const draft = LANG.code !== "en" && !!w.whatsapp_i18n?.[LANG.code];
+      let wa = draft ? w.whatsapp_i18n[LANG.code] : w.whatsapp;
+      if (LINK.generic && S.card) wa = wa.split(S.card.name).join(shownName(S.card)); // #names=generic: no real name anywhere
+      return `<details><summary>WhatsApp summary sent to the owner${draft ? " (draft translation)" : ""}</summary><div class="wa" lang="${draft ? LANG.code : "en"}">${esc(wa)}</div>
       <a class="btn small ghost" href="https://wa.me/?text=${encodeURIComponent(wa)}" target="_blank" rel="noopener noreferrer">Send to my WhatsApp</a></details>`; })()}
     <details><summary>Itemised payout for week ${n}</summary>
       <div class="row"><span class="k">Orders</span><span class="v">${pay.orders}</span></div>

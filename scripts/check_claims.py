@@ -98,6 +98,7 @@ def namespace() -> dict:
         "pilot": load("pilot_sample_size.json"),
         "bench": load("learner_benchmark.json"),
         "sens": load("sensitivity.json"),
+        "lat": load("latency.json"),
         "ex": Dot(ex),
         "pre": Dot(pre),
         "precision_95": precision_95,
@@ -110,6 +111,7 @@ def namespace() -> dict:
         "len": len,
         "all": all,
         "any": any,
+        "zip": zip,
     }
 
 
@@ -117,7 +119,7 @@ def check(claims: list[dict], ns: dict) -> list[str]:
     problems = []
     for c in claims:
         try:
-            value = eval(c["expr"], {"__builtins__": {}}, ns)  # noqa: S307 (our own ledger, not input)
+            value = eval(c["expr"], {"__builtins__": {}, **ns})  # noqa: S307 (our own ledger, not input)
             text = c["text"].replace("{}", fmt(value, c.get("format", "plain")))
         except Exception as e:  # a renamed report key is a failure, with the claim that broke
             problems.append(f"{c['id']}: cannot compute ({type(e).__name__}: {e})")
@@ -137,7 +139,7 @@ def orphans(claims: list[dict], ns: dict) -> list[str]:
     covered: dict[str, set] = {}
     for c in claims:
         try:
-            value = eval(c["expr"], {"__builtins__": {}}, ns)  # noqa: S307
+            value = eval(c["expr"], {"__builtins__": {}, **ns})  # noqa: S307
             covered.setdefault(fmt(value, c.get("format", "plain")), set()).update(c["docs"])
         except Exception:
             continue

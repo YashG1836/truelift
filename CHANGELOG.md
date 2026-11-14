@@ -34,7 +34,11 @@ corrections, before and after, are in `DEVLOG.md`.
   phone, offline from a file and over a local server, live, public URL), a load test.
 - `tasks.py`, Makefile, Docker, CI on Linux and Windows with a gated deploy, CodeQL.
 - Documents: architecture, integration blueprint with event schemas and a shadow kit, decision
-  records, model card, simulator datasheet, privacy and fairness, what we tested, field kit.
+  records, model card, simulator datasheet, privacy and fairness, what we tested, field kit, handoff.
+- Pitch (`docs/pitch/`): a deck (HTML, PDF and editable PPTX) and a one-page summary generated from
+  `reports/`, speaker notes, a demo runbook, thirty questions with checked answers, and a captioned
+  recording of the guided demo.
+- Optional error tracking behind `TRUELIFT_SENTRY_DSN` (off by default; errors only, no personal data).
 
 ### Fixed
 - TL-001: concurrent quotes could read each other's cached predictions.

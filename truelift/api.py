@@ -54,6 +54,7 @@ from .observability import (
     SERVE_FALLBACK,
     ObservabilityMiddleware,
     configure_logging,
+    init_error_tracking,
 )
 from .schemas import (
     ConsentCheck,
@@ -147,7 +148,9 @@ def reset_state() -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    configure_logging(load_settings().log_json)
+    settings = load_settings()
+    configure_logging(settings.log_json)
+    init_error_tracking(settings.sentry_dsn)
     # build before the first request, so nobody waits for it; if the model is missing,
     # /readyz reports it and data routes answer 503 with instructions
     with suppress(ProblemError):

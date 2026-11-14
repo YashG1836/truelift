@@ -112,6 +112,7 @@ Every command works on Windows, macOS and Linux (`tasks.py` needs only Python). 
 | [`docs/method_and_evidence.md`](docs/method_and_evidence.md): the problem, the method, the evidence, the limits | [`DEVLOG.md`](DEVLOG.md): what failed, what we changed, and the corrections with before and after |
 | [`docs/integration_blueprint.md`](docs/integration_blueprint.md): calls, events, rollout, pilot size | [`docs/decisions/`](docs/decisions/): why each design choice |
 | [`docs/privacy_and_fairness.md`](docs/privacy_and_fairness.md): what the model never reads, who gets discounts | [`docs/model_card.md`](docs/model_card.md), [`SECURITY.md`](SECURITY.md) |
+| [`docs/pitch/`](docs/pitch/): the deck, a one-page summary, thirty questions with answers, the demo runbook | [`docs/field_research.md`](docs/field_research.md): the kit for interviewing restaurant owners (not yet conducted) |
 
 ## Limits
 

@@ -17,6 +17,10 @@
     python tasks.py golden             re-record the golden snapshot after an intended change
     python tasks.py openapi            write the API contract to docs/openapi.json (a test checks it)
     python tasks.py docker             build the image and run it on port 8000
+    python tasks.py deck               pitch deck, notes and one-pager from reports/ -> docs/pitch/
+                                       (PDF and PPTX; needs the UI tests' Chromium)
+    python tasks.py video              captioned recording of the guided demo -> docs/pitch/demo.mp4
+                                       (needs `python tasks.py export` first)
 
 Uses `uv run` when uv is installed; otherwise the Python running this file (so an activated
 virtual environment with requirements-dev.txt works too). Standard library only.
@@ -75,6 +79,11 @@ DEMO_RESTAURANTS = [
 
 def py() -> list[str]:
     return ["uv", "run", "python"] if shutil.which("uv") else [sys.executable]
+
+
+def py_media() -> list[str]:
+    """Python with the `media` group (qrcode, python-pptx, imageio-ffmpeg) for the pitch files."""
+    return ["uv", "run", "--group", "media", "python"] if shutil.which("uv") else [sys.executable]
 
 
 def run(cmd: list[str], **kw) -> int:
@@ -188,6 +197,14 @@ def openapi(a) -> int:
     return run([*py(), "-c", code])
 
 
+def deck(a) -> int:
+    return run([*py_media(), "scripts/make_deck.py", "--pdf"])
+
+
+def video(a) -> int:
+    return run([*py_media(), "scripts/make_video.py"])
+
+
 def docker(a) -> int:
     return run(["docker", "build", "-t", "truelift", "."]) or run(
         ["docker", "run", "--rm", "-p", f"{a.port}:8000", "truelift"]
@@ -235,6 +252,8 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("docker")
     p.add_argument("--port", type=int, default=8000)
     p.set_defaults(fn=docker)
+    sub.add_parser("deck").set_defaults(fn=deck)
+    sub.add_parser("video").set_defaults(fn=video)
     a = ap.parse_args(argv)
     return a.fn(a)
 

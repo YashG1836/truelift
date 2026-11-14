@@ -42,14 +42,18 @@ do not append history here (history goes in SESSIONS.md).
   Flat and percentage designs (258 files a restaurant). Draft translations kept only for 233.
 - Tabs: Demo (guided demo, 10 steps, Back and keys), How it works, Evidence, Money maths, Operations.
 - Offline bundle: `python scripts/build_offline.py` after an export -> `dist/truelift-offline/`.
+- Pitch in `docs/pitch/`: deck (PDF, PPTX, `deck.html`), speaker notes, runbook (choreography, failure drill,
+  90-second audience script), 30-question bank (numbers in the claims ledger), one-pager with QR, `demo.mp4`.
+  Rebuild with `python tasks.py deck` and `python tasks.py video` (after export); `tests/test_pitch.py` checks.
 
 ## Open tasks (owner in brackets; change when you pick one up)
 1. [team] Interview 6-8 restaurant owners with the field kit (`docs/field_research.md`, `docs/field_research/`).
 2. [team] Native-speaker review of `truelift/static/i18n/{hi,kn,gu}.json`, then switch `TRUELIFT_LANGUAGES=1` (D4).
 3. [team] Send Eternal the questions in `docs/method_and_evidence.md` §10.
-4. [team] Rehearse the 5-minute demo (`docs/method_and_evidence.md` §8, pitch folder) with the guided demo.
+4. [team] Rehearse with `docs/pitch/runbook.md` (three runs) and own ten questions each from `docs/pitch/questions.md`.
 5. [Yash] Review the restyle of `truelift/static/` (his last area) before `kshitish` is merged into `main`.
-6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); repository settings listed in the handoff.
+6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); steps, release and repository
+   settings in `docs/handoff.md`.
 
 ## Known limits (say these if asked)
 - All outcomes are simulated; only the real-data checks (ads, e-mail) are real, and neither is about restaurant offers.

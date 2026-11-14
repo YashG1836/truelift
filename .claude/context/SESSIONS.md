@@ -13,6 +13,20 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (pitch, video, export, handoff)
+- Did: pitch in `docs/pitch/` generated from reports by `scripts/make_deck.py` (12 + 8 slides as HTML, PDF and
+  editable PPTX; speaker notes with timing, five-minute cut and three registers; one-pager with QR), `runbook.md`,
+  30-question bank (65 new claims in `docs/claims.yml`; the ledger caught a wrong "0 sample-ratio alarms": it is 4 in
+  2,736 weekly checks, 0 in the first four weeks). `scripts/make_video.py` records the guided demo with generic names
+  (D5) -> `docs/pitch/demo.mp4` and retakes the README screenshots. Full 32-restaurant export (self-check passed),
+  offline bundle (62.8 MB zip). CI exports all 32 only on deploy runs (D15 amended; the 14 Nov run timed out at 60
+  min). Error-tracking flag `TRUELIFT_SENTRY_DSN` (off by default, uv group `ops`, plan D9). WhatsApp text keeps
+  generic names under `#names=generic`. DoorDash ghost-ads comparison added to the write-up. `docs/handoff.md`.
+- Checked: Playwright 20 of 20 (static, phone, offline-file, offline-http, live); claims 183 of 183; tables;
+  `tests/test_pitch.py`, `tests/test_error_tracking.py`. Not checked yet: CI deploy run and the public URL.
+- Numbers changed: none (pitch numbers come from the frozen reports).
+- Next / open: `[deploy]` push, verify the public URL with Playwright, clean-clone check; team items in `docs/handoff.md`.
+
 ## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (number freeze, documents, field kit)
 - Did: froze the numbers of the 14 Nov night run: `reports/` and the model `data/processed/model.pkl` (+ `.sha256`),
   now committed (un-ignored; D15). README, STATE and method-doc tables rendered from reports; claims ledger
