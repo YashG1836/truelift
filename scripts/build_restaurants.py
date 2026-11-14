@@ -6,6 +6,7 @@ Output: data/processed/restaurants.csv (300 delivery restaurants, 6 localities x
 Only public listing fields are used: name, locality, cuisines, cost for two, rating, votes.
 Everything else about these restaurants (customers, orders, profits) is simulated, and the UI says so.
 """
+
 import sys
 
 import numpy as np

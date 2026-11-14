@@ -10,6 +10,7 @@ Metrics (served at /metrics in the Prometheus text format, audit A16 O3):
   truelift_forecast_minus_measured_ratio     (forecast - measured) / |measured| of the latest measured week
 Labels never carry customer ids or restaurant names.
 """
+
 from __future__ import annotations
 
 import json
@@ -21,23 +22,37 @@ import uuid
 from prometheus_client import CollectorRegistry, Counter, Gauge, Histogram
 
 REGISTRY = CollectorRegistry(auto_describe=True)
-REQUEST_SECONDS = Histogram("truelift_request_seconds", "Request latency by route", ["route"], registry=REGISTRY,
-                            buckets=(0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5))
+REQUEST_SECONDS = Histogram(
+    "truelift_request_seconds",
+    "Request latency by route",
+    ["route"],
+    registry=REGISTRY,
+    buckets=(0.0005, 0.001, 0.0025, 0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5),
+)
 SERVE_DECISIONS = Counter("truelift_serve_decisions", "Serving decisions by outcome", ["decision"], registry=REGISTRY)
-SERVE_FALLBACK = Counter("truelift_serve_fallback", "Decision tables that fell back to the owner's rule",
-                         registry=REGISTRY)
-HOLDOUT_SHARE = Gauge("truelift_holdout_share", "Held-out share of eligible visits across measured weeks",
-                      registry=REGISTRY)
+SERVE_FALLBACK = Counter(
+    "truelift_serve_fallback", "Decision tables that fell back to the owner's rule", registry=REGISTRY
+)
+HOLDOUT_SHARE = Gauge(
+    "truelift_holdout_share", "Held-out share of eligible visits across measured weeks", registry=REGISTRY
+)
 OFFERS = Gauge("truelift_offers", "Demo offers by status", ["status"], registry=REGISTRY)
 MODEL_INFO = Gauge("truelift_model_info", "Model currently loaded", ["version", "trained_at"], registry=REGISTRY)
-FORECAST_RATIO = Gauge("truelift_forecast_minus_measured_ratio",
-                       "(forecast - measured) / |measured| for the latest measured week", registry=REGISTRY)
+FORECAST_RATIO = Gauge(
+    "truelift_forecast_minus_measured_ratio",
+    "(forecast - measured) / |measured| for the latest measured week",
+    registry=REGISTRY,
+)
 
 
 class JsonFormatter(logging.Formatter):
     def format(self, record: logging.LogRecord) -> str:
-        base = {"ts": round(record.created, 3), "level": record.levelname.lower(), "logger": record.name,
-                "msg": record.getMessage()}
+        base = {
+            "ts": round(record.created, 3),
+            "level": record.levelname.lower(),
+            "logger": record.name,
+            "msg": record.getMessage(),
+        }
         extra = getattr(record, "fields", None)
         if isinstance(extra, dict):
             base.update(extra)
@@ -67,8 +82,10 @@ SECURITY_HEADERS = {
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 }
 # The demo page only: inline style attributes are used, scripts come from the same origin.
-PAGE_CSP = ("default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
-            "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'")
+PAGE_CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; "
+    "font-src 'self'; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+)
 
 
 class ObservabilityMiddleware:
@@ -107,8 +124,20 @@ class ObservabilityMiddleware:
             template = getattr(route, "path", None) or ("/static" if path.startswith("/static") else path)
             REQUEST_SECONDS.labels(route=template).observe(dt)
             st = scope.get("state", {})
-            REQUEST_LOG.info("request", extra={"fields": {
-                "route": template, "method": scope.get("method"), "status": status_holder["status"],
-                "ms": round(dt * 1000, 2), "correlation_id": cid, "session": st.get("session"),
-                "restaurant": st.get("restaurant"), "offer": st.get("offer"),
-                "decision": st.get("decision"), "fallback": st.get("fallback")}})
+            REQUEST_LOG.info(
+                "request",
+                extra={
+                    "fields": {
+                        "route": template,
+                        "method": scope.get("method"),
+                        "status": status_holder["status"],
+                        "ms": round(dt * 1000, 2),
+                        "correlation_id": cid,
+                        "session": st.get("session"),
+                        "restaurant": st.get("restaurant"),
+                        "offer": st.get("offer"),
+                        "decision": st.get("decision"),
+                        "fallback": st.get("fallback"),
+                    }
+                },
+            )

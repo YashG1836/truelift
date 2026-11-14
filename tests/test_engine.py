@@ -1,4 +1,5 @@
 """The engine's decisions with a model whose answers are known in advance."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -11,6 +12,7 @@ from truelift.engine import Design, Engine, _cached, design_options, offer_mix, 
 
 class _FlatModel:
     """Stand-in model: 10% order chance without an offer, 15% with one."""
+
     def p0(self, x):
         return np.full(len(x), 0.10)
 
@@ -24,9 +26,16 @@ class _BrokenModel(_FlatModel):
 
 
 def _x(n):
-    return pd.DataFrame({"slot": np.full(n, 2), "cr_orders_all": np.r_[np.zeros(n // 2), np.ones(n - n // 2)],
-                         "cr_weeks_since": np.full(n, 6.0), "cr_orders_4w": np.zeros(n),
-                         "c_new_to_zomato": np.zeros(n), "reward": np.zeros(n)})
+    return pd.DataFrame(
+        {
+            "slot": np.full(n, 2),
+            "cr_orders_all": np.r_[np.zeros(n // 2), np.ones(n - n // 2)],
+            "cr_weeks_since": np.full(n, 6.0),
+            "cr_orders_4w": np.zeros(n),
+            "c_new_to_zomato": np.zeros(n),
+            "reward": np.zeros(n),
+        }
+    )
 
 
 def test_audience_rules():
@@ -59,8 +68,17 @@ def test_measure_recovers_a_known_effect():
     n = 40000
     hold = rng.random(n) < 0.10
     chosen = rng.random(n) < np.where(hold, 0.10, 0.15)
-    rows = pd.DataFrame({"shown": ~hold, "holdout": hold, "chosen": chosen, "takes": ~hold,
-                         "profit": np.where(hold, 134.0, 91.7), "basket": 400.0, "discount": np.where(hold, 0, 60.0)})
+    rows = pd.DataFrame(
+        {
+            "shown": ~hold,
+            "holdout": hold,
+            "chosen": chosen,
+            "takes": ~hold,
+            "profit": np.where(hold, 134.0, 91.7),
+            "basket": 400.0,
+            "discount": np.where(hold, 0, 60.0),
+        }
+    )
     eng = Engine(_FlatModel(), sigma_rel=1.0, sigma_orders=1.0)  # weak prior: data dominates
     m = eng.measure(rows, 400, prior_profit=0.0, prior_orders=0.0)
     true_per_visit = 0.15 * 91.7 - 0.10 * 134
@@ -70,8 +88,17 @@ def test_measure_recovers_a_known_effect():
 
 
 def test_measure_handles_tiny_groups():
-    rows = pd.DataFrame({"shown": [True], "holdout": [False], "chosen": [True], "takes": [True],
-                         "profit": [90.0], "basket": [400.0], "discount": [60.0]})
+    rows = pd.DataFrame(
+        {
+            "shown": [True],
+            "holdout": [False],
+            "chosen": [True],
+            "takes": [True],
+            "profit": [90.0],
+            "basket": [400.0],
+            "discount": [60.0],
+        }
+    )
     m = Engine(_FlatModel(), sigma_rel=0.01).measure(rows, 400, prior_profit=2.0, prior_orders=0.01)
     assert m["profit"]["weight_on_own_data"] == 0.0  # too little data: the prior alone
     assert m["profit"]["per_visit"] == pytest.approx(2.0)
@@ -83,18 +110,34 @@ def test_auto_pause_fires_on_a_clearly_losing_offer():
     n = 20000
     hold = rng.random(n) < 0.10
     chosen = rng.random(n) < 0.10  # the offer adds no orders...
-    rows = pd.DataFrame({"shown": ~hold, "holdout": hold, "chosen": chosen, "takes": ~hold & chosen,
-                         "profit": np.where(hold, 134.0, 40.0),  # ...and gives away margin on every one
-                         "basket": 400.0, "discount": np.where(hold, 0, 150.0)})
+    rows = pd.DataFrame(
+        {
+            "shown": ~hold,
+            "holdout": hold,
+            "chosen": chosen,
+            "takes": ~hold & chosen,
+            "profit": np.where(hold, 134.0, 40.0),  # ...and gives away margin on every one
+            "basket": 400.0,
+            "discount": np.where(hold, 0, 150.0),
+        }
+    )
     m = Engine(_FlatModel(), sigma_rel=1.0, sigma_orders=1.0).measure(rows, 400, -5.0, 0.0)
     assert m["verdict_code"] == "pause"
     assert m["profit"]["high"] < 0
 
 
 def test_calibrate_floors_negative_variance():
-    offers = pd.DataFrame({"own_profit": [1.0, 1.0], "prior_profit": [1.0, 1.0], "se_profit": [5.0, 5.0],
-                           "own_orders": [0.0, 0.0], "prior_orders": [0.0, 0.0], "se_orders": [1.0, 1.0],
-                           "aov": [400.0, 400.0]})
+    offers = pd.DataFrame(
+        {
+            "own_profit": [1.0, 1.0],
+            "prior_profit": [1.0, 1.0],
+            "se_profit": [5.0, 5.0],
+            "own_orders": [0.0, 0.0],
+            "prior_orders": [0.0, 0.0],
+            "se_orders": [1.0, 1.0],
+            "aov": [400.0, 400.0],
+        }
+    )
     eng = Engine(_FlatModel())
     rel, orders = eng.calibrate(offers)
     assert rel == pytest.approx(0.002) and orders == pytest.approx(0.0005)
@@ -148,6 +191,7 @@ def test_decision_table_matches_per_visit_decisions():
 
 def test_serve_from_table_applies_the_shared_holdout():
     from truelift.assignment import in_control_group
+
     eng = Engine(_FlatModel(), holdout=0.5)
     x = _table_x(40)
     t = eng.decision_table(x, Design(60), 400, np.full(10, 400.0), offer_id=3)
@@ -166,8 +210,12 @@ def test_decision_table_falls_back_to_the_owners_rule_and_says_so():
 
 
 def test_weekly_message_uses_one_money_format_and_says_what_to_do():
-    m = {"orders": {"low": -2, "high": 30, "total": 12}, "profit": {"low": -1234, "high": 3500, "total": 900},
-         "report_today": {"orders_with_offer": 40}, "verdict_code": "wait"}
+    m = {
+        "orders": {"low": -2, "high": 30, "total": 12},
+        "profit": {"low": -1234, "high": 3500, "total": 900},
+        "report_today": {"orders_with_offer": 40},
+        "verdict_code": "wait",
+    }
     text = weekly_message("Burger King", 2, m, Design(60), holdout=0.10)
     assert "−₹1,234 to +₹3,500" in text and "₹-" not in text
     assert "1 in 10" in text and "Too early to say" in text

@@ -13,6 +13,7 @@ Assumptions (each one is a parameter, see Terms):
   reported figure, FY25, unverified), and adjusted EBITDA at 5.5% of NOV (Q2 FY27, verified; a floor
   because it also covers fixed costs).
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -78,9 +79,14 @@ def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     gst = terms.gst_on_commission * commission
     food = terms.food_cost_share * basket
     return {
-        "basket": basket, "discount": discount, "restaurant_funded": r_funded,
-        "zomato_funded": z_funded, "customer_pays": bill, "commission": commission,
-        "gst_on_commission": gst, "food_cost": food,
+        "basket": basket,
+        "discount": discount,
+        "restaurant_funded": r_funded,
+        "zomato_funded": z_funded,
+        "customer_pays": bill,
+        "commission": commission,
+        "gst_on_commission": gst,
+        "food_cost": food,
         "restaurant_profit": basket - r_funded - commission - gst - food,
         "zomato_gross": commission - z_funded,
         "zomato_contribution": terms.zomato_contribution_share * bill - z_funded,
@@ -88,8 +94,7 @@ def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     }
 
 
-def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0,
-                terms: Terms = Terms()) -> OrderMoney:
+def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0, terms: Terms = Terms()) -> OrderMoney:
     """Split one order's money between customer, restaurant and Zomato.
 
     zomato_share is the fraction of the discount Zomato funds (0 for a restaurant-funded offer).
@@ -101,8 +106,14 @@ def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0,
     return OrderMoney(**{k: float(v) for k, v in split(basket, discount, zomato_share, terms).items()})
 
 
-def weekly_example(terms: Terms = Terms(), basket: float = 400.0, discount: float = 60.0,
-                   regulars: int = 70, new_orders: int = 30, rewards: float = 650.0) -> dict:
+def weekly_example(
+    terms: Terms = Terms(),
+    basket: float = 400.0,
+    discount: float = 60.0,
+    regulars: int = 70,
+    new_orders: int = 30,
+    rewards: float = 650.0,
+) -> dict:
     """The Round 1 example, recomputed exactly with the given terms.
 
     One restaurant, one week: `regulars` orders arrive with or without an offer; a blanket offer
@@ -124,14 +135,18 @@ def weekly_example(terms: Terms = Terms(), basket: float = 400.0, discount: floa
         "blanket": {
             "discount_spend": (regulars + new_orders) * discount,
             "discount_on_regulars": regulars * discount,
-            "restaurant_profit": blanket_r, "restaurant_change": blanket_r - base_r,
-            "zomato_commission": blanket_z, "zomato_change": blanket_z - base_z,
+            "restaurant_profit": blanket_r,
+            "restaurant_change": blanket_r - base_r,
+            "zomato_commission": blanket_z,
+            "zomato_change": blanket_z - base_z,
             "discount_per_extra_order": (regulars + new_orders) * discount / new_orders,
         },
         "truelift": {
             "discount_spend": new_orders * discount + rewards,
-            "restaurant_profit": tl_r, "restaurant_change": tl_r - base_r,
-            "zomato_commission": tl_z, "zomato_change": tl_z - base_z,
+            "restaurant_profit": tl_r,
+            "restaurant_change": tl_r - base_r,
+            "zomato_commission": tl_z,
+            "zomato_change": tl_z - base_z,
             "discount_per_extra_order": (new_orders * discount + rewards) / new_orders,
         },
     }

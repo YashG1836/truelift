@@ -1,5 +1,6 @@
 """The simulated market: its truth is consistent, its assumptions are checked, its fast path is
 identical to its full path."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -28,8 +29,15 @@ def test_no_offer_has_no_effect(market):
 
 def test_probabilities_are_valid(market):
     n = market.n_rest
-    pol = Policy(np.full(n, 60.0), np.zeros(n), np.zeros(n, bool), np.zeros(n), np.zeros(n),
-                 np.array(["all"] * n, dtype=object), 0.10)
+    pol = Policy(
+        np.full(n, 60.0),
+        np.zeros(n),
+        np.zeros(n, bool),
+        np.zeros(n),
+        np.zeros(n),
+        np.array(["all"] * n, dtype=object),
+        0.10,
+    )
     res = _week(market, pol)
     k = market.cfg.menus_per_occasion
     per_occ = res["p"].reshape(-1, k).sum(1) + res["p_swiggy"][::k] + res["p_none"][::k]
@@ -57,8 +65,16 @@ def test_control_group_share_and_independence():
 def test_offer_ids_switch_the_simulator_to_the_shared_assignment(market):
     """With offer ids, the week holds out exactly the customers `in_control_group` names (TL-004)."""
     n = market.n_rest
-    pol = Policy(np.full(n, 60.0), np.zeros(n), np.zeros(n, bool), np.zeros(n), np.zeros(n),
-                 np.array(["all"] * n, dtype=object), 0.10, offer_id=np.arange(n) + 500)
+    pol = Policy(
+        np.full(n, 60.0),
+        np.zeros(n),
+        np.zeros(n, bool),
+        np.zeros(n),
+        np.zeros(n),
+        np.array(["all"] * n, dtype=object),
+        0.10,
+        offer_id=np.arange(n) + 500,
+    )
     res = _week(market, pol)
     el = res["eligible"]
     expected = in_control_group(res["cust"][el], (np.arange(n) + 500)[res["rest"][el]], 0.10)
@@ -66,8 +82,9 @@ def test_offer_ids_switch_the_simulator_to_the_shared_assignment(market):
 
 
 def test_market_rejects_unbalanced_localities(restaurants):
-    bad = restaurants[~((restaurants["locality"] == restaurants["locality"].iloc[0])
-                        & (restaurants.index % 50 == 0))].copy()
+    bad = restaurants[
+        ~((restaurants["locality"] == restaurants["locality"].iloc[0]) & (restaurants.index % 50 == 0))
+    ].copy()
     bad["restaurant_id"] = np.arange(len(bad))
     with pytest.raises(ValueError, match="same number of restaurants"):
         Market(bad, Config(customers_per_locality=50))
@@ -85,8 +102,7 @@ def test_light_history_is_identical_to_the_full_one(restaurants):
     cfg = Config(customers_per_locality=120)
     h_full, rows = build_history(Market(restaurants, cfg))
     h_light, light = build_history(Market(restaurants, cfg), light=True)
-    for a, b in zip(h_full.pair_orders + h_full.cust_orders, h_light.pair_orders + h_light.cust_orders,
-                    strict=True):
+    for a, b in zip(h_full.pair_orders + h_full.cust_orders, h_light.pair_orders + h_light.cust_orders, strict=True):
         assert np.array_equal(a, b)
     full_b = restaurant_baskets(rows, len(restaurants))
     light_b = restaurant_baskets(light, len(restaurants))

@@ -4,6 +4,7 @@ FastAPI turns these models into the OpenAPI document served at /openapi.json and
 so the four hooks Zomato's systems would call have a readable, typed contract with examples
 (audit A02 tier 3, standard S-01). Errors use one shape, RFC 9457 problem details (S-02).
 """
+
 from __future__ import annotations
 
 from typing import Any, Literal
@@ -15,30 +16,64 @@ Audience = Literal["all", "new_to_restaurant", "lapsed", "targeted"]
 
 class Schema(BaseModel):
     """Base for every model: fields such as `model_version` are ours, not pydantic's."""
+
     model_config = ConfigDict(protected_namespaces=())
 
 
 # ---------------------------------------------------------------- requests
 class DesignIn(Schema):
     """An offer as the owner sets it up on the create screen."""
-    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [
-        {"discount": 60, "min_order": 0, "audience": "all", "offpeak_only": False, "reward": 0,
-         "zomato_share": 0}]})
+
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "discount": 60,
+                    "min_order": 0,
+                    "audience": "all",
+                    "offpeak_only": False,
+                    "reward": 0,
+                    "zomato_share": 0,
+                }
+            ]
+        },
+    )
     discount: float = Field(60, ge=0, le=1000, description="Rupees off the order; 0 means no discount")
     min_order: float = Field(0, ge=0, le=5000, description="Offer applies only to bills of at least this; 0 = none")
-    audience: Audience = Field("all", description="Who may see it: everyone, new to the restaurant, "
-                                                   "stopped ordering (4+ weeks), or chosen by TrueLift")
+    audience: Audience = Field(
+        "all",
+        description="Who may see it: everyone, new to the restaurant, "
+        "stopped ordering (4+ weeks), or chosen by TrueLift",
+    )
     offpeak_only: bool = Field(False, description="Valid 3-6 pm only")
-    reward: float = Field(0, ge=0, le=500,
-                          description="Brand Pack reward per order for regulars (3+ orders in 4 weeks)")
-    zomato_share: float = Field(0, ge=0, le=1,
-                                description="Share of the discount Zomato funds for customers new to Zomato")
+    reward: float = Field(
+        0, ge=0, le=500, description="Brand Pack reward per order for regulars (3+ orders in 4 weeks)"
+    )
+    zomato_share: float = Field(
+        0, ge=0, le=1, description="Share of the discount Zomato funds for customers new to Zomato"
+    )
 
 
 class QuoteIn(Schema):
-    model_config = ConfigDict(extra="forbid", json_schema_extra={"examples": [
-        {"restaurant_id": 233, "design": {"discount": 60, "min_order": 0, "audience": "all",
-                                          "offpeak_only": False, "reward": 0, "zomato_share": 0}}]})
+    model_config = ConfigDict(
+        extra="forbid",
+        json_schema_extra={
+            "examples": [
+                {
+                    "restaurant_id": 233,
+                    "design": {
+                        "discount": 60,
+                        "min_order": 0,
+                        "audience": "all",
+                        "offpeak_only": False,
+                        "reward": 0,
+                        "zomato_share": 0,
+                    },
+                }
+            ]
+        },
+    )
     restaurant_id: int = Field(ge=0, description="Restaurant (0-299 in the simulated market)")
     design: DesignIn = Field(default_factory=DesignIn)
 
@@ -56,10 +91,22 @@ class DecisionIn(Schema):
 # ---------------------------------------------------------------- shared pieces
 class Problem(Schema):
     """RFC 9457 problem details: the one error shape for every failure."""
-    model_config = ConfigDict(extra="allow", json_schema_extra={"examples": [
-        {"type": "/problems/invalid-design", "title": "Invalid offer design", "status": 422,
-         "detail": "A ₹500 discount is more than 60% of this restaurant's average order (₹150).",
-         "instance": "/api/v1/quote", "correlation_id": "6f1c2e9a"}]})
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "type": "/problems/invalid-design",
+                    "title": "Invalid offer design",
+                    "status": 422,
+                    "detail": "A ₹500 discount is more than 60% of this restaurant's average order (₹150).",
+                    "instance": "/api/v1/quote",
+                    "correlation_id": "6f1c2e9a",
+                }
+            ]
+        },
+    )
     type: str
     title: str
     status: int
@@ -81,6 +128,7 @@ class DesignOut(Schema):
 
 class DesignOptions(Schema):
     """The only design choices the page offers (single source, audit TL-002)."""
+
     depths: list[int]
     default_depth: int
     min_order: int
@@ -89,14 +137,41 @@ class DesignOptions(Schema):
 
 class Forecast(Schema):
     """Hook 1 output for one version of an offer: one week, with an 80% range."""
-    model_config = ConfigDict(extra="allow", json_schema_extra={"examples": [
-        {"design": {"discount": 60, "min_order": 0, "audience": "targeted", "offpeak_only": False,
-                    "reward": 0, "zomato_share": 0},
-         "label": "₹60 off only for customers it brings in", "menu_visits": 3300, "eligible_visits": 905,
-         "redemptions": 121.3, "extra_orders": 52.1, "anyway_share": 0.57, "profit_change": 1731,
-         "profit_low": -552, "profit_high": 4014, "discount_spend": 7278, "reward_spend": 0,
-         "discount_per_extra_order": 140, "zomato_commission_change": 1820, "zomato_funded": 0,
-         "offer_use_rate": 1.0, "order_value_with_offer": 431, "usual_order_value": 431}]})
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "design": {
+                        "discount": 60,
+                        "min_order": 0,
+                        "audience": "targeted",
+                        "offpeak_only": False,
+                        "reward": 0,
+                        "zomato_share": 0,
+                    },
+                    "label": "₹60 off only for customers it brings in",
+                    "menu_visits": 3300,
+                    "eligible_visits": 905,
+                    "redemptions": 121.3,
+                    "extra_orders": 52.1,
+                    "anyway_share": 0.57,
+                    "profit_change": 1731,
+                    "profit_low": -552,
+                    "profit_high": 4014,
+                    "discount_spend": 7278,
+                    "reward_spend": 0,
+                    "discount_per_extra_order": 140,
+                    "zomato_commission_change": 1820,
+                    "zomato_funded": 0,
+                    "offer_use_rate": 1.0,
+                    "order_value_with_offer": 431,
+                    "usual_order_value": 431,
+                }
+            ]
+        },
+    )
     design: DesignOut
     label: str
     menu_visits: int = Field(description="Menu visits a week behind the forecast")
@@ -156,11 +231,27 @@ class OfferCreated(Schema):
 
 class ServeDecision(Schema):
     """Hook 2 output: what one customer sees when they open the menu."""
-    model_config = ConfigDict(extra="allow", json_schema_extra={"examples": [
-        {"show_offer": True, "control_group": False, "reason": "likely to order because of the offer",
-         "brand_pack_reward": 0.0, "p_order_without": 0.031, "p_order_with": 0.072,
-         "expected_profit_gain": 4.1, "degraded": False, "model_version": "2026-11-15",
-         "offer_id": 3, "latency_ms": 0.4}]})
+
+    model_config = ConfigDict(
+        extra="allow",
+        json_schema_extra={
+            "examples": [
+                {
+                    "show_offer": True,
+                    "control_group": False,
+                    "reason": "likely to order because of the offer",
+                    "brand_pack_reward": 0.0,
+                    "p_order_without": 0.031,
+                    "p_order_with": 0.072,
+                    "expected_profit_gain": 4.1,
+                    "degraded": False,
+                    "model_version": "2026-11-15",
+                    "offer_id": 3,
+                    "latency_ms": 0.4,
+                }
+            ]
+        },
+    )
     show_offer: bool
     control_group: bool = False
     reason: str
@@ -189,6 +280,7 @@ class MeasuredQuantity(Schema):
 
 class Measurement(Schema):
     """Hook 4: what the offer added so far, with an 80% range and a verdict."""
+
     model_config = ConfigDict(extra="allow")
     shown_visits: int
     control_visits: int
@@ -215,6 +307,7 @@ class Payout(Schema):
 
 class Experiment(Schema):
     """The two groups the week's number comes from (cumulative)."""
+
     shown_visits: int
     shown_orders: int
     control_visits: int
@@ -289,6 +382,7 @@ class CustomersResponse(Schema):
 
 class ServiceConfig(Schema):
     """Constants the page shares with the service (audit TL-033)."""
+
     consent_weeks: int
     holdout_share: float
     commission_rate: float

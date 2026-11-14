@@ -14,6 +14,7 @@ Environment variables (all optional):
   TRUELIFT_SESSION_IDLE     seconds before an idle demo session is dropped (default 3600)
   TRUELIFT_LOG_JSON         1 to write one JSON log line per request (default 1)
 """
+
 from __future__ import annotations
 
 import os

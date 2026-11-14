@@ -1,5 +1,6 @@
 """The service as a client sees it: the happy path, every way it should refuse, sessions,
 concurrency, the consent ledger, and the operational endpoints."""
+
 from __future__ import annotations
 
 import os
@@ -29,13 +30,19 @@ def test_api_end_to_end(client, session_headers):
     assert ok["consent"]["approved_at"].endswith("+05:30")  # the moment of approval, with its time zone
     cust = client.post("/api/v1/customers", json={"restaurant_id": rid, "design": DESIGN}, headers=h).json()
     assert cust["offer_id"] == oid and len(cust["customers"]) >= 4
-    s = client.get("/api/v1/serve", params={"restaurant_id": rid, "customer_id": cust["customers"][0]["customer_id"]},
-                   headers=h).json()
+    s = client.get(
+        "/api/v1/serve", params={"restaurant_id": rid, "customer_id": cust["customers"][0]["customer_id"]}, headers=h
+    ).json()
     assert "show_offer" in s and s["latency_ms"] < 50 and s["offer_id"] == oid
     wk = client.post(f"/api/v1/offers/{oid}/run_week", headers=h).json()["weeks"][-1]
     p = wk["payout"]
-    assert p["net_payout"] == (p["gross_sales"] - p["discount_paid_by_you"] - p["brand_pack_rewards_paid_by_you"]
-                               - p["commission"] - p["gst_on_commission"])
+    assert p["net_payout"] == (
+        p["gross_sales"]
+        - p["discount_paid_by_you"]
+        - p["brand_pack_rewards_paid_by_you"]
+        - p["commission"]
+        - p["gst_on_commission"]
+    )
     assert p["commission_rate"] == 0.25 and p["gst_rate"] == 0.18
     assert "TrueLift weekly summary" in wk["whatsapp"]
     e = wk["experiment"]
@@ -43,23 +50,29 @@ def test_api_end_to_end(client, session_headers):
     assert e["control_visits"] == wk["measurement"]["control_visits"]
 
 
-@pytest.mark.parametrize("path, body, params, status, kind", [
-    ("/api/v1/quote", {"restaurant_id": 0, "design": {**DESIGN, "discount": 500}}, None, 422, "invalid-design"),
-    ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "discount": -5}}, None, 422, "invalid-input"),
-    ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "audience": "rich"}}, None, 422, "invalid-input"),
-    ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "min_order": 30}}, None, 422, "invalid-design"),
-    ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "reward": 80}}, None, 422, "invalid-design"),
-    ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "colour": "red"}}, None, 422, "invalid-input"),
-    ("/api/v1/quote", {"restaurant_id": 99999, "design": DESIGN}, None, 404, "unknown-restaurant"),
-    ("/api/v1/offers", {"restaurant_id": 233, "design": {**DESIGN, "discount": 0}}, None, 422, "invalid-design"),
-    ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 10_000_000}, 404, "unknown-customer"),
-    ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": -1}, 422, "invalid-input"),
-    ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 1, "slot": 99}, 422, "invalid-input"),
-    ("/api/v1/offers/424242", None, None, 404, "unknown-offer"),
-])
+@pytest.mark.parametrize(
+    "path, body, params, status, kind",
+    [
+        ("/api/v1/quote", {"restaurant_id": 0, "design": {**DESIGN, "discount": 500}}, None, 422, "invalid-design"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "discount": -5}}, None, 422, "invalid-input"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "audience": "rich"}}, None, 422, "invalid-input"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "min_order": 30}}, None, 422, "invalid-design"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "reward": 80}}, None, 422, "invalid-design"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "colour": "red"}}, None, 422, "invalid-input"),
+        ("/api/v1/quote", {"restaurant_id": 99999, "design": DESIGN}, None, 404, "unknown-restaurant"),
+        ("/api/v1/offers", {"restaurant_id": 233, "design": {**DESIGN, "discount": 0}}, None, 422, "invalid-design"),
+        ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 10_000_000}, 404, "unknown-customer"),
+        ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": -1}, 422, "invalid-input"),
+        ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 1, "slot": 99}, 422, "invalid-input"),
+        ("/api/v1/offers/424242", None, None, 404, "unknown-offer"),
+    ],
+)
 def test_invalid_inputs_return_problem_details(client, session_headers, path, body, params, status, kind):
-    r = (client.post(path, json=body, headers=session_headers) if body is not None
-         else client.get(path, params=params, headers=session_headers))
+    r = (
+        client.post(path, json=body, headers=session_headers)
+        if body is not None
+        else client.get(path, params=params, headers=session_headers)
+    )
     assert r.status_code == status, r.text
     assert r.headers["content-type"].startswith("application/problem+json")
     p = r.json()
@@ -156,6 +169,7 @@ def test_run_week_is_idempotent_with_week_number(client, session_headers):
 
 def test_run_week_concurrent_calls_append_once(client, service_env):
     from truelift.api import app
+
     h = {"X-Session": "race" + uuid.uuid4().hex[:6]}
     oid = approved_offer(client, h)["offer_id"]
     results = []
@@ -175,6 +189,7 @@ def test_concurrent_quotes_match_sequential(client, service_env):
     """TL-001: eight threads mixing quotes and customer panels for six restaurants get exactly the
     answers a single caller gets."""
     from truelift.api import app
+
     rids = [233, 57, 142, 273, 17, 84]
     h = {"X-Session": "conc" + uuid.uuid4().hex[:6]}
 
@@ -254,8 +269,9 @@ def test_consent_record_verifies_and_detects_tampering(client, state, session_he
         assert r["verified"] is False
     finally:
         with state.store.lock, state.store.conn:
-            state.store.conn.execute("UPDATE consents SET payload = substr(payload, 1, length(payload) - 1) "
-                                     "WHERE seq = ?", (c["seq"],))
+            state.store.conn.execute(
+                "UPDATE consents SET payload = substr(payload, 1, length(payload) - 1) WHERE seq = ?", (c["seq"],)
+            )
     assert state.store.verify() == (True, None)
 
 
@@ -266,9 +282,15 @@ def test_health_readiness_and_metrics(client, session_headers):
     approved_offer(client, session_headers)
     client.get("/api/v1/serve", params={"restaurant_id": 233, "customer_id": 1}, headers=session_headers)
     text = client.get("/metrics").text
-    for name in ("truelift_request_seconds", "truelift_serve_decisions_total", "truelift_serve_fallback_total",
-                 "truelift_holdout_share", "truelift_offers", "truelift_model_info",
-                 "truelift_forecast_minus_measured_ratio"):
+    for name in (
+        "truelift_request_seconds",
+        "truelift_serve_decisions_total",
+        "truelift_serve_fallback_total",
+        "truelift_holdout_share",
+        "truelift_offers",
+        "truelift_model_info",
+        "truelift_forecast_minus_measured_ratio",
+    ):
         assert name in text, name
     assert "truelift_serve_fallback_total 0.0" in text
 
@@ -282,8 +304,12 @@ def test_security_headers(client):
 
 def test_openapi_names_every_hook_response(client):
     spec = client.get("/openapi.json").json()
-    hooks = (("/api/v1/quote", "post", "QuoteResponse"), ("/api/v1/serve", "get", "ServeDecision"),
-             ("/api/v1/offers/{oid}", "get", "OfferView"), ("/api/v1/offers", "post", "OfferCreated"))
+    hooks = (
+        ("/api/v1/quote", "post", "QuoteResponse"),
+        ("/api/v1/serve", "get", "ServeDecision"),
+        ("/api/v1/offers/{oid}", "get", "OfferView"),
+        ("/api/v1/offers", "post", "OfferCreated"),
+    )
     for path, method, model in hooks:
         ok = spec["paths"][path][method]["responses"]
         ref = next(iter(ok.get("200", ok.get("201"))["content"]["application/json"]["schema"].values()))
@@ -293,6 +319,7 @@ def test_openapi_names_every_hook_response(client):
 
 def test_missing_model_returns_503_with_instructions(client, monkeypatch, tmp_path):
     from truelift import api
+
     monkeypatch.setenv("TRUELIFT_MODEL", str(tmp_path / "nothing.pkl"))
     api.reset_state()
     try:

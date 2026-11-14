@@ -7,6 +7,7 @@ from them, so the data flow is the real one even though the customers are simula
 eligible, which is the same table `serve` reads, so the customers the page labels "control
 group" are the ones the measurement holds out (TL-004).
 """
+
 from __future__ import annotations
 
 import copy
@@ -26,14 +27,24 @@ def payout_for(orders: pd.DataFrame, terms: Terms) -> dict:
     """The week's payout lines for one restaurant, with the rates beside the amounts."""
     reward = float(orders["reward"].sum())
     commission = float(orders["commission"].sum())
-    p = {"orders": int(len(orders)), "gross_sales": round(float(orders["basket"].sum())),
-         "discount_paid_by_you": round(float(orders["restaurant_funded"].sum()) - reward),
-         "brand_pack_rewards_paid_by_you": round(reward),
-         "discount_paid_by_zomato": round(float(orders["zomato_funded"].sum())),
-         "commission": round(commission), "commission_rate": terms.commission_rate,
-         "gst_on_commission": round(terms.gst_on_commission * commission), "gst_rate": terms.gst_on_commission}
-    p["net_payout"] = (p["gross_sales"] - p["discount_paid_by_you"] - p["brand_pack_rewards_paid_by_you"]
-                       - p["commission"] - p["gst_on_commission"])
+    p = {
+        "orders": int(len(orders)),
+        "gross_sales": round(float(orders["basket"].sum())),
+        "discount_paid_by_you": round(float(orders["restaurant_funded"].sum()) - reward),
+        "brand_pack_rewards_paid_by_you": round(reward),
+        "discount_paid_by_zomato": round(float(orders["zomato_funded"].sum())),
+        "commission": round(commission),
+        "commission_rate": terms.commission_rate,
+        "gst_on_commission": round(terms.gst_on_commission * commission),
+        "gst_rate": terms.gst_on_commission,
+    }
+    p["net_payout"] = (
+        p["gross_sales"]
+        - p["discount_paid_by_you"]
+        - p["brand_pack_rewards_paid_by_you"]
+        - p["commission"]
+        - p["gst_on_commission"]
+    )
     return p
 
 
@@ -76,20 +87,38 @@ def simulate_week(state, offer) -> dict:
     state.store.log_week(offer.id, w, el, engine.model_version)
 
     rows = state.store.measurement_rows(offer.id)
-    meas = engine.measure(rows, aov, float(rows["gain"].mean()), float((rows["p1"] - rows["p0"]).mean()),
-                          rows["base_profit"].to_numpy(), rows["p0"].to_numpy())
+    meas = engine.measure(
+        rows,
+        aov,
+        float(rows["gain"].mean()),
+        float((rows["p1"] - rows["p0"]).mean()),
+        rows["base_profit"].to_numpy(),
+        rows["p0"].to_numpy(),
+    )
     sh = el["shown"].to_numpy()
-    week_truth = {"extra_orders": float((el["p"] - el["p_cf"]).to_numpy()[sh].sum()),
-                  "extra_profit": float((el["p"] * el["profit"] - el["p_cf"] * el["profit_cf"]).to_numpy()[sh].sum())}
+    week_truth = {
+        "extra_orders": float((el["p"] - el["p_cf"]).to_numpy()[sh].sum()),
+        "extra_profit": float((el["p"] * el["profit"] - el["p_cf"] * el["profit_cf"]).to_numpy()[sh].sum()),
+    }
     prev = offer.weeks[-1]["simulator_truth"] if offer.weeks else {"extra_orders": 0.0, "extra_profit": 0.0}
     truth = {k: prev[k] + week_truth[k] for k in week_truth}
     t, c, ch = rows["shown"].to_numpy(), rows["holdout"].to_numpy(), rows["chosen"].to_numpy()
-    experiment = {"shown_visits": int(t.sum()), "shown_orders": int((t & ch).sum()),
-                  "control_visits": int(c.sum()), "control_orders": int((c & ch).sum())}
+    experiment = {
+        "shown_visits": int(t.sum()),
+        "shown_orders": int((t & ch).sum()),
+        "control_visits": int(c.sum()),
+        "control_orders": int((c & ch).sum()),
+    }
     payout = payout_for(df[df["chosen"]], state.terms)
     name = display_name(state.R.loc[rid])
-    week = {"week": w, "measurement": meas, "simulator_truth": truth, "payout": payout,
-            "experiment": experiment, "whatsapp": weekly_message(name, w, meas, d, engine.holdout)}
+    week = {
+        "week": w,
+        "measurement": meas,
+        "simulator_truth": truth,
+        "payout": payout,
+        "experiment": experiment,
+        "whatsapp": weekly_message(name, w, meas, d, engine.holdout),
+    }
 
     eligible = experiment["shown_visits"] + experiment["control_visits"]
     if eligible:

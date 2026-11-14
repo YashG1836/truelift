@@ -6,6 +6,7 @@ by the simulator, the pipeline and the service: it aggregates the history once, 
 visit's features are array lookups. That turns the serving path from a scan of the whole history
 into an index (audit TL-005, TL-013).
 """
+
 from __future__ import annotations
 
 from typing import Protocol
@@ -14,9 +15,18 @@ import numpy as np
 import pandas as pd
 
 FEATURE_NAMES = (
-    "c_orders_pw", "c_disc_share", "c_weeks_since", "c_sessions_pw", "c_new_to_zomato",
-    "cr_orders_4w", "cr_orders_all", "cr_visits_4w", "cr_weeks_since",
-    "r_rating", "r_aov", "r_logvotes",
+    "c_orders_pw",
+    "c_disc_share",
+    "c_weeks_since",
+    "c_sessions_pw",
+    "c_new_to_zomato",
+    "cr_orders_4w",
+    "cr_orders_all",
+    "cr_visits_4w",
+    "cr_weeks_since",
+    "r_rating",
+    "r_aov",
+    "r_logvotes",
 )
 
 

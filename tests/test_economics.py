@@ -1,4 +1,5 @@
 """The money of one order: hand-checked examples and laws that hold for every order."""
+
 from __future__ import annotations
 
 import pytest
@@ -46,10 +47,19 @@ def test_order_money_rejects_impossible_orders():
         order_money(400, 60, zomato_share=1.5)
 
 
-@pytest.mark.parametrize("x, sign, expected", [
-    (0, False, "₹0"), (1234, False, "₹1,234"), (123456, False, "₹1,23,456"), (12345678, False, "₹1,23,45,678"),
-    (-1234, False, "−₹1,234"), (2101, True, "+₹2,101"), (-210, True, "−₹210"), (999.6, False, "₹1,000"),
-])
+@pytest.mark.parametrize(
+    "x, sign, expected",
+    [
+        (0, False, "₹0"),
+        (1234, False, "₹1,234"),
+        (123456, False, "₹1,23,456"),
+        (12345678, False, "₹1,23,45,678"),
+        (-1234, False, "−₹1,234"),
+        (2101, True, "+₹2,101"),
+        (-210, True, "−₹210"),
+        (999.6, False, "₹1,000"),
+    ],
+)
 def test_money_format_matches_the_page(x, sign, expected):
     assert fmt_inr(x, sign) == expected
 

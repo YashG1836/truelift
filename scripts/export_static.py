@@ -9,6 +9,7 @@ after up to four simulated weeks. The page replays them. The design options come
 restaurant's card, the same function the page reads, and a self-check fails the export if any
 file the page can request is missing (audit TL-002). Needs the model bundle.
 """
+
 from __future__ import annotations
 
 import json
@@ -31,15 +32,25 @@ AUDIENCES = ("all", "new_to_restaurant", "lapsed", "targeted")
 
 def designs_for(opts: dict) -> list[dict]:
     """Every design the create screen can produce, from the card's design options."""
-    out = [{"discount": 0, "min_order": 0, "audience": "all", "offpeak_only": False, "reward": r, "zomato_share": 0}
-           for r in (0, opts["reward"])]
+    out = [
+        {"discount": 0, "min_order": 0, "audience": "all", "offpeak_only": False, "reward": r, "zomato_share": 0}
+        for r in (0, opts["reward"])
+    ]
     for d in opts["depths"]:
         for m in (0, opts["min_order"]):
             for a in AUDIENCES:
                 for o in (False, True):
                     for r in (0, opts["reward"]):
-                        out.append({"discount": d, "min_order": m, "audience": a, "offpeak_only": o,
-                                    "reward": r, "zomato_share": 0})
+                        out.append(
+                            {
+                                "discount": d,
+                                "min_order": m,
+                                "audience": a,
+                                "offpeak_only": o,
+                                "reward": r,
+                                "zomato_share": 0,
+                            }
+                        )
     return out
 
 
@@ -47,8 +58,13 @@ def key(d: dict) -> str:
     """File name of a design's answers; identical to dkey() in app.js."""
     if not d["discount"] > 0:
         return f"0-0-all-0-{round(d['reward'])}"
-    parts = (round(d["discount"]), round(d["min_order"]), d["audience"], int(bool(d["offpeak_only"])),
-             round(d["reward"]))
+    parts = (
+        round(d["discount"]),
+        round(d["min_order"]),
+        d["audience"],
+        int(bool(d["offpeak_only"])),
+        round(d["reward"]),
+    )
     return "-".join(str(x) for x in parts)
 
 
@@ -119,8 +135,10 @@ def write_assets() -> None:
     """UI files: the same static files as the service, with the page pointed at data/."""
     shutil.copytree(ROOT / "truelift/static", SITE / "static", dirs_exist_ok=True)
     html = (ROOT / "truelift/static/index.html").read_text(encoding="utf-8")
-    html = html.replace('<script src="/static/app.js"></script>',
-                        '<script src="static/static-mode.js"></script>\n<script src="static/app.js"></script>')
+    html = html.replace(
+        '<script src="/static/app.js"></script>',
+        '<script src="static/static-mode.js"></script>\n<script src="static/app.js"></script>',
+    )
     html = html.replace('href="/static/', 'href="static/')
     (SITE / "index.html").write_text(html, encoding="utf-8")
     (SITE / "static" / "static-mode.js").write_text('window.TRUELIFT_STATIC = "data/";\n', encoding="utf-8")
@@ -129,6 +147,7 @@ def write_assets() -> None:
 
 def main() -> int:
     from concurrent.futures import ProcessPoolExecutor
+
     if sys.argv[1:] == ["--assets"]:
         write_assets()
         print(f"UI files refreshed in {SITE}")
@@ -140,8 +159,10 @@ def main() -> int:
     write_assets()
     data = SITE / "data"
     allr = c.get("/api/v1/restaurants").json()
-    write(data / "restaurants.json", {"demo_restaurant": rids[0],
-                                      "restaurants": [r for r in allr["restaurants"] if r["restaurant_id"] in rids]})
+    write(
+        data / "restaurants.json",
+        {"demo_restaurant": rids[0], "restaurants": [r for r in allr["restaurants"] if r["restaurant_id"] in rids]},
+    )
     write(data / "evidence.json", c.get("/api/v1/evidence").json())
     write(data / "example.json", c.get("/api/v1/example").json())
     write(data / "config.json", c.get("/api/v1/config").json())
@@ -153,10 +174,15 @@ def main() -> int:
         xs = sorted(t for n, t in timings if n == name)
         return xs[len(xs) // 2] if xs else None
 
-    write(data / "calls.json", {"calls": [
-        {"hook": "quote (forecast + 34 versions compared)", "ms": round(med("quote"), 1)},
-        {"hook": "serve (one customer opens the menu, offer active)", "ms": round(med("serve") or 0, 2)},
-    ]})
+    write(
+        data / "calls.json",
+        {
+            "calls": [
+                {"hook": "quote (forecast + 34 versions compared)", "ms": round(med("quote"), 1)},
+                {"hook": "serve (one customer opens the menu, offer active)", "ms": round(med("serve") or 0, 2)},
+            ]
+        },
+    )
     missing = self_check(rids)
     if missing:
         print(f"EXPORT FAILED: {len(missing)} files the page can request are missing, e.g. {missing[:5]}")

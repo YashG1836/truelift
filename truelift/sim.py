@@ -17,6 +17,7 @@ choices (Gumbel-max with fixed random draws, identical across policies) give wha
 Customer types are hidden from every model. Models only see order history, like Zomato would.
 Restaurants (names, localities, ratings, cost for two) come from the public Zomato Bangalore data.
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass, field
@@ -60,6 +61,7 @@ class Config:
 @dataclass
 class Policy:
     """What every restaurant offers in one world. Arrays have one entry per restaurant."""
+
     discount: np.ndarray  # ₹ off; 0 means no offer
     min_order: np.ndarray  # ₹; 0 means none
     offpeak_only: np.ndarray  # bool: offer valid only 3-6 pm
@@ -76,13 +78,23 @@ class Policy:
 
     @classmethod
     def none(cls, n: int, name: str = "no offer") -> Policy:
-        return cls(np.zeros(n), np.zeros(n), np.zeros(n, bool), np.zeros(n), np.zeros(n),
-                   np.array(["all"] * n, dtype=object), 0.0, None, name)
+        return cls(
+            np.zeros(n),
+            np.zeros(n),
+            np.zeros(n, bool),
+            np.zeros(n),
+            np.zeros(n),
+            np.array(["all"] * n, dtype=object),
+            0.0,
+            None,
+            name,
+        )
 
 
 @dataclass
 class History:
     """What Zomato can see: weekly order and visit counts. Kept per week to build windows."""
+
     pair_orders: list = field(default_factory=list)  # per week: (customers, 50) int16
     pair_visits: list = field(default_factory=list)
     cust_orders: list = field(default_factory=list)  # per week: (customers,)
@@ -142,8 +154,14 @@ class Market:
         has_fav = (local == fav[:, None]).any(1)
         force = (~has_fav) & ((self.c_type[cust] == 0) | ((self.c_type[cust] == 1) & (rng.random(m) < 0.5)))
         local[force, k - 1] = fav[force]
-        return {"week": week, "cust": cust, "slot": slot, "local": local,
-                "rest": self.rest_global[loc[:, None], local], "gumbel": rng.gumbel(size=(m, k + 2))}
+        return {
+            "week": week,
+            "cust": cust,
+            "slot": slot,
+            "local": local,
+            "rest": self.rest_global[loc[:, None], local],
+            "gumbel": rng.gumbel(size=(m, k + 2)),
+        }
 
     # ---------- observable features at a snapshot ----------
     def features(self, hist: History, cust: np.ndarray, local: np.ndarray, rest: np.ndarray) -> dict:
@@ -151,8 +169,7 @@ class Market:
         return HistoryFeatures(self, hist).for_exposures(cust, local, rest)
 
     # ---------- run one week under a policy ----------
-    def run_week(self, occ: dict, policy: Policy, feats: dict, salt: int = 0,
-                 truth: bool = True) -> dict:
+    def run_week(self, occ: dict, policy: Policy, feats: dict, salt: int = 0, truth: bool = True) -> dict:
         """Returns one row per exposure (customer saw a restaurant's menu) with outcomes.
 
         feats: features for the flattened exposures (from `features` at the snapshot).
@@ -200,11 +217,13 @@ class Market:
         zs_eff = np.where(total_disc > 0, zshare * disc / np.maximum(total_disc, 1e-9), 0.0)
 
         sens = np.array(cfg.price_sensitivity)[typ]
-        u_r = (np.array(cfg.base_utility)[typ][:, None]
-               + np.array(cfg.favourite_bonus)[typ][:, None] * (occ["local"] == self.c_fav[cust][:, None])
-               + 0.8 * (self.rating[occ["rest"]] - 3.9)
-               + self.taste[cust[:, None], occ["local"]]
-               + sens[:, None] * saving.reshape(m, k) / 100.0)
+        u_r = (
+            np.array(cfg.base_utility)[typ][:, None]
+            + np.array(cfg.favourite_bonus)[typ][:, None] * (occ["local"] == self.c_fav[cust][:, None])
+            + 0.8 * (self.rating[occ["rest"]] - 3.9)
+            + self.taste[cust[:, None], occ["local"]]
+            + sens[:, None] * saving.reshape(m, k) / 100.0
+        )
         u_s = np.array(cfg.swiggy_base)[typ] + sens * cfg.swiggy_saving / 100.0
         u = np.concatenate([u_r, u_s[:, None], np.zeros((m, 1))], axis=1)
         e = np.exp(u - u.max(1, keepdims=True))
@@ -214,15 +233,31 @@ class Market:
 
         money = split(basket, total_disc, zs_eff, t)
         out = {
-            "week": np.full(m * k, occ["week"]), "occ": np.repeat(np.arange(m), k), "cust": c,
-            "rest": rest, "local": local, "slot": slot, "type": np.repeat(typ, k),
-            "eligible": elig, "holdout": hold, "shown": shown, "takes": takes, "regular": regular,
-            "discount": disc, "reward": reward, "saving": saving, "basket": basket,
-            "p": p[:, :k].ravel(), "chosen": chosen,
-            "profit": money["restaurant_profit"], "commission": money["commission"],
-            "zomato_funded": money["zomato_funded"], "restaurant_funded": money["restaurant_funded"],
+            "week": np.full(m * k, occ["week"]),
+            "occ": np.repeat(np.arange(m), k),
+            "cust": c,
+            "rest": rest,
+            "local": local,
+            "slot": slot,
+            "type": np.repeat(typ, k),
+            "eligible": elig,
+            "holdout": hold,
+            "shown": shown,
+            "takes": takes,
+            "regular": regular,
+            "discount": disc,
+            "reward": reward,
+            "saving": saving,
+            "basket": basket,
+            "p": p[:, :k].ravel(),
+            "chosen": chosen,
+            "profit": money["restaurant_profit"],
+            "commission": money["commission"],
+            "zomato_funded": money["zomato_funded"],
+            "restaurant_funded": money["restaurant_funded"],
             "zomato_contribution": money["zomato_contribution"],
-            "p_swiggy": np.repeat(p[:, k], k), "p_none": np.repeat(p[:, k + 1], k),
+            "p_swiggy": np.repeat(p[:, k], k),
+            "p_none": np.repeat(p[:, k + 1], k),
             "chosen_swiggy": np.repeat(choice == k, k),
         }
         if truth:
@@ -237,14 +272,18 @@ class Market:
             zomato_now = e[:, :k].sum(1, keepdims=True) / denom
             zomato_cf = (e[:, :k].sum(1, keepdims=True) - e_self + e_cf) / denom_cf
             money_cf = split(basket0, reward, np.zeros_like(reward), t)
-            out.update({
-                "p_cf": p_cf, "basket_cf": basket0, "profit_cf": money_cf["restaurant_profit"],
-                "commission_cf": money_cf["commission"],
-                "zomato_contribution_cf": money_cf["zomato_contribution"],
-                # change in this customer's Zomato orders on this occasion caused by this offer
-                "platform_lift": (zomato_now - zomato_cf).ravel(),
-                "p_swiggy_cf": (e[:, k:k + 1] / denom_cf).ravel(),
-            })
+            out.update(
+                {
+                    "p_cf": p_cf,
+                    "basket_cf": basket0,
+                    "profit_cf": money_cf["restaurant_profit"],
+                    "commission_cf": money_cf["commission"],
+                    "zomato_contribution_cf": money_cf["zomato_contribution"],
+                    # change in this customer's Zomato orders on this occasion caused by this offer
+                    "platform_lift": (zomato_now - zomato_cf).ravel(),
+                    "p_swiggy_cf": (e[:, k : k + 1] / denom_cf).ravel(),
+                }
+            )
         for name, arr in feats.items():
             out[name] = arr
         return out
@@ -272,8 +311,14 @@ class Market:
         return self.features(hist, np.repeat(occ["cust"], k), occ["local"].ravel(), occ["rest"].ravel())
 
 
-def status_quo_policy(market: Market, rng: np.random.Generator, holdout: float = 0.0,
-                      share_active: float = 0.4, explore: bool = False, name: str = "") -> Policy:
+def status_quo_policy(
+    market: Market,
+    rng: np.random.Generator,
+    holdout: float = 0.0,
+    share_active: float = 0.4,
+    explore: bool = False,
+    name: str = "",
+) -> Policy:
     """Today's market: a share of restaurants run blanket flat discounts.
 
     explore=True varies designs (depth, minimum order, 3-6 pm, audience, Brand Pack) at random and
@@ -309,8 +354,12 @@ def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4, li
         pol = status_quo_policy(market, rng, name="status quo")
         res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=1, truth=False)
         market.record(hist, res)
-    snapshot = History(*(list(x) for x in (hist.pair_orders, hist.pair_visits, hist.cust_orders,
-                                            hist.cust_disc_orders, hist.cust_sessions)))
+    snapshot = History(
+        *(
+            list(x)
+            for x in (hist.pair_orders, hist.pair_visits, hist.cust_orders, hist.cust_disc_orders, hist.cust_sessions)
+        )
+    )
     train = []
     for w in range(start + weeks_quo, 0):
         occ = market.occasions(w)
@@ -319,8 +368,17 @@ def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4, li
         res = market.run_week(occ, pol, market.flat_features(snapshot, occ), salt=2, truth=not light)
         if light:
             keep = res["chosen"] & ~res["shown"] & (res["reward"] == 0)
-            train.append(pd.DataFrame({"rest": res["rest"][keep], "basket": res["basket"][keep],
-                                       "chosen": True, "shown": False, "reward": 0.0}))
+            train.append(
+                pd.DataFrame(
+                    {
+                        "rest": res["rest"][keep],
+                        "basket": res["basket"][keep],
+                        "chosen": True,
+                        "shown": False,
+                        "reward": 0.0,
+                    }
+                )
+            )
             market.record(hist, res)
             continue
         for key in ("min_order", "offpeak_only"):
@@ -349,7 +407,11 @@ def recent_visits(market: Market, hist, weeks=(-2, -1)) -> pd.DataFrame:
         occ = market.occasions(w)
         k = occ["rest"].shape[1]
         f = market.flat_features(hist, occ)
-        f.update(rest=occ["rest"].ravel(), slot=np.repeat(occ["slot"], k),
-                 cust=np.repeat(occ["cust"], k), reward=np.zeros(len(f["r_aov"])))
+        f.update(
+            rest=occ["rest"].ravel(),
+            slot=np.repeat(occ["slot"], k),
+            cust=np.repeat(occ["cust"], k),
+            reward=np.zeros(len(f["r_aov"])),
+        )
         parts.append(pd.DataFrame(f))
     return pd.concat(parts, ignore_index=True)

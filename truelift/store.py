@@ -10,6 +10,7 @@
    measurement is computed from the join of the two, the way it would be from Zomato's own event
    logs (audit TL-028).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -57,8 +58,7 @@ class Store:
     # ---------------- consent ledger ----------------
     @staticmethod
     def _hash(prev_hash: str, session: str, offer_id: int, payload: str, created_at: str) -> str:
-        body = canonical({"session": session, "offer_id": offer_id, "payload": payload,
-                          "created_at": created_at})
+        body = canonical({"session": session, "offer_id": offer_id, "payload": payload, "created_at": created_at})
         return hashlib.sha256((prev_hash + body).encode("utf-8")).hexdigest()
 
     def append_consent(self, session: str, offer_id: int, record: dict, created_at: str) -> dict:
@@ -69,14 +69,16 @@ class Store:
             h = self._hash(prev, session, offer_id, payload, created_at)
             cur = self.conn.execute(
                 "INSERT INTO consents(session, offer_id, payload, created_at, prev_hash, hash) VALUES (?,?,?,?,?,?)",
-                (session, offer_id, payload, created_at, prev, h))
+                (session, offer_id, payload, created_at, prev, h),
+            )
             return {"seq": cur.lastrowid, "hash": h, "prev_hash": prev}
 
     def consent(self, offer_id: int) -> dict | None:
         with self.lock:
             row = self.conn.execute(
                 "SELECT seq, payload, prev_hash, hash FROM consents WHERE offer_id=? ORDER BY seq DESC LIMIT 1",
-                (offer_id,)).fetchone()
+                (offer_id,),
+            ).fetchone()
         if row is None:
             return None
         return {"seq": row[0], "record": json.loads(row[1]), "prev_hash": row[2], "hash": row[3]}
@@ -84,8 +86,9 @@ class Store:
     def verify(self) -> tuple[bool, int | None]:
         """Recompute the whole chain. Returns (ok, first bad sequence number)."""
         with self.lock:
-            rows = self.conn.execute("SELECT seq, session, offer_id, payload, created_at, prev_hash, hash "
-                                     "FROM consents ORDER BY seq").fetchall()
+            rows = self.conn.execute(
+                "SELECT seq, session, offer_id, payload, created_at, prev_hash, hash FROM consents ORDER BY seq"
+            ).fetchall()
         prev = GENESIS
         for seq, session, offer_id, payload, created_at, prev_hash, h in rows:
             if prev_hash != prev or self._hash(prev, session, offer_id, payload, created_at) != h:
@@ -99,9 +102,23 @@ class Store:
         with self.lock, self.conn:
             self.conn.execute(
                 "INSERT INTO exposures VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                (offer_id, 0, -1, int(customer_id), int(slot), int(assignment != "not_eligible"), assignment,
-                 decision.get("p_order_without"), decision.get("p_order_with"),
-                 decision.get("expected_profit_gain"), None, model_version, "serve", time.time()))
+                (
+                    offer_id,
+                    0,
+                    -1,
+                    int(customer_id),
+                    int(slot),
+                    int(assignment != "not_eligible"),
+                    assignment,
+                    decision.get("p_order_without"),
+                    decision.get("p_order_with"),
+                    decision.get("expected_profit_gain"),
+                    None,
+                    model_version,
+                    "serve",
+                    time.time(),
+                ),
+            )
 
     def log_week(self, offer_id: int, week: int, rows: pd.DataFrame, model_version: str) -> None:
         """Log one simulated week: an exposure per eligible visit, an order per visit that ordered.
@@ -111,32 +128,61 @@ class Store:
         """
         assign = np.where(rows["holdout"].to_numpy(), "control", "show")
         now = time.time()
-        exp = list(zip([offer_id] * len(rows), [week] * len(rows), rows["visit_id"].astype(int),
-                       rows["cust"].astype(int), rows["slot"].astype(int), [1] * len(rows), assign,
-                       rows["p0"].astype(float), rows["p1"].astype(float), rows["gain"].astype(float),
-                       rows["base_profit"].astype(float), [model_version] * len(rows),
-                       ["simulated_week"] * len(rows), [now] * len(rows), strict=True))
+        exp = list(
+            zip(
+                [offer_id] * len(rows),
+                [week] * len(rows),
+                rows["visit_id"].astype(int),
+                rows["cust"].astype(int),
+                rows["slot"].astype(int),
+                [1] * len(rows),
+                assign,
+                rows["p0"].astype(float),
+                rows["p1"].astype(float),
+                rows["gain"].astype(float),
+                rows["base_profit"].astype(float),
+                [model_version] * len(rows),
+                ["simulated_week"] * len(rows),
+                [now] * len(rows),
+                strict=True,
+            )
+        )
         ordered = rows[rows["chosen"].to_numpy()]
-        ords = list(zip([offer_id] * len(ordered), [week] * len(ordered), ordered["visit_id"].astype(int),
-                        ordered["cust"].astype(int), ordered["takes"].astype(int),
-                        ordered["basket"].astype(float), ordered["discount"].astype(float),
-                        ordered["profit"].astype(float), strict=True))
+        ords = list(
+            zip(
+                [offer_id] * len(ordered),
+                [week] * len(ordered),
+                ordered["visit_id"].astype(int),
+                ordered["cust"].astype(int),
+                ordered["takes"].astype(int),
+                ordered["basket"].astype(float),
+                ordered["discount"].astype(float),
+                ordered["profit"].astype(float),
+                strict=True,
+            )
+        )
         with self.lock, self.conn:
-            self.conn.executemany("INSERT INTO exposures VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)",
-                                  [tuple(_py(v) for v in r) for r in exp])
-            self.conn.executemany("INSERT INTO orders VALUES (?,?,?,?,?,?,?,?)",
-                                  [tuple(_py(v) for v in r) for r in ords])
+            self.conn.executemany(
+                "INSERT INTO exposures VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)", [tuple(_py(v) for v in r) for r in exp]
+            )
+            self.conn.executemany(
+                "INSERT INTO orders VALUES (?,?,?,?,?,?,?,?)", [tuple(_py(v) for v in r) for r in ords]
+            )
 
     def measurement_rows(self, offer_id: int) -> pd.DataFrame:
         """Exposures joined to orders: the input of the weekly measurement."""
         with self.lock:
-            df = pd.read_sql_query("""
+            df = pd.read_sql_query(
+                """
                 SELECT e.week, e.visit_id, e.customer_id AS cust, e.assignment, e.p0, e.p1, e.gain,
                        e.base_profit, o.used_offer, o.basket, o.discount, o.profit
                 FROM exposures e
                 LEFT JOIN orders o ON o.offer_id = e.offer_id AND o.week = e.week AND o.visit_id = e.visit_id
                 WHERE e.offer_id = ? AND e.source = 'simulated_week'
-                ORDER BY e.week, e.visit_id""", self.conn, params=(offer_id,))
+                ORDER BY e.week, e.visit_id""",
+                self.conn,
+                params=(offer_id,),
+            )
         df["shown"] = (df["assignment"] == "show").to_numpy()
         df["holdout"] = (df["assignment"] == "control").to_numpy()
         df["chosen"] = df["profit"].notna().to_numpy()

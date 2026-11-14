@@ -5,6 +5,7 @@ once (deterministically) and cached in `serving_<key>.npz`, so later starts only
 (audit TL-014). Each visitor's offers live in their own session, ids come from one locked counter
 and are never reused (TL-008).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -84,9 +85,15 @@ def serving_key(cfg: Config) -> str:
 def _save_serving(path: Path, hist: History, baskets: list) -> None:
     lengths = np.array([len(b) for b in baskets], dtype=np.int64)
     flat = np.concatenate([np.asarray(b, float) for b in baskets]) if len(baskets) else np.zeros(0)
-    arrays = {"pair_orders": np.stack(hist.pair_orders), "pair_visits": np.stack(hist.pair_visits),
-              "cust_orders": np.stack(hist.cust_orders), "cust_disc_orders": np.stack(hist.cust_disc_orders),
-              "cust_sessions": np.stack(hist.cust_sessions), "basket_lengths": lengths, "baskets": flat}
+    arrays = {
+        "pair_orders": np.stack(hist.pair_orders),
+        "pair_visits": np.stack(hist.pair_visits),
+        "cust_orders": np.stack(hist.cust_orders),
+        "cust_disc_orders": np.stack(hist.cust_disc_orders),
+        "cust_sessions": np.stack(hist.cust_sessions),
+        "basket_lengths": lengths,
+        "baskets": flat,
+    }
     path.parent.mkdir(parents=True, exist_ok=True)
     fd, tmp = tempfile.mkstemp(dir=path.parent, suffix=".npz.tmp")
     os.close(fd)
@@ -97,9 +104,13 @@ def _save_serving(path: Path, hist: History, baskets: list) -> None:
 
 def _load_serving(path: Path) -> tuple[History, list]:
     with np.load(path) as z:
-        hist = History([a for a in z["pair_orders"]], [a for a in z["pair_visits"]],
-                       [a for a in z["cust_orders"]], [a for a in z["cust_disc_orders"]],
-                       [a for a in z["cust_sessions"]])
+        hist = History(
+            [a for a in z["pair_orders"]],
+            [a for a in z["pair_visits"]],
+            [a for a in z["cust_orders"]],
+            [a for a in z["cust_disc_orders"]],
+            [a for a in z["cust_sessions"]],
+        )
         ends = np.cumsum(z["basket_lengths"])
         flat = z["baskets"]
         starts = np.r_[0, ends[:-1]]
@@ -128,23 +139,31 @@ class State:
     def __init__(self, settings: Settings):
         self.settings = settings
         art = load_bundle(settings.model_path)
-        self.model_meta = {k: art.get(k) for k in ("version", "trained_at", "library_versions", "features",
-                                                   "data_sha256", "metrics")}
+        self.model_meta = {
+            k: art.get(k) for k in ("version", "trained_at", "library_versions", "features", "data_sha256", "metrics")
+        }
         cfg = Config(**{k: tuple(v) if isinstance(v, list) else v for k, v in art["config"].items()})
         self.terms = Terms(**art["terms"]) if art.get("terms") else Terms()
         self.R = pd.read_csv(settings.data_dir / "restaurants.csv")
         self.market = Market(self.R, cfg, self.terms)
         self.hist, self.baskets, self.data_built_at = serving_data(self.market, settings.cache_dir)
         self.features = HistoryFeatures(self.market, self.hist)
-        self.engine = Engine(art["model"], self.terms, art["sigma_rel"], art["sigma_orders"],
-                             holdout=settings.holdout_share, topup_value=art["topup_value"])
+        self.engine = Engine(
+            art["model"],
+            self.terms,
+            art["sigma_rel"],
+            art["sigma_orders"],
+            holdout=settings.holdout_share,
+            topup_value=art["topup_value"],
+        )
         self.engine.model_version = str(art.get("version") or "unversioned")
         visits = recent_visits(self.market, self.hist)
         self.visits = dict(tuple(visits.groupby("rest")))
         ids = {int(x) for x in self.R["restaurant_id"]}
         self.restaurant_ids = ids
-        self.demo_restaurant = (settings.demo_restaurant if settings.demo_restaurant in ids
-                                else int(art.get("demo_restaurant", min(ids))))
+        self.demo_restaurant = (
+            settings.demo_restaurant if settings.demo_restaurant in ids else int(art.get("demo_restaurant", min(ids)))
+        )
         # competitors keep today's offers; the restaurant being demonstrated starts without one
         self.background = status_quo_policy(self.market, np.random.default_rng(4242), name="market")
         self.background.discount[self.demo_restaurant] = 0.0
@@ -167,8 +186,12 @@ class State:
         regular_orders = o[o >= 3].sum()
         aov = float(self.market.aov[rid])
         return {
-            "restaurant_id": rid, "name": display_name(r), "locality": r["locality"], "cuisines": r["cuisines"],
-            "rating": float(r["rating"]), "aov": aov,
+            "restaurant_id": rid,
+            "name": display_name(r),
+            "locality": r["locality"],
+            "cuisines": r["cuisines"],
+            "rating": float(r["rating"]),
+            "aov": aov,
             "orders_per_week": round(float(o.sum()) / 4, 1),
             "regular_customers": int((o >= 3).sum()),
             "regulars_share_of_orders": round(float(regular_orders / max(o.sum(), 1)), 3),
@@ -196,12 +219,24 @@ class State:
     def new_visitor_row(self, rid: int, slot: int = 2) -> pd.DataFrame:
         """Features of someone with no history at all: decides the table's default."""
         m = self.market
-        return pd.DataFrame({"c_orders_pw": [0.0], "c_disc_share": [0.0], "c_weeks_since": [8.0],
-                             "c_sessions_pw": [0.0], "c_new_to_zomato": [1.0], "cr_orders_4w": [0.0],
-                             "cr_orders_all": [0.0], "cr_visits_4w": [0.0], "cr_weeks_since": [8.0],
-                             "r_rating": [m.rating[rid]], "r_aov": [m.aov[rid]],
-                             "r_logvotes": [float(np.log1p(float(m.R.loc[rid, "votes"])))],
-                             "slot": [slot], "reward": [0.0]})
+        return pd.DataFrame(
+            {
+                "c_orders_pw": [0.0],
+                "c_disc_share": [0.0],
+                "c_weeks_since": [8.0],
+                "c_sessions_pw": [0.0],
+                "c_new_to_zomato": [1.0],
+                "cr_orders_4w": [0.0],
+                "cr_orders_all": [0.0],
+                "cr_visits_4w": [0.0],
+                "cr_weeks_since": [8.0],
+                "r_rating": [m.rating[rid]],
+                "r_aov": [m.aov[rid]],
+                "r_logvotes": [float(np.log1p(float(m.R.loc[rid, "votes"])))],
+                "slot": [slot],
+                "reward": [0.0],
+            }
+        )
 
     def customer_row(self, cid: int, rid: int, slot: int) -> pd.DataFrame:
         return self.features.for_pair(cid, int(self.market.R.loc[rid, "local"]), rid, slot)
@@ -214,8 +249,9 @@ class State:
             if w not in self._week_inputs:
                 occ = self.market.occasions(w)
                 k = occ["rest"].shape[1]
-                feats = self.features.for_exposures(np.repeat(occ["cust"], k), occ["local"].ravel(),
-                                                    occ["rest"].ravel())
+                feats = self.features.for_exposures(
+                    np.repeat(occ["cust"], k), occ["local"].ravel(), occ["rest"].ravel()
+                )
                 self._week_inputs[w] = (occ, feats)
             return self._week_inputs[w]
 

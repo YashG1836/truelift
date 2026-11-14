@@ -10,6 +10,7 @@ Gradient-boosted trees from scikit-learn; no special libraries needed.
 Also here: the Qini curve, the standard check of whether an uplift ranking finds the customers
 a discount actually moves (higher than a random ranking = better).
 """
+
 from __future__ import annotations
 
 import hashlib
@@ -24,9 +25,20 @@ import sklearn
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 BASE_FEATURES = [
-    "c_orders_pw", "c_disc_share", "c_weeks_since", "c_sessions_pw", "c_new_to_zomato",
-    "cr_orders_4w", "cr_orders_all", "cr_visits_4w", "cr_weeks_since",
-    "r_rating", "r_aov", "r_logvotes", "slot", "reward",
+    "c_orders_pw",
+    "c_disc_share",
+    "c_weeks_since",
+    "c_sessions_pw",
+    "c_new_to_zomato",
+    "cr_orders_4w",
+    "cr_orders_all",
+    "cr_visits_4w",
+    "cr_weeks_since",
+    "r_rating",
+    "r_aov",
+    "r_logvotes",
+    "slot",
+    "reward",
 ]
 DESIGN_FEATURES = ["offer_discount", "disc_pct", "mov_ratio"]
 
@@ -40,10 +52,16 @@ def design_columns(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def _gbm(seed: int) -> HistGradientBoostingClassifier:
-    return HistGradientBoostingClassifier(max_iter=300, learning_rate=0.08, max_leaf_nodes=31,
-                                          min_samples_leaf=200, l2_regularization=1.0,
-                                          early_stopping=True, validation_fraction=0.1,
-                                          random_state=seed)
+    return HistGradientBoostingClassifier(
+        max_iter=300,
+        learning_rate=0.08,
+        max_leaf_nodes=31,
+        min_samples_leaf=200,
+        l2_regularization=1.0,
+        early_stopping=True,
+        validation_fraction=0.1,
+        random_state=seed,
+    )
 
 
 @dataclass
@@ -66,8 +84,7 @@ class UpliftModel:
         return self.m0.predict_proba(x[BASE_FEATURES])[:, 1]
 
     def p1(self, x: pd.DataFrame, discount, min_order) -> np.ndarray:
-        d = pd.DataFrame({"offer_discount": discount, "min_order": min_order, "r_aov": x["r_aov"]},
-                         index=x.index)
+        d = pd.DataFrame({"offer_discount": discount, "min_order": min_order, "r_aov": x["r_aov"]}, index=x.index)
         return self.m1.predict_proba(pd.concat([x[BASE_FEATURES], design_columns(d)], axis=1))[:, 1]
 
 
@@ -76,8 +93,12 @@ class BundleError(RuntimeError):
 
 
 def library_versions() -> dict:
-    return {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__,
-            "scikit-learn": sklearn.__version__}
+    return {
+        "python": platform.python_version(),
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "scikit-learn": sklearn.__version__,
+    }
 
 
 def file_sha256(path: Path) -> str:
@@ -104,23 +125,30 @@ def load_bundle(path: Path, check_versions: bool = True) -> dict:
     """
     path = Path(path)
     if not path.exists():
-        raise BundleError(f"No model at {path}. Run `python scripts/run_pipeline.py --quick` (about a minute), "
-                          "or check out the committed data/processed/model.pkl.")
+        raise BundleError(
+            f"No model at {path}. Run `python scripts/run_pipeline.py --quick` (about a minute), "
+            "or check out the committed data/processed/model.pkl."
+        )
     sidecar = path.with_name(path.name + ".sha256")
     if not sidecar.exists():
-        raise BundleError(f"{sidecar.name} is missing, so the model file cannot be verified. "
-                          "Rebuild it with `python scripts/run_pipeline.py`.")
+        raise BundleError(
+            f"{sidecar.name} is missing, so the model file cannot be verified. "
+            "Rebuild it with `python scripts/run_pipeline.py`."
+        )
     data = path.read_bytes()
     expected = sidecar.read_text(encoding="utf-8").split()[0]
     actual = hashlib.sha256(data).hexdigest()
     if actual != expected:
-        raise BundleError(f"{path.name} does not match its checksum ({actual[:12]} vs {expected[:12]}); "
-                          "refusing to load it.")
+        raise BundleError(
+            f"{path.name} does not match its checksum ({actual[:12]} vs {expected[:12]}); refusing to load it."
+        )
     art = pickle.loads(data)
     built = art.get("library_versions", {}).get("scikit-learn")
     if check_versions and built and built != sklearn.__version__:
-        raise BundleError(f"The model was trained with scikit-learn {built} but {sklearn.__version__} is installed. "
-                          "Install the pinned versions (`uv sync` or `pip install -r requirements.txt`).")
+        raise BundleError(
+            f"The model was trained with scikit-learn {built} but {sklearn.__version__} is installed. "
+            "Install the pinned versions (`uv sync` or `pip install -r requirements.txt`)."
+        )
     return art
 
 

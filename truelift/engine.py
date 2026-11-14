@@ -13,6 +13,7 @@ Why combine with the model: a restaurant with ~50 orders a week has only ~5 held
 ordering per week, too few to measure alone (see the precision table in the Round 2 plan). The model
 learned from all restaurants gives a prior; the restaurant's own control group corrects it over time.
 """
+
 from __future__ import annotations
 
 import logging
@@ -61,9 +62,12 @@ class Design:
     def label(self) -> str:
         if not self.discount:
             return f"No discount; ₹{self.reward:.0f} Brand Pack reward for regulars" if self.reward else "No offer"
-        aud = {"all": "for everyone", "new_to_restaurant": "for customers new to you",
-               "lapsed": "for customers who stopped ordering (4+ weeks)",
-               "targeted": "only for customers it brings in"}[self.audience]
+        aud = {
+            "all": "for everyone",
+            "new_to_restaurant": "for customers new to you",
+            "lapsed": "for customers who stopped ordering (4+ weeks)",
+            "targeted": "only for customers it brings in",
+        }[self.audience]
         parts = [f"₹{self.discount:.0f} off"]
         if self.min_order:
             parts.append(f"above ₹{self.min_order:.0f}")
@@ -91,8 +95,9 @@ def rule_eligible(x: pd.DataFrame, d: Design) -> np.ndarray:
     return ok
 
 
-def offer_mix(baskets: np.ndarray, discount: float, min_order: float, aov: float,
-              topup_value: float) -> tuple[float, float, float, float]:
+def offer_mix(
+    baskets: np.ndarray, discount: float, min_order: float, aov: float, topup_value: float
+) -> tuple[float, float, float, float]:
     """How orders split when an offer has a minimum order.
 
     A customer whose usual basket b is below the minimum uses the offer only if the discount is
@@ -118,8 +123,12 @@ def fit_topup_value(offers: pd.DataFrame, baskets: list) -> float:
     grid = np.linspace(0.0, 1.0, 41)
     err = []
     for g in grid:
-        pred = np.array([offer_mix(baskets[int(r)], d, m, 0.0, g)[0] if len(baskets[int(r)]) else np.nan
-                         for r, d, m in offers[["rest", "discount", "min_order"]].to_numpy()])
+        pred = np.array(
+            [
+                offer_mix(baskets[int(r)], d, m, 0.0, g)[0] if len(baskets[int(r)]) else np.nan
+                for r, d, m in offers[["rest", "discount", "min_order"]].to_numpy()
+            ]
+        )
         ok = ~np.isnan(pred)
         err.append(float(np.sum(offers["orders"].to_numpy()[ok] * (pred[ok] - offers["use_rate"].to_numpy()[ok]) ** 2)))
     return float(grid[int(np.argmin(err))])
@@ -151,6 +160,7 @@ class DecisionTable:
     request is then a dictionary lookup plus the holdout hash: no model on the request path, the
     decision is auditable afterwards, and a model failure cannot reach live traffic (audit A11 P2).
     """
+
     offer_id: int
     show: dict = field(default_factory=dict)  # (customer, slot) -> (eligible, p0, p1, gain, reason)
     default_eligible: bool = False  # for a customer the table has never seen
@@ -168,8 +178,15 @@ class DecisionTable:
 
 
 class Engine:
-    def __init__(self, model: UpliftModel, terms: Terms = Terms(), sigma_rel: float = 0.02,
-                 sigma_orders: float = 0.005, holdout: float = 0.10, topup_value: float = 0.5):
+    def __init__(
+        self,
+        model: UpliftModel,
+        terms: Terms = Terms(),
+        sigma_rel: float = 0.02,
+        sigma_orders: float = 0.005,
+        holdout: float = 0.10,
+        topup_value: float = 0.5,
+    ):
         self.model, self.terms, self.holdout, self.topup_value = model, terms, holdout, topup_value
         # model error of a restaurant's average effect per eligible visit (set by `calibrate`):
         # profit as a share of its average order value; orders in absolute terms
@@ -178,8 +195,9 @@ class Engine:
         self.fallbacks = 0  # serving decisions that fell back to the owner's rule (must stay 0)
 
     # ---------------- per-visit expectations (vectorised: one design per row) ----------------
-    def row_values(self, x: pd.DataFrame, discount, min_order, reward, zomato_share, mix,
-                   cache: dict | None = None) -> dict:
+    def row_values(
+        self, x: pd.DataFrame, discount, min_order, reward, zomato_share, mix, cache: dict | None = None
+    ) -> dict:
         """Expected outcomes per menu visit with and without the discount shown.
 
         Design arguments are arrays aligned with x (or scalars). mix = (use rate, basket when the
@@ -197,8 +215,12 @@ class Engine:
         has = discount > 0
         p1 = p0.copy()
         if has.all():
-            p1 = _cached(cache, ("p1", one(discount), one(min_order), one(reward)),
-                         lambda: self.model.p1(xr, discount, min_order), n)
+            p1 = _cached(
+                cache,
+                ("p1", one(discount), one(min_order), one(reward)),
+                lambda: self.model.p1(xr, discount, min_order),
+                n,
+            )
         elif has.any():
             p1[has] = self.model.p1(xr[has], discount[has], min_order[has])
         new_z = x["c_new_to_zomato"].to_numpy() == 1
@@ -212,16 +234,27 @@ class Engine:
         profit1 = np.where(has, mix1("restaurant_profit"), m0["restaurant_profit"])
         comm1 = np.where(has, mix1("commission"), m0["commission"])
         gain = p1 * profit1 - p0 * m0["restaurant_profit"]
-        return {"p0": p0, "p1": p1, "gain": gain, "regular": regular, "reward": rw, "use": use,
-                "profit0": m0["restaurant_profit"], "profit1": profit1, "comm0": m0["commission"],
-                "comm1": comm1, "zfund1": use * mt["zomato_funded"],
-                "basket1": np.where(has, use * b_take + (1 - use) * b_skip, b0)}
+        return {
+            "p0": p0,
+            "p1": p1,
+            "gain": gain,
+            "regular": regular,
+            "reward": rw,
+            "use": use,
+            "profit0": m0["restaurant_profit"],
+            "profit1": profit1,
+            "comm0": m0["commission"],
+            "comm1": comm1,
+            "zfund1": use * mt["zomato_funded"],
+            "basket1": np.where(has, use * b_take + (1 - use) * b_skip, b0),
+        }
 
     def mix(self, baskets: np.ndarray, d: Design, aov: float) -> tuple:
         return offer_mix(baskets, d.discount, d.min_order, aov, self.topup_value)
 
-    def design_values(self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray,
-                      cache: dict | None = None) -> dict:
+    def design_values(
+        self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray, cache: dict | None = None
+    ) -> dict:
         """Per-visit expectations for one design, plus who is eligible: the owner's rule, and for a
         targeted design only the visits where the offer is expected to add profit."""
         mx = self.mix(baskets, d, aov)
@@ -233,8 +266,9 @@ class Engine:
         return v
 
     # ---------------- 1. quote ----------------
-    def quote(self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray,
-              weeks: float = 1.0, cache: dict | None = None) -> dict:
+    def quote(
+        self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray, weeks: float = 1.0, cache: dict | None = None
+    ) -> dict:
         """Forecast one week of an offer.
 
         x: the restaurant's recent menu visits with today's features, covering `weeks` weeks.
@@ -266,17 +300,24 @@ class Engine:
         else:
             sd = self.sigma_rel * aov * max(n_el * (1 - self.holdout), 1.0)
         return {
-            "design": asdict(d), "label": d.label(),
-            "menu_visits": round(len(x) / weeks), "eligible_visits": round(n_el),
-            "redemptions": round(redemptions, 1), "extra_orders": round(extra, 1),
+            "design": asdict(d),
+            "label": d.label(),
+            "menu_visits": round(len(x) / weeks),
+            "eligible_visits": round(n_el),
+            "redemptions": round(redemptions, 1),
+            "extra_orders": round(extra, 1),
             "anyway_share": round(min(max(1 - extra_disc / redemptions, 0.0), 1.0), 3) if redemptions > 0 else None,
-            "profit_change": round(dprofit), "profit_low": round(dprofit - Z80 * sd),
+            "profit_change": round(dprofit),
+            "profit_low": round(dprofit - Z80 * sd),
             "profit_high": round(dprofit + Z80 * sd),
-            "discount_spend": round(spend), "reward_spend": round(rw_cost),
+            "discount_spend": round(spend),
+            "reward_spend": round(rw_cost),
             "discount_per_extra_order": round((spend + rw_cost) / extra) if extra > 0.5 else None,
-            "zomato_commission_change": round(dcomm), "zomato_funded": round(zfund),
+            "zomato_commission_change": round(dcomm),
+            "zomato_funded": round(zfund),
             "offer_use_rate": round(float(v["mix"][0]), 3),
-            "order_value_with_offer": round(order_value), "usual_order_value": round(v["mix"][3]),
+            "order_value_with_offer": round(order_value),
+            "usual_order_value": round(v["mix"][3]),
         }
 
     def design_grid(self, aov: float, owner: Design) -> list[Design]:
@@ -300,8 +341,9 @@ class Engine:
                         grid.append(Design(owner.discount, mo, aud, off, rw, owner.zomato_share))
         return grid
 
-    def best_design(self, x: pd.DataFrame, owner: Design, aov: float, baskets: np.ndarray,
-                    weeks: float = 1.0) -> tuple[dict, dict]:
+    def best_design(
+        self, x: pd.DataFrame, owner: Design, aov: float, baskets: np.ndarray, weeks: float = 1.0
+    ) -> tuple[dict, dict]:
         """Quote for the owner's design and the best alternative (highest expected profit change).
 
         The owner still sees the range for both before approving. Predictions are reused across the
@@ -319,13 +361,16 @@ class Engine:
 
         mixes: array (restaurants, 4) of each restaurant's offer_mix for its current offer.
         """
+
         def score(feats: dict, policy, mask: np.ndarray) -> np.ndarray:
             x = pd.DataFrame({k: np.asarray(v)[mask] for k, v in feats.items() if k != "cust"})
             rest = x.pop("rest").to_numpy().astype(int)
             mx = tuple(mixes[rest, i] for i in range(4))
-            v = self.row_values(x, policy.discount[rest], policy.min_order[rest], policy.reward[rest],
-                                policy.zomato_share[rest], mx)
+            v = self.row_values(
+                x, policy.discount[rest], policy.min_order[rest], policy.reward[rest], policy.zomato_share[rest], mx
+            )
             return v["gain"] > 0
+
         return score
 
     @staticmethod
@@ -343,8 +388,15 @@ class Engine:
                 out.append("matches the owner's audience" if el else "outside the owner's audience")
         return out
 
-    def decision_table(self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray,
-                       offer_id: int, default_row: pd.DataFrame | None = None) -> DecisionTable:
+    def decision_table(
+        self,
+        x: pd.DataFrame,
+        d: Design,
+        aov: float,
+        baskets: np.ndarray,
+        offer_id: int,
+        default_row: pd.DataFrame | None = None,
+    ) -> DecisionTable:
         """Score every (customer, slot) that can open this restaurant's menu, once.
 
         x: one row per (customer, slot) with columns `cust`, `slot` and the features.
@@ -372,24 +424,41 @@ class Engine:
             reasons = ["fallback: owner's rule"] * len(feats)
             table.default_eligible = d.audience in ("all", "new_to_restaurant") and d.discount > 0
         for i in range(len(cust)):
-            table.show[(int(cust[i]), int(slot[i]))] = (bool(el[i]), float(p0[i]), float(p1[i]),
-                                                        float(gain[i]), reasons[i])
+            table.show[(int(cust[i]), int(slot[i]))] = (
+                bool(el[i]),
+                float(p0[i]),
+                float(p1[i]),
+                float(gain[i]),
+                reasons[i],
+            )
         return table
 
-    def serve(self, table: DecisionTable, customer_id: int, slot: int, regular: bool,
-              reward: float = 0.0) -> dict:
+    def serve(self, table: DecisionTable, customer_id: int, slot: int, regular: bool, reward: float = 0.0) -> dict:
         """Decision for one customer opening the menu: a table lookup and the shared holdout hash."""
         el, p0, p1, gain, reason = table.lookup(customer_id, slot)
         held = bool(el and in_control_group(customer_id, table.offer_id, self.holdout)[0])
-        return {"show_offer": bool(el and not held), "control_group": held, "reason": reason,
-                "brand_pack_reward": float(reward) if regular else 0.0,
-                "p_order_without": round(p0, 4), "p_order_with": round(p1, 4),
-                "expected_profit_gain": round(gain, 2), "degraded": table.degraded,
-                "model_version": table.model_version}
+        return {
+            "show_offer": bool(el and not held),
+            "control_group": held,
+            "reason": reason,
+            "brand_pack_reward": float(reward) if regular else 0.0,
+            "p_order_without": round(p0, 4),
+            "p_order_with": round(p1, 4),
+            "expected_profit_gain": round(gain, 2),
+            "degraded": table.degraded,
+            "model_version": table.model_version,
+        }
 
     # ---------------- 4. measure ----------------
-    def measure(self, rows: pd.DataFrame, aov: float, prior_profit: float, prior_orders: float,
-                base_profit=None, base_orders=None) -> dict:
+    def measure(
+        self,
+        rows: pd.DataFrame,
+        aov: float,
+        prior_profit: float,
+        prior_orders: float,
+        base_profit=None,
+        base_orders=None,
+    ) -> dict:
         """Measured effect of an offer so far.
 
         rows: eligible visits, observed columns only: shown, holdout, chosen (ordered here), takes
@@ -406,10 +475,20 @@ class Engine:
         zero = np.zeros(len(rows))
         out = {"shown_visits": n_t, "control_visits": n_c}
         for key, y, prior, sig, base in (
-            ("profit", chosen * rows["profit"].to_numpy(), prior_profit, self.sigma_rel * aov,
-             zero if base_profit is None else np.asarray(base_profit)),
-            ("orders", chosen.astype(float), prior_orders, self.sigma_orders,
-             zero if base_orders is None else np.asarray(base_orders)),
+            (
+                "profit",
+                chosen * rows["profit"].to_numpy(),
+                prior_profit,
+                self.sigma_rel * aov,
+                zero if base_profit is None else np.asarray(base_profit),
+            ),
+            (
+                "orders",
+                chosen.astype(float),
+                prior_orders,
+                self.sigma_orders,
+                zero if base_orders is None else np.asarray(base_orders),
+            ),
         ):
             y = y - base
             if n_t >= 2 and n_c >= 2:
@@ -420,13 +499,20 @@ class Engine:
             if math.isinf(se) or se == 0:
                 post, psd, w = prior, sig, 0.0
             else:
-                w = sig ** 2 / (sig ** 2 + se ** 2)
+                w = sig**2 / (sig**2 + se**2)
                 post = w * own + (1 - w) * prior
-                psd = math.sqrt(1 / (1 / sig ** 2 + 1 / se ** 2))
-            out[key] = {"per_visit": post, "per_visit_sd": psd, "own_per_visit": own,
-                        "own_se": None if math.isinf(se) else se, "model_per_visit": prior,
-                        "weight_on_own_data": w, "total": post * n_t,
-                        "low": (post - Z80 * psd) * n_t, "high": (post + Z80 * psd) * n_t}
+                psd = math.sqrt(1 / (1 / sig**2 + 1 / se**2))
+            out[key] = {
+                "per_visit": post,
+                "per_visit_sd": psd,
+                "own_per_visit": own,
+                "own_se": None if math.isinf(se) else se,
+                "model_per_visit": prior,
+                "weight_on_own_data": w,
+                "total": post * n_t,
+                "low": (post - Z80 * psd) * n_t,
+                "high": (post + Z80 * psd) * n_t,
+            }
         took = rows["takes"].to_numpy() & chosen
         out["report_today"] = {  # what a redemption report shows today
             "orders_with_offer": int(took.sum()),
@@ -448,10 +534,10 @@ class Engine:
         """
         r = (offers["own_profit"] - offers["prior_profit"]) / offers["aov"]
         s = offers["se_profit"] / offers["aov"]
-        self.sigma_rel = math.sqrt(max(float((r ** 2).mean() - (s ** 2).mean()), 0.002 ** 2))
+        self.sigma_rel = math.sqrt(max(float((r**2).mean() - (s**2).mean()), 0.002**2))
         ro = offers["own_orders"] - offers["prior_orders"]
         so = offers["se_orders"]
-        self.sigma_orders = math.sqrt(max(float((ro ** 2).mean() - (so ** 2).mean()), 0.0005 ** 2))
+        self.sigma_orders = math.sqrt(max(float((ro**2).mean() - (so**2).mean()), 0.0005**2))
         return self.sigma_rel, self.sigma_orders
 
 
@@ -471,15 +557,17 @@ def weekly_message(name: str, week: int, m: dict, d: Design, holdout: float = 0.
     """The WhatsApp summary to the owner, in plain words, with the same money format as the page."""
     o, p, r = m["orders"], m["profit"], m["report_today"]
     one_in = max(int(round(1 / holdout)), 1) if holdout > 0 else 0
-    return "\n".join([
-        f"TrueLift weekly summary: {name}, week {week}",
-        f"Offer: {d.label()}",
-        f"Orders that used the offer: {r['orders_with_offer']}",
-        f"Extra orders it created: {max(o['low'], 0):.0f} to {max(o['high'], 0):.0f} "
-        f"(best estimate {max(o['total'], 0):.0f})",
-        f"Extra profit for you: {fmt_inr(p['low'], True)} to {fmt_inr(p['high'], True)} "
-        f"(best estimate {fmt_inr(p['total'], True)})",
-        f"How we know: 1 in {one_in} eligible customers did not see the offer, and we compare the two groups.",
-        VERDICT_SENTENCES[m.get("verdict_code", "wait")],
-        "Open the Offers tab in the partner app to keep, change or stop it.",
-    ])
+    return "\n".join(
+        [
+            f"TrueLift weekly summary: {name}, week {week}",
+            f"Offer: {d.label()}",
+            f"Orders that used the offer: {r['orders_with_offer']}",
+            f"Extra orders it created: {max(o['low'], 0):.0f} to {max(o['high'], 0):.0f} "
+            f"(best estimate {max(o['total'], 0):.0f})",
+            f"Extra profit for you: {fmt_inr(p['low'], True)} to {fmt_inr(p['high'], True)} "
+            f"(best estimate {fmt_inr(p['total'], True)})",
+            f"How we know: 1 in {one_in} eligible customers did not see the offer, and we compare the two groups.",
+            VERDICT_SENTENCES[m.get("verdict_code", "wait")],
+            "Open the Offers tab in the partner app to keep, change or stop it.",
+        ]
+    )

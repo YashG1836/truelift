@@ -1,4 +1,5 @@
 """Pairs of code paths that must agree (audit testing plan, section 3.2)."""
+
 from __future__ import annotations
 
 import numpy as np
@@ -14,8 +15,11 @@ def _offer(state, headers, oid):
 
 def _exposures(state, oid):
     with state.store.lock:
-        return pd.read_sql_query("SELECT week, customer_id, slot, assignment FROM exposures "
-                                 "WHERE offer_id=? AND source='simulated_week'", state.store.conn, params=(oid,))
+        return pd.read_sql_query(
+            "SELECT week, customer_id, slot, assignment FROM exposures WHERE offer_id=? AND source='simulated_week'",
+            state.store.conn,
+            params=(oid,),
+        )
 
 
 def test_serve_and_measurement_share_holdout(client, state, session_headers):
@@ -56,14 +60,21 @@ def test_measurement_from_log_equals_measurement_from_rows(client, state, sessio
     """TL-028: the week measured from the exposure and order logs equals the week measured
     directly from the simulated rows."""
     from truelift.demo import week_rows
+
     h = session_headers
     oid = approved_offer(client, h, design={**DESIGN, "audience": "all"})["offer_id"]
     view = client.post(f"/api/v1/offers/{oid}/run_week", headers=h).json()
     off = _offer(state, h, oid)
     _, el = week_rows(state, off, 1)
     aov = float(state.market.aov[off.restaurant_id])
-    direct = state.engine.measure(el, aov, float(el["gain"].mean()), float((el["p1"] - el["p0"]).mean()),
-                                  el["base_profit"].to_numpy(), el["p0"].to_numpy())
+    direct = state.engine.measure(
+        el,
+        aov,
+        float(el["gain"].mean()),
+        float((el["p1"] - el["p0"]).mean()),
+        el["base_profit"].to_numpy(),
+        el["p0"].to_numpy(),
+    )
     logged = view["weeks"][0]["measurement"]
     for key in ("profit", "orders"):
         for f in ("total", "low", "high", "weight_on_own_data"):
@@ -78,10 +89,17 @@ def test_payout_identity_holds_every_week(client, session_headers):
         client.post(f"/api/v1/offers/{oid}/run_week", headers=h)
     for w in client.get(f"/api/v1/offers/{oid}", headers=h).json()["weeks"]:
         p = w["payout"]
-        assert p["gst_on_commission"] == round(p["gst_rate"] * p["commission"]) or abs(
-            p["gst_on_commission"] - p["gst_rate"] * p["commission"]) <= 1
-        assert p["net_payout"] == (p["gross_sales"] - p["discount_paid_by_you"]
-                                   - p["brand_pack_rewards_paid_by_you"] - p["commission"] - p["gst_on_commission"])
+        assert (
+            p["gst_on_commission"] == round(p["gst_rate"] * p["commission"])
+            or abs(p["gst_on_commission"] - p["gst_rate"] * p["commission"]) <= 1
+        )
+        assert p["net_payout"] == (
+            p["gross_sales"]
+            - p["discount_paid_by_you"]
+            - p["brand_pack_rewards_paid_by_you"]
+            - p["commission"]
+            - p["gst_on_commission"]
+        )
 
 
 def test_engine_does_not_import_the_simulator():
@@ -89,8 +107,11 @@ def test_engine_does_not_import_the_simulator():
     depend on the simulator."""
     import subprocess
     import sys
-    code = ("import sys; import truelift.engine, truelift.features, truelift.assignment; "
-            "print('truelift.sim' in sys.modules)")
+
+    code = (
+        "import sys; import truelift.engine, truelift.features, truelift.assignment; "
+        "print('truelift.sim' in sys.modules)"
+    )
     out = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True, check=True).stdout.strip()
     assert out == "False"
 

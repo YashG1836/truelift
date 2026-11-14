@@ -13,6 +13,7 @@ mtlift: data/raw/mt_lift/train.csv + test.csv, Meituan food-delivery coupons, tr
 The same T-learner TrueLift uses ranks held-out users by predicted uplift; the Qini coefficient
 scores the ranking on data it never saw (0 = no better than random). Writes reports/uplift_validation_<name>.json.
 """
+
 from __future__ import annotations
 
 import argparse
@@ -31,8 +32,14 @@ from truelift.model import qini_coefficient, qini_curve  # noqa: E402
 
 
 def gbm(seed: int) -> HistGradientBoostingClassifier:
-    return HistGradientBoostingClassifier(max_iter=300, learning_rate=0.08, max_leaf_nodes=63,
-                                          min_samples_leaf=500, early_stopping=True, random_state=seed)
+    return HistGradientBoostingClassifier(
+        max_iter=300,
+        learning_rate=0.08,
+        max_leaf_nodes=63,
+        min_samples_leaf=500,
+        early_stopping=True,
+        random_state=seed,
+    )
 
 
 def score_arm(train, test, feats, arm, label, rng) -> dict:
@@ -47,16 +54,21 @@ def score_arm(train, test, feats, arm, label, rng) -> dict:
     frac, q, rand = qini_curve(up, treated, y, points=21)
     top30 = int(np.argmin(np.abs(frac - 0.3)))
     return {
-        "label": label, "test_rows": int(len(te)), "share_treated": round(float(treated.mean()), 3),
-        "rate_treated": round(float(y[treated].mean()), 5), "rate_control": round(float(y[~treated].mean()), 5),
+        "label": label,
+        "test_rows": int(len(te)),
+        "share_treated": round(float(treated.mean()), 3),
+        "rate_treated": round(float(y[treated].mean()), 5),
+        "rate_control": round(float(y[~treated].mean()), 5),
         "qini_t_learner": round(qini_coefficient(up, treated, y), 3),
         "qini_random": round(qini_coefficient(rng.random(len(te)), treated, y), 3),
         # share of all the extra outcomes the campaign created that come from the top 30% by score
         "top30_share_of_total_lift": round(float(q[top30] / q[-1]), 3) if q[-1] > 0 else None,
         # Qini curve as shares of the campaign's total extra outcomes (for the evidence chart)
-        "curve": {"share_targeted": [round(float(f), 3) for f in frac],
-                  "model": [round(float(v / q[-1]), 4) for v in q] if q[-1] > 0 else [],
-                  "random": [round(float(v / q[-1]), 4) for v in rand] if q[-1] > 0 else []},
+        "curve": {
+            "share_targeted": [round(float(f), 3) for f in frac],
+            "model": [round(float(v / q[-1]), 4) for v in q] if q[-1] > 0 else [],
+            "random": [round(float(v / q[-1]), 4) for v in rand] if q[-1] > 0 else [],
+        },
     }
 
 

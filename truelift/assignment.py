@@ -5,6 +5,7 @@ measurement holds out (audit TL-004).
 The assignment is a hash of (customer, offer): stable for the offer's whole life, independent
 across offers, and impossible to steer by anything about the customer.
 """
+
 from __future__ import annotations
 
 import numpy as np
@@ -18,8 +19,11 @@ def stable_uniform(a: np.ndarray, b: np.ndarray, salt: int) -> np.ndarray:
     """Deterministic U(0,1) per (a, b) pair: the hashed holdout assignment."""
     a = np.asarray(a)
     b = np.asarray(b)
-    x = (a.astype(np.uint64) * np.uint64(2654435761) + b.astype(np.uint64) * np.uint64(40503)
-         + np.uint64(salt % 4294967296) * np.uint64(97531)) & np.uint64(0xFFFFFFFF)
+    x = (
+        a.astype(np.uint64) * np.uint64(2654435761)
+        + b.astype(np.uint64) * np.uint64(40503)
+        + np.uint64(salt % 4294967296) * np.uint64(97531)
+    ) & np.uint64(0xFFFFFFFF)
     x ^= x >> np.uint64(16)
     x = (x * np.uint64(0x45D9F3B)) & np.uint64(0xFFFFFFFF)
     x ^= x >> np.uint64(16)

@@ -3,6 +3,7 @@
 Shared by the evaluation pipeline (`scripts/run_pipeline.py`) and the test suite's model fixture,
 so the service and the tests always load a bundle built by the same code.
 """
+
 from __future__ import annotations
 
 import math
@@ -25,9 +26,13 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
         t, c = g["shown"].to_numpy(), g["holdout"].to_numpy()
         if t.sum() < 20 or c.sum() < 5:
             continue
-        d = Design(float(g["offer_discount"].iloc[0]), float(g["min_order"].iloc[0]),
-                   str(g["audience"].iloc[0]), bool(g["offpeak_only"].iloc[0]),
-                   float(g["offer_reward"].iloc[0]))
+        d = Design(
+            float(g["offer_discount"].iloc[0]),
+            float(g["min_order"].iloc[0]),
+            str(g["audience"].iloc[0]),
+            bool(g["offpeak_only"].iloc[0]),
+            float(g["offer_reward"].iloc[0]),
+        )
         v = engine.design_values(g, d, aov[r], baskets[r])
         yp = g["chosen"].to_numpy() * g["profit"].to_numpy()
         yo = g["chosen"].to_numpy().astype(float)
@@ -41,25 +46,43 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
             def se(y, tt=tt, cc=cc):
                 return math.sqrt(y[tt].var(ddof=1) / tt.sum() + y[cc].var(ddof=1) / cc.sum())
 
-            out.append({"rest": r, "week": w, "aov": aov[r], "subset": subset,
-                        "own_profit": yp[tt].mean() - yp[cc].mean(), "se_profit": se(yp),
-                        "prior_profit": float(v["gain"][keep].mean()),
-                        "own_orders": yo[tt].mean() - yo[cc].mean(), "se_orders": se(yo),
-                        "prior_orders": float((v["p1"] - v["p0"])[keep].mean())})
+            out.append(
+                {
+                    "rest": r,
+                    "week": w,
+                    "aov": aov[r],
+                    "subset": subset,
+                    "own_profit": yp[tt].mean() - yp[cc].mean(),
+                    "se_profit": se(yp),
+                    "prior_profit": float(v["gain"][keep].mean()),
+                    "own_orders": yo[tt].mean() - yo[cc].mean(),
+                    "se_orders": se(yo),
+                    "prior_orders": float((v["p1"] - v["p0"])[keep].mean()),
+                }
+            )
     return pd.DataFrame(out)
 
 
 def minimum_order_offers(train: pd.DataFrame) -> pd.DataFrame:
     """Past minimum-order offers: how many of their orders actually used the offer."""
     sh = train[train["shown"] & train["chosen"] & (train["min_order"] > 0)]
-    g = sh.groupby(["rest", "week"]).agg(discount=("offer_discount", "first"), min_order=("min_order", "first"),
-                                         use_rate=("takes", "mean"), orders=("takes", "size")).reset_index()
+    g = (
+        sh.groupby(["rest", "week"])
+        .agg(
+            discount=("offer_discount", "first"),
+            min_order=("min_order", "first"),
+            use_rate=("takes", "mean"),
+            orders=("takes", "size"),
+        )
+        .reset_index()
+    )
     return g[g["orders"] >= 5]
 
 
 @dataclass
 class Trained:
     """Everything training produces; the pipeline evaluates with it and the service loads its bundle."""
+
     market: Market
     hist: History
     train: pd.DataFrame
@@ -68,23 +91,41 @@ class Trained:
     engine: Engine
     offers: pd.DataFrame  # cross-fitted shadow-offer checks used for calibration
 
-    def bundle(self, demo_restaurant: int, designs: list[Design] | None = None, version: str = "dev",
-               metrics: dict | None = None, data_sha256: str = "") -> dict:
+    def bundle(
+        self,
+        demo_restaurant: int,
+        designs: list[Design] | None = None,
+        version: str = "dev",
+        metrics: dict | None = None,
+        data_sha256: str = "",
+    ) -> dict:
         """The model bundle the service loads (`data/processed/model.pkl`), with a record of what
         built it: version, time, library versions, features, metrics (audit A16 O6)."""
         import time
         from dataclasses import asdict
 
         from .model import BASE_FEATURES, DESIGN_FEATURES, library_versions
+
         e = self.engine
-        return {"format": 2, "model": self.model, "sigma_rel": e.sigma_rel, "sigma_orders": e.sigma_orders,
-                "topup_value": e.topup_value, "config": asdict(self.market.cfg),
-                "terms": asdict(self.market.terms), "demo_restaurant": int(demo_restaurant),
-                "truelift_designs": [asdict(d) for d in (designs or [])],
-                "version": version, "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
-                "library_versions": library_versions(), "features": BASE_FEATURES + DESIGN_FEATURES,
-                "training_rows": int(len(self.train)), "shadow_offer_checks": int(len(self.offers)),
-                "data_sha256": data_sha256, "metrics": metrics or {}}
+        return {
+            "format": 2,
+            "model": self.model,
+            "sigma_rel": e.sigma_rel,
+            "sigma_orders": e.sigma_orders,
+            "topup_value": e.topup_value,
+            "config": asdict(self.market.cfg),
+            "terms": asdict(self.market.terms),
+            "demo_restaurant": int(demo_restaurant),
+            "truelift_designs": [asdict(d) for d in (designs or [])],
+            "version": version,
+            "trained_at": time.strftime("%Y-%m-%dT%H:%M:%S%z"),
+            "library_versions": library_versions(),
+            "features": BASE_FEATURES + DESIGN_FEATURES,
+            "training_rows": int(len(self.train)),
+            "shadow_offer_checks": int(len(self.offers)),
+            "data_sha256": data_sha256,
+            "metrics": metrics or {},
+        }
 
 
 def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Trained:
@@ -107,6 +148,8 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     model = UpliftModel.fit(rows, seed=7)
     engine = Engine(model, topup_value=topup)
     sig = engine.calibrate(offers)
-    log(f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "
-        f"({len(offers)} shadow-offer checks)")
+    log(
+        f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "
+        f"({len(offers)} shadow-offer checks)"
+    )
     return Trained(market, hist, rows, baskets, model, engine, offers)

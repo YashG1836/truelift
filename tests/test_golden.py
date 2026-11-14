@@ -6,6 +6,7 @@ numerical change in front of the reviewer:
 
     python tasks.py golden        # re-run the quick pipeline and overwrite the snapshot
 """
+
 from __future__ import annotations
 
 import json
@@ -49,8 +50,15 @@ def diff(want, got, path: str = "", out: list | None = None, rel: float = 1e-6) 
 
 
 def run_quick(out_dir: Path) -> dict:
-    cmd = [sys.executable, str(ROOT / "scripts/run_pipeline.py"), "--quick", "--out", str(out_dir),
-           "--model-out", str(out_dir / "model.pkl")]
+    cmd = [
+        sys.executable,
+        str(ROOT / "scripts/run_pipeline.py"),
+        "--quick",
+        "--out",
+        str(out_dir),
+        "--model-out",
+        str(out_dir / "model.pkl"),
+    ]
     subprocess.run(cmd, check=True, cwd=ROOT, capture_output=True)
     return json.loads((out_dir / "evaluation.json").read_text(encoding="utf-8"))
 

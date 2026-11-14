@@ -17,6 +17,7 @@ Operations: /healthz, /readyz, /metrics, /api/v1/config.
 Each browser visitor has their own session (header X-Session); without the header a request
 belongs to the shared "public" session. Errors are RFC 9457 problem details.
 """
+
 from __future__ import annotations
 
 import json
@@ -83,16 +84,29 @@ class ProblemError(Exception):
 
 
 def problem_response(request: Request, status: int, kind: str, title: str, detail: str, **extra) -> JSONResponse:
-    body = {"type": f"/problems/{kind}", "title": title, "status": status, "detail": detail,
-            "instance": request.url.path,
-            "correlation_id": request.scope.get("state", {}).get("correlation_id")}
+    body = {
+        "type": f"/problems/{kind}",
+        "title": title,
+        "status": status,
+        "detail": detail,
+        "instance": request.url.path,
+        "correlation_id": request.scope.get("state", {}).get("correlation_id"),
+    }
     body.update(extra)
     return JSONResponse(body, status_code=status, media_type="application/problem+json")
 
 
-PROBLEMS = {code: {"model": Problem, "description": text} for code, text in (
-    (403, "Wrong OTP"), (404, "Unknown restaurant, customer or offer"), (409, "Offer is in the wrong state"),
-    (422, "Invalid input or design"), (429, "Too many wrong OTPs"), (503, "Model not loaded"))}
+PROBLEMS = {
+    code: {"model": Problem, "description": text}
+    for code, text in (
+        (403, "Wrong OTP"),
+        (404, "Unknown restaurant, customer or offer"),
+        (409, "Offer is in the wrong state"),
+        (422, "Invalid input or design"),
+        (429, "Too many wrong OTPs"),
+        (503, "Model not loaded"),
+    )
+}
 
 
 # ---------------------------------------------------------------- state
@@ -110,8 +124,9 @@ def get_state() -> State:
                 try:
                     _state = State(load_settings())
                     _state_error = None
-                    MODEL_INFO.labels(version=_state.engine.model_version,
-                                      trained_at=str(_state.model_meta.get("trained_at") or "")).set(1)
+                    MODEL_INFO.labels(
+                        version=_state.engine.model_version, trained_at=str(_state.model_meta.get("trained_at") or "")
+                    ).set(1)
                 except BundleError as e:
                     _state_error = str(e)
                     raise ProblemError(503, "model-not-loaded", "The model is not loaded", str(e)) from e
@@ -135,8 +150,10 @@ async def lifespan(app: FastAPI):
     yield
 
 
-def session_of(request: Request, x_session: str | None = Header(None, alias="X-Session", max_length=64,
-                                                                  pattern=r"^[A-Za-z0-9_-]{1,64}$")) -> Session:
+def session_of(
+    request: Request,
+    x_session: str | None = Header(None, alias="X-Session", max_length=64, pattern=r"^[A-Za-z0-9_-]{1,64}$"),
+) -> Session:
     sid = x_session or "public"
     request.state.session = sid
     return get_state().session(sid)
@@ -179,8 +196,12 @@ def check_restaurant(s: State, rid: int) -> int:
     if rid not in s.restaurant_ids:
         raise ProblemError(404, "unknown-restaurant", "Unknown restaurant", f"There is no restaurant {rid}.")
     if rid not in s.visits:
-        raise ProblemError(404, "unknown-restaurant", "No recent visits",
-                           f"Restaurant {rid} has no menu visits in the last two weeks to forecast from.")
+        raise ProblemError(
+            404,
+            "unknown-restaurant",
+            "No recent visits",
+            f"Restaurant {rid} has no menu visits in the last two weeks to forecast from.",
+        )
     return rid
 
 
@@ -188,8 +209,9 @@ def check_design(d: Design, aov: float) -> None:
     """Business rules a request schema cannot know (they depend on the restaurant): audit TL-012."""
     problems = []
     if d.discount > 0.6 * aov:
-        problems.append(f"A {fmt_inr(d.discount)} discount is more than 60% of this restaurant's average "
-                        f"order ({fmt_inr(aov)}).")
+        problems.append(
+            f"A {fmt_inr(d.discount)} discount is more than 60% of this restaurant's average order ({fmt_inr(aov)})."
+        )
     if d.min_order > 0 and d.min_order < d.discount:
         problems.append("The minimum order must be at least the discount.")
     if d.min_order > 4 * aov:
@@ -211,32 +233,54 @@ def get_offer(sess: Session, oid: int) -> Offer:
 
 def who_pays(d: Design) -> str:
     if d.zomato_share > 0:
-        return (f"You pay the discount, except for customers new to Zomato, where Zomato pays "
-                f"{d.zomato_share:.0%}. Brand Pack rewards are paid by you.")
+        return (
+            f"You pay the discount, except for customers new to Zomato, where Zomato pays "
+            f"{d.zomato_share:.0%}. Brand Pack rewards are paid by you."
+        )
     return "You pay the discount and any Brand Pack rewards. Nothing is deducted without this approval."
 
 
-STATUS_TEXT = {"awaiting_otp": "waiting for the owner's OTP", "active": "running", "paused": "paused",
-               "stopped": "stopped", "consent_expired": "past its approval period",
-               "replaced": "replaced by a newer offer", "otp_expired": "expired before it was approved"}
+STATUS_TEXT = {
+    "awaiting_otp": "waiting for the owner's OTP",
+    "active": "running",
+    "paused": "paused",
+    "stopped": "stopped",
+    "consent_expired": "past its approval period",
+    "replaced": "replaced by a newer offer",
+    "otp_expired": "expired before it was approved",
+}
 
 
 def offer_view(off: Offer) -> dict:
-    return clean({"offer_id": off.id, "restaurant_id": off.restaurant_id, "status": off.status,
-                  "design": asdict(off.design), "label": off.design.label(), "quote": off.quote,
-                  "consent": off.consent, "weeks": off.weeks, "who_pays": who_pays(off.design),
-                  "replaced_by": off.replaced_by})
+    return clean(
+        {
+            "offer_id": off.id,
+            "restaurant_id": off.restaurant_id,
+            "status": off.status,
+            "design": asdict(off.design),
+            "label": off.design.label(),
+            "quote": off.quote,
+            "consent": off.consent,
+            "weeks": off.weeks,
+            "who_pays": who_pays(off.design),
+            "replaced_by": off.replaced_by,
+        }
+    )
 
 
 # ---------------------------------------------------------------- app
 app = FastAPI(
-    title="TrueLift", version="2.0.0", lifespan=lifespan,
+    title="TrueLift",
+    version="2.0.0",
+    lifespan=lifespan,
     description="Forecast, target and measure restaurant-funded offers by the extra orders and profit they "
-                "create. **Hooks** are the calls Zomato's offer flow would make; **demo** routes run the "
-                "simulated market behind the prototype. Every figure is simulated.",
-    openapi_tags=[{"name": "hooks", "description": "The calls Zomato's systems would make"},
-                  {"name": "demo", "description": "Simulation and demo screens only"},
-                  {"name": "operations", "description": "Health, readiness, configuration, metrics"}],
+    "create. **Hooks** are the calls Zomato's offer flow would make; **demo** routes run the "
+    "simulated market behind the prototype. Every figure is simulated.",
+    openapi_tags=[
+        {"name": "hooks", "description": "The calls Zomato's systems would make"},
+        {"name": "demo", "description": "Simulation and demo screens only"},
+        {"name": "operations", "description": "Health, readiness, configuration, metrics"},
+    ],
 )
 app.add_middleware(ObservabilityMiddleware)
 router = APIRouter(prefix=f"/api/{API_VERSION}", responses=PROBLEMS)
@@ -249,8 +293,13 @@ async def _problem(request: Request, exc: ProblemError):
 
 @app.exception_handler(RequestValidationError)
 async def _invalid(request: Request, exc: RequestValidationError):
-    errors = [{"field": ".".join(str(p) for p in e.get("loc", ()) if p not in ("body", "query", "header")),
-               "message": e.get("msg", "")} for e in exc.errors()]
+    errors = [
+        {
+            "field": ".".join(str(p) for p in e.get("loc", ()) if p not in ("body", "query", "header")),
+            "message": e.get("msg", ""),
+        }
+        for e in exc.errors()
+    ]
     detail = "; ".join(f"{e['field']}: {e['message']}" if e["field"] else e["message"] for e in errors[:3])
     return problem_response(request, 422, "invalid-input", "Invalid input", detail or "Invalid input.", errors=errors)
 
@@ -264,14 +313,24 @@ async def _http(request: Request, exc: StarletteHTTPException):
 @app.exception_handler(Exception)
 async def _internal(request: Request, exc: Exception):
     import logging
+
     logging.getLogger("truelift.api").exception("unhandled error")
-    return problem_response(request, 500, "internal", "Internal error",
-                            "Something went wrong on our side. The correlation id identifies it in the logs.")
+    return problem_response(
+        request,
+        500,
+        "internal",
+        "Internal error",
+        "Something went wrong on our side. The correlation id identifies it in the logs.",
+    )
 
 
 # ---------------------------------------------------------------- hooks
-@router.post("/quote", response_model=QuoteResponse, tags=["hooks"],
-             summary="Hook 1: forecast an offer and a better version, before the owner's OTP")
+@router.post(
+    "/quote",
+    response_model=QuoteResponse,
+    tags=["hooks"],
+    summary="Hook 1: forecast an offer and a better version, before the owner's OTP",
+)
 def quote(q: QuoteIn, request: Request, sess: Session = Depends(session_of)):
     t0 = time.perf_counter()
     s = get_state()
@@ -283,12 +342,24 @@ def quote(q: QuoteIn, request: Request, sess: Session = Depends(session_of)):
     owner, best = s.engine.best_design(s.x_for(rid), d, aov, s.baskets[rid], weeks=2)
     better = best if best["profit_change"] > owner["profit_change"] + 50 else None
     log_call(sess, "quote", t0, restaurant=rid)
-    return clean({"owner": owner, "better": better, "designs_compared": best["designs_compared"],
-                  "consent_weeks": s.settings.consent_weeks, "model_version": s.engine.model_version})
+    return clean(
+        {
+            "owner": owner,
+            "better": better,
+            "designs_compared": best["designs_compared"],
+            "consent_weeks": s.settings.consent_weeks,
+            "model_version": s.engine.model_version,
+        }
+    )
 
 
-@router.post("/offers", response_model=OfferCreated, status_code=201, tags=["hooks"],
-             summary="Create an offer awaiting the owner's OTP")
+@router.post(
+    "/offers",
+    response_model=OfferCreated,
+    status_code=201,
+    tags=["hooks"],
+    summary="Create an offer awaiting the owner's OTP",
+)
 def create_offer(q: QuoteIn, request: Request, sess: Session = Depends(session_of)):
     s = get_state()
     rid = check_restaurant(s, q.restaurant_id)
@@ -297,21 +368,40 @@ def create_offer(q: QuoteIn, request: Request, sess: Session = Depends(session_o
     aov = float(s.market.aov[rid])
     check_design(d, aov)
     if d.discount <= 0:
-        raise ProblemError(422, "invalid-design", "Nothing to approve",
-                           "This design has no discount, so there is nothing for the owner to approve.")
+        raise ProblemError(
+            422,
+            "invalid-design",
+            "Nothing to approve",
+            "This design has no discount, so there is nothing for the owner to approve.",
+        )
     qt = s.engine.quote(s.x_for(rid), d, aov, s.baskets[rid], weeks=2)
     oid = s.next_offer_id()
     sess.offers[oid] = Offer(oid, sess.id, rid, d, qt, otp=f"{secrets.randbelow(9000) + 1000}")
     request.state.offer = oid
     refresh_offer_gauge(s)
-    return {"offer_id": oid, "status": "awaiting_otp", "quote": clean(qt), "otp_sent_to": "owner's registered phone",
-            "demo_otp": sess.offers[oid].otp, "otp_expires_in_seconds": OTP_TTL_SECONDS}
+    return {
+        "offer_id": oid,
+        "status": "awaiting_otp",
+        "quote": clean(qt),
+        "otp_sent_to": "owner's registered phone",
+        "demo_otp": sess.offers[oid].otp,
+        "otp_expires_in_seconds": OTP_TTL_SECONDS,
+    }
 
 
-@router.post("/offers/{oid}/approve", response_model=OfferView, tags=["hooks"],
-             summary="The owner's OTP: consent recorded with exactly what they were shown")
-def approve(oid: int, body: OtpIn, request: Request, sess: Session = Depends(session_of),
-            idempotency_key: str | None = Header(None, alias="Idempotency-Key", max_length=100)):
+@router.post(
+    "/offers/{oid}/approve",
+    response_model=OfferView,
+    tags=["hooks"],
+    summary="The owner's OTP: consent recorded with exactly what they were shown",
+)
+def approve(
+    oid: int,
+    body: OtpIn,
+    request: Request,
+    sess: Session = Depends(session_of),
+    idempotency_key: str | None = Header(None, alias="Idempotency-Key", max_length=100),
+):
     s = get_state()
     off = get_offer(sess, oid)
     request.state.offer = oid
@@ -323,24 +413,39 @@ def approve(oid: int, body: OtpIn, request: Request, sess: Session = Depends(ses
             off.status = "otp_expired"
         if off.status != "awaiting_otp":
             hint = " Create the offer again to get a new OTP." if off.status == "otp_expired" else ""
-            raise ProblemError(409, "offer-state", "This offer can't be approved",
-                               f"This offer is {STATUS_TEXT[off.status]}.{hint}")
+            raise ProblemError(
+                409, "offer-state", "This offer can't be approved", f"This offer is {STATUS_TEXT[off.status]}.{hint}"
+            )
         if off.otp_attempts >= OTP_MAX_ATTEMPTS:
-            raise ProblemError(429, "too-many-attempts", "Too many wrong OTPs",
-                               "Too many wrong codes. Create the offer again to get a new OTP.")
+            raise ProblemError(
+                429,
+                "too-many-attempts",
+                "Too many wrong OTPs",
+                "Too many wrong codes. Create the offer again to get a new OTP.",
+            )
         if body.otp.strip() != off.otp:
             off.otp_attempts += 1
             left = OTP_MAX_ATTEMPTS - off.otp_attempts
             if left <= 0:
-                raise ProblemError(429, "too-many-attempts", "Too many wrong OTPs",
-                                   "Too many wrong codes. Create the offer again to get a new OTP.")
+                raise ProblemError(
+                    429,
+                    "too-many-attempts",
+                    "Too many wrong OTPs",
+                    "Too many wrong codes. Create the offer again to get a new OTP.",
+                )
             attempts = f"{left} attempt{'s' if left != 1 else ''} left"
-            raise ProblemError(403, "wrong-otp", "Wrong OTP",
-                               f"Wrong OTP. Check the code and try again ({attempts}).", attempts_left=left)
+            raise ProblemError(
+                403,
+                "wrong-otp",
+                "Wrong OTP",
+                f"Wrong OTP. Check the code and try again ({attempts}).",
+                attempts_left=left,
+            )
         rid, d = off.restaurant_id, off.design
         aov = float(s.market.aov[rid])
-        off.table = s.engine.decision_table(s.locality_frame(rid), d, aov, s.baskets[rid], off.id,
-                                            s.new_visitor_row(rid))
+        off.table = s.engine.decision_table(
+            s.locality_frame(rid), d, aov, s.baskets[rid], off.id, s.new_visitor_row(rid)
+        )
         if off.table.degraded:
             SERVE_FALLBACK.inc()
         for other in sess.offers.values():  # one running offer per restaurant (audit TL-024)
@@ -348,9 +453,17 @@ def approve(oid: int, body: OtpIn, request: Request, sess: Session = Depends(ses
                 other.status, other.replaced_by = "replaced", off.id
         off.status = "active"
         approved_at = datetime.now(IST).isoformat(timespec="seconds")
-        record = clean({"approved_at": approved_at, "design": asdict(d), "label": d.label(),
-                        "forecast_shown": off.quote, "valid_for_weeks": s.settings.consent_weeks,
-                        "who_pays": who_pays(d), "model_version": s.engine.model_version})
+        record = clean(
+            {
+                "approved_at": approved_at,
+                "design": asdict(d),
+                "label": d.label(),
+                "forecast_shown": off.quote,
+                "valid_for_weeks": s.settings.consent_weeks,
+                "who_pays": who_pays(d),
+                "model_version": s.engine.model_version,
+            }
+        )
         ledger = s.store.append_consent(sess.id, off.id, record, approved_at)
         off.consent = {**record, "ledger": {**ledger, "verified": True}}
     refresh_offer_gauge(s)
@@ -360,11 +473,19 @@ def approve(oid: int, body: OtpIn, request: Request, sess: Session = Depends(ses
     return view
 
 
-@router.get("/serve", response_model=ServeDecision, tags=["hooks"],
-            summary="Hook 2: a customer opens the menu; show the discount or not")
-def serve(request: Request, restaurant_id: int = Query(ge=0), customer_id: int = Query(ge=0),
-          slot: int = Query(2, ge=0, le=2, description="0 lunch, 1 3-6 pm, 2 dinner"),
-          sess: Session = Depends(session_of)):
+@router.get(
+    "/serve",
+    response_model=ServeDecision,
+    tags=["hooks"],
+    summary="Hook 2: a customer opens the menu; show the discount or not",
+)
+def serve(
+    request: Request,
+    restaurant_id: int = Query(ge=0),
+    customer_id: int = Query(ge=0),
+    slot: int = Query(2, ge=0, le=2, description="0 lunch, 1 3-6 pm, 2 dinner"),
+    sess: Session = Depends(session_of),
+):
     t0 = time.perf_counter()
     s = get_state()
     rid = check_restaurant(s, restaurant_id)
@@ -372,14 +493,21 @@ def serve(request: Request, restaurant_id: int = Query(ge=0), customer_id: int =
     if customer_id >= s.market.n_cust:
         raise ProblemError(404, "unknown-customer", "Unknown customer", f"There is no customer {customer_id}.")
     if not s.in_locality(customer_id, rid):
-        raise ProblemError(422, "customer-not-in-locality", "Customer can't see this restaurant",
-                           "This customer is not in the restaurant's delivery area.")
+        raise ProblemError(
+            422,
+            "customer-not-in-locality",
+            "Customer can't see this restaurant",
+            "This customer is not in the restaurant's delivery area.",
+        )
     active = [o for o in sess.offers.values() if o.restaurant_id == rid and o.status == "active"]
     if not active:
         SERVE_DECISIONS.labels(decision="no_offer").inc()
         request.state.decision = "no_offer"
-        return {"show_offer": False, "reason": "no active offer",
-                "latency_ms": log_call(sess, "serve", t0, restaurant=rid, customer=customer_id, show=False)}
+        return {
+            "show_offer": False,
+            "reason": "no active offer",
+            "latency_ms": log_call(sess, "serve", t0, restaurant=rid, customer=customer_id, show=False),
+        }
     off = active[-1]
     local = int(s.market.R.loc[rid, "local"])
     regular = bool(s.features.p4[customer_id, local] >= 3)
@@ -393,14 +521,17 @@ def serve(request: Request, restaurant_id: int = Query(ge=0), customer_id: int =
     return clean(out)
 
 
-@router.get("/offers/{oid}", response_model=OfferView, tags=["hooks"],
-            summary="Hook 4: the measured effect so far, the WhatsApp summary and the payout")
+@router.get(
+    "/offers/{oid}",
+    response_model=OfferView,
+    tags=["hooks"],
+    summary="Hook 4: the measured effect so far, the WhatsApp summary and the payout",
+)
 def get_offer_view(oid: int, sess: Session = Depends(session_of)):
     return offer_view(get_offer(sess, oid))
 
 
-@router.post("/offers/{oid}/decision", response_model=OfferView, tags=["hooks"],
-             summary="Keep or stop a running offer")
+@router.post("/offers/{oid}/decision", response_model=OfferView, tags=["hooks"], summary="Keep or stop a running offer")
 def decision(oid: int, body: DecisionIn, sess: Session = Depends(session_of)):
     off = get_offer(sess, oid)
     with off.lock:
@@ -409,14 +540,22 @@ def decision(oid: int, body: DecisionIn, sess: Session = Depends(session_of)):
                 raise ProblemError(409, "offer-state", "Nothing to stop", f"This offer is {STATUS_TEXT[off.status]}.")
             off.status = "stopped"
         elif off.status != "active":
-            raise ProblemError(409, "offer-state", "Can't keep this offer",
-                               "Renewing a paused or expired offer needs a fresh quote and a new OTP.")
+            raise ProblemError(
+                409,
+                "offer-state",
+                "Can't keep this offer",
+                "Renewing a paused or expired offer needs a fresh quote and a new OTP.",
+            )
     refresh_offer_gauge(get_state())
     return offer_view(off)
 
 
-@router.get("/offers/{oid}/consent", response_model=ConsentCheck, tags=["hooks"],
-            summary="The consent record, and whether the hash-chained ledger still verifies")
+@router.get(
+    "/offers/{oid}/consent",
+    response_model=ConsentCheck,
+    tags=["hooks"],
+    summary="The consent record, and whether the hash-chained ledger still verifies",
+)
 def consent(oid: int, sess: Session = Depends(session_of)):
     s = get_state()
     get_offer(sess, oid)
@@ -424,8 +563,14 @@ def consent(oid: int, sess: Session = Depends(session_of)):
     if rec is None:
         raise ProblemError(404, "no-consent", "Not approved yet", "This offer has not been approved yet.")
     ok, _ = s.store.verify()
-    return {"offer_id": oid, "record": rec["record"], "seq": rec["seq"], "hash": rec["hash"],
-            "prev_hash": rec["prev_hash"], "verified": ok}
+    return {
+        "offer_id": oid,
+        "record": rec["record"],
+        "seq": rec["seq"],
+        "hash": rec["hash"],
+        "prev_hash": rec["prev_hash"],
+        "verified": ok,
+    }
 
 
 # ---------------------------------------------------------------- demo
@@ -443,17 +588,23 @@ def restaurant(rid: int):
     return s.cards[rid]
 
 
-@router.post("/customers", response_model=CustomersResponse, tags=["demo"],
-             summary="A few of this restaurant's recent visitors and what TrueLift does for each")
+@router.post(
+    "/customers",
+    response_model=CustomersResponse,
+    tags=["demo"],
+    summary="A few of this restaurant's recent visitors and what TrueLift does for each",
+)
 def sample_customers(q: QuoteIn, sess: Session = Depends(session_of)):
     s = get_state()
     rid = check_restaurant(s, q.restaurant_id)
     aov = float(s.market.aov[rid])
     x = s.visits[rid].drop_duplicates("cust")
-    groups = [("regular", x[x["cr_orders_4w"] >= 3]),
-              ("stopped ordering", x[(x["cr_orders_all"] > 0) & (x["cr_weeks_since"] >= 4)]),
-              ("new to you", x[(x["cr_orders_all"] == 0) & (x["c_new_to_zomato"] == 0)]),
-              ("new to Zomato", x[x["c_new_to_zomato"] == 1])]
+    groups = [
+        ("regular", x[x["cr_orders_4w"] >= 3]),
+        ("stopped ordering", x[(x["cr_orders_all"] > 0) & (x["cr_weeks_since"] >= 4)]),
+        ("new to you", x[(x["cr_orders_all"] == 0) & (x["c_new_to_zomato"] == 0)]),
+        ("new to Zomato", x[x["c_new_to_zomato"] == 1]),
+    ]
     active = [o for o in sess.offers.values() if o.restaurant_id == rid and o.status == "active"]
     off = active[-1] if active else None
     if off is not None:
@@ -476,30 +627,58 @@ def sample_customers(q: QuoteIn, sess: Session = Depends(session_of)):
             dec = s.engine.serve(off.table, cid, slot, regular, d.reward)
         else:
             el = bool(v["eligible"][i])
-            dec = {"show_offer": el, "control_group": False, "reason": reasons[i],
-                   "brand_pack_reward": float(d.reward) if regular else 0.0,
-                   "p_order_without": round(float(v["p0"][i]), 4), "p_order_with": round(float(v["p1"][i]), 4),
-                   "expected_profit_gain": round(float(v["gain"][i]), 2), "degraded": False,
-                   "model_version": s.engine.model_version}
-        out.append({"customer_id": cid, "group": label, "orders_here_4w": int(row["cr_orders_4w"]),
-                    "orders_here_ever": int(row["cr_orders_all"]),
-                    "zomato_orders_per_week": round(float(row["c_orders_pw"]), 2),
-                    "share_of_orders_with_discount": round(float(row["c_disc_share"]), 2),
-                    "weeks_since_last_order_here": int(row["cr_weeks_since"]), "visit_slot": slot,
-                    "decision": dec})
-    note = ("Offer running: the customers marked control group are exactly the ones the weekly measurement "
-            "holds out." if off is not None else
-            f"Before approval: once the offer starts, 1 in {round(1 / s.engine.holdout)} eligible customers is "
-            "held out at random (a hash of customer and offer).")
-    return clean({"customers": out, "design": asdict(d), "label": d.label(),
-                  "offer_id": off.id if off is not None else None, "note": note})
+            dec = {
+                "show_offer": el,
+                "control_group": False,
+                "reason": reasons[i],
+                "brand_pack_reward": float(d.reward) if regular else 0.0,
+                "p_order_without": round(float(v["p0"][i]), 4),
+                "p_order_with": round(float(v["p1"][i]), 4),
+                "expected_profit_gain": round(float(v["gain"][i]), 2),
+                "degraded": False,
+                "model_version": s.engine.model_version,
+            }
+        out.append(
+            {
+                "customer_id": cid,
+                "group": label,
+                "orders_here_4w": int(row["cr_orders_4w"]),
+                "orders_here_ever": int(row["cr_orders_all"]),
+                "zomato_orders_per_week": round(float(row["c_orders_pw"]), 2),
+                "share_of_orders_with_discount": round(float(row["c_disc_share"]), 2),
+                "weeks_since_last_order_here": int(row["cr_weeks_since"]),
+                "visit_slot": slot,
+                "decision": dec,
+            }
+        )
+    note = (
+        "Offer running: the customers marked control group are exactly the ones the weekly measurement holds out."
+        if off is not None
+        else f"Before approval: once the offer starts, 1 in {round(1 / s.engine.holdout)} eligible customers is "
+        "held out at random (a hash of customer and offer)."
+    )
+    return clean(
+        {
+            "customers": out,
+            "design": asdict(d),
+            "label": d.label(),
+            "offer_id": off.id if off is not None else None,
+            "note": note,
+        }
+    )
 
 
-@router.post("/offers/{oid}/run_week", response_model=OfferView, tags=["demo"],
-             summary="Demo: simulate the offer's next week (idempotent with ?week=N)")
-def run_week(oid: int, request: Request, week: int | None = Query(None, ge=1, le=52),
-             sess: Session = Depends(session_of)):
+@router.post(
+    "/offers/{oid}/run_week",
+    response_model=OfferView,
+    tags=["demo"],
+    summary="Demo: simulate the offer's next week (idempotent with ?week=N)",
+)
+def run_week(
+    oid: int, request: Request, week: int | None = Query(None, ge=1, le=52), sess: Session = Depends(session_of)
+):
     from .demo import simulate_week
+
     s = get_state()
     off = get_offer(sess, oid)
     request.state.offer = oid
@@ -507,11 +686,16 @@ def run_week(oid: int, request: Request, week: int | None = Query(None, ge=1, le
         if week is not None and week <= len(off.weeks):
             return offer_view(off)  # already simulated: return it unchanged
         if week is not None and week != len(off.weeks) + 1:
-            raise ProblemError(409, "offer-state", "Weeks run in order",
-                               f"Week {week} can't be simulated before week {len(off.weeks) + 1}.")
+            raise ProblemError(
+                409,
+                "offer-state",
+                "Weeks run in order",
+                f"Week {week} can't be simulated before week {len(off.weeks) + 1}.",
+            )
         if off.status != "active":
-            raise ProblemError(409, "offer-state", "This offer is not running",
-                               f"This offer is {STATUS_TEXT[off.status]}.")
+            raise ProblemError(
+                409, "offer-state", "This offer is not running", f"This offer is {STATUS_TEXT[off.status]}."
+            )
         wk = clean(simulate_week(s, off))
         off.weeks.append(wk)
         if wk["week"] >= 2 and wk["measurement"]["verdict_code"] == "pause":
@@ -553,15 +737,22 @@ def reset(sess: Session = Depends(session_of)):
     return {"ok": True}
 
 
-@router.get("/config", response_model=ServiceConfig, tags=["operations"],
-            summary="Constants the page shares with the service")
+@router.get(
+    "/config", response_model=ServiceConfig, tags=["operations"], summary="Constants the page shares with the service"
+)
 def config():
     s = get_state()
     t = s.terms
-    return {"consent_weeks": s.settings.consent_weeks, "holdout_share": s.engine.holdout,
-            "commission_rate": t.commission_rate, "gst_on_commission": t.gst_on_commission,
-            "food_cost_share": t.food_cost_share, "commission_on": t.commission_on,
-            "model_version": s.engine.model_version, "api_version": API_VERSION}
+    return {
+        "consent_weeks": s.settings.consent_weeks,
+        "holdout_share": s.engine.holdout,
+        "commission_rate": t.commission_rate,
+        "gst_on_commission": t.gst_on_commission,
+        "food_cost_share": t.food_cost_share,
+        "commission_on": t.commission_on,
+        "model_version": s.engine.model_version,
+        "api_version": API_VERSION,
+    }
 
 
 app.include_router(router)
@@ -573,15 +764,24 @@ def healthz():
     return {"status": "ok"}
 
 
-@app.get("/readyz", response_model=Ready, tags=["operations"], summary="Model and data loaded",
-         responses={503: {"model": Ready}})
+@app.get(
+    "/readyz",
+    response_model=Ready,
+    tags=["operations"],
+    summary="Model and data loaded",
+    responses={503: {"model": Ready}},
+)
 def readyz():
     try:
         s = get_state()
     except ProblemError as e:
         return JSONResponse({"status": "not_ready", "detail": e.detail}, status_code=503)
-    return {"status": "ready", "model_version": s.engine.model_version,
-            "trained_at": s.model_meta.get("trained_at"), "data_built_at": s.data_built_at}
+    return {
+        "status": "ready",
+        "model_version": s.engine.model_version,
+        "trained_at": s.model_meta.get("trained_at"),
+        "data_built_at": s.data_built_at,
+    }
 
 
 app.mount("/metrics", make_asgi_app(registry=REGISTRY))

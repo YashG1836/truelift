@@ -1,5 +1,6 @@
 """Shared fixtures. Every test runs on a fresh clone: the API tests use a small model trained once
 per test session, never the git-ignored or committed full model (audit A12 Q1)."""
+
 from __future__ import annotations
 
 import os
@@ -24,12 +25,14 @@ def small_trained(restaurants):
     from truelift.economics import Terms
     from truelift.sim import Config, Market
     from truelift.training import train
+
     return train(Market(restaurants, Config(customers_per_locality=SMALL_CUSTOMERS), Terms()))
 
 
 @pytest.fixture(scope="session")
 def model_dir(small_trained, tmp_path_factory) -> Path:
     from truelift.model import save_bundle
+
     d = tmp_path_factory.mktemp("model")
     save_bundle(small_trained.bundle(233, version="test-small"), d / "model.pkl")
     return d
@@ -38,11 +41,16 @@ def model_dir(small_trained, tmp_path_factory) -> Path:
 @pytest.fixture(scope="session")
 def service_env(model_dir):
     """Point the service at the small model; restore the environment afterwards."""
-    keys = {"TRUELIFT_MODEL": str(model_dir / "model.pkl"), "TRUELIFT_CACHE_DIR": str(model_dir),
-            "TRUELIFT_DB": ":memory:", "TRUELIFT_LOG_JSON": "0"}
+    keys = {
+        "TRUELIFT_MODEL": str(model_dir / "model.pkl"),
+        "TRUELIFT_CACHE_DIR": str(model_dir),
+        "TRUELIFT_DB": ":memory:",
+        "TRUELIFT_LOG_JSON": "0",
+    }
     old = {k: os.environ.get(k) for k in keys}
     os.environ.update(keys)
     from truelift import api
+
     api.reset_state()
     yield model_dir
     for k, v in old.items():
@@ -58,6 +66,7 @@ def client(service_env):
     from fastapi.testclient import TestClient
 
     from truelift.api import app
+
     with TestClient(app) as c:
         yield c
 
@@ -72,11 +81,11 @@ def session_headers() -> dict:
 def state(client):
     """The live service state (some tests rebuild it, so never cache it across tests)."""
     from truelift.api import get_state
+
     return get_state()
 
 
-DESIGN = {"discount": 60, "min_order": 0, "audience": "targeted", "offpeak_only": False, "reward": 0,
-          "zomato_share": 0}
+DESIGN = {"discount": 60, "min_order": 0, "audience": "targeted", "offpeak_only": False, "reward": 0, "zomato_share": 0}
 
 
 def approved_offer(client, headers, rid: int = 233, design: dict | None = None) -> dict:
