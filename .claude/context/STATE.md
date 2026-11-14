@@ -1,12 +1,15 @@
 # Current state
 
-Last updated: 13 Nov 2026 by Yash (Claude). Overwrite lines that become wrong; do not append history here
+Last updated: 14 Nov 2026 by Kshitish (Claude). Overwrite lines that become wrong; do not append history here
 (history goes in SESSIONS.md).
 
 ## Status
 - Round 2 submission is complete and live. Tag `round2-submission` marks the submitted version
   (before the UI redesign); `main` has the redesigned UI.
 - Branches: `main` (shared), `kshitish` (Kshitish's work), `gh-pages` (generated demo site, do not edit).
+- Branch `kshitish` (not merged yet): API under `/api/v1/` (old paths gone), model bundle with a `.sha256`
+  sidecar (rebuild with `python tasks.py pipeline` after switching to it), `uv` environment, `tasks.py`,
+  93 fast tests + golden numbers + contract fuzzing + Playwright, CI in `.github/workflows/`. Numbers unchanged.
 - Teammates ksawesome (Kshitish) and BhavayGoyal have write access (invites sent 12 Nov).
 - One-time history rewrite (13 Nov, run by Yash): drops the Claude co-author line from the old commits;
   files, authors and dates stay the same, hashes change. It is done when
@@ -52,5 +55,7 @@ Last updated: 13 Nov 2026 by Yash (Claude). Overwrite lines that become wrong; d
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle after the UI iteration and this shared-context setup (13 Nov).
-- Kshitish: branch `kshitish` (no commits yet on 13 Nov). Add your area here.
+- Kshitish: branch `kshitish`, implementing his audit plan. M1 done (service, tests, CI). Next: M2 science
+  fixes (all number changes land at one freeze), then M3 restyle of `truelift/static/` (Yash's last area:
+  tell Yash first), then M4 docs and pitch. Files: `truelift/*`, `scripts/*`, `tests/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

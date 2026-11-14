@@ -39,15 +39,18 @@ hold 84% of all the extra visits (Qini 0.34 vs 0.005 random). Details and limits
 ## Run it
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python scripts/build_restaurants.py   # needs data/raw/zomato_blr/zomato.csv (see below)
-.venv/bin/python scripts/run_pipeline.py        # ~6 min: simulate, train, evaluate -> reports/
-.venv/bin/uvicorn truelift.api:app --port 8000  # open http://localhost:8000
-.venv/bin/python -m pytest -q                   # tests
-node tests/ui_check.js reports/ui http://localhost:8000/  # browser check (npm i playwright-core)
-.venv/bin/python scripts/export_static.py 233 248 17 142 191 273 84 172 57 146 283 31  # static demo -> site/
-.venv/bin/python scripts/validate_uplift.py criteo  # check on real randomised data (Criteo)
+uv sync                                   # pinned environment (or: pip install -r requirements-dev.txt)
+uv run python scripts/build_restaurants.py   # needs data/raw/zomato_blr/zomato.csv (see below)
+python tasks.py pipeline                  # ~6 min: simulate, train, evaluate -> reports/ and the model
+python tasks.py serve                     # open http://localhost:8000 (API documentation at /docs)
+python tasks.py test                      # tests (about 20 s); --all adds the golden numbers and fuzzing
+python tasks.py reproduce                 # re-run the pipeline and compare with the committed reports/
+python tasks.py export                    # static demo -> site/ (the 12 demo restaurants)
+docker compose up --build                 # the same service in a container
+uv run python scripts/validate_uplift.py criteo  # check on real randomised data (Criteo)
 ```
+
+Browser tests (static site and live service): `cd tests/ui && npm ci && npx playwright install chromium && npx playwright test`.
 
 ## What is where
 

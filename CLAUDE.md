@@ -28,32 +28,48 @@ targets and measures each offer by the extra orders and profit it creates, insid
 |---|---|
 | `truelift/economics.py` | Money of one order (commission 25% + 18% GST on it, food cost 37%, who funds the discount) |
 | `truelift/sim.py` | Simulated Bengaluru market: 300 real 2019 listings, synthetic customers, exact counterfactuals |
-| `truelift/model.py` | Uplift model (T-learner, HistGradientBoosting) and Qini |
-| `truelift/engine.py` | Quote, design search (owner's depth fixed, 34 versions), serving, weekly measurement, calibration |
-| `truelift/api.py` | FastAPI service: Zomato-style hooks (quote, offers, approve/OTP, serve, run_week, decision) + demo endpoints |
+| `truelift/assignment.py` | The hashed (customer, offer) control group, shared by simulator, service and measurement |
+| `truelift/features.py` | Customer and restaurant features from the order history (aggregates computed once) |
+| `truelift/model.py` | Uplift model (T-learner, HistGradientBoosting), Qini, model bundle with SHA-256 check |
+| `truelift/training.py` | History -> model -> calibration (used by the pipeline and the tests) |
+| `truelift/engine.py` | Quote, design search (owner's depth fixed), decision table, serving, weekly measurement, verdicts |
+| `truelift/api.py` | FastAPI routes under `/api/v1` (hooks + demo), RFC 9457 errors, `/healthz` `/readyz` `/metrics` |
+| `truelift/schemas.py`, `settings.py` | Typed request/response models (the OpenAPI contract); configuration from `TRUELIFT_*` env vars |
+| `truelift/state.py`, `store.py`, `demo.py` | Sessions and offers; SQLite consent ledger (hash-chained) and exposure log; simulated weeks and payout |
+| `truelift/observability.py` | JSON request logs, Prometheus metrics, security headers |
 | `truelift/static/` | Partner-app UI (index.html, app.js, style.css): guided demo, How it works, Evidence, Money maths |
-| `scripts/` | build_restaurants, run_pipeline, export_static (static site), validate_uplift (Criteo real data) |
-| `tests/` | `test_truelift.py` (11 pytest tests), `ui_check.js` (browser check with playwright-core) |
+| `scripts/` | build_restaurants, run_pipeline, export_static (static site), validate_uplift (Criteo), compare_reports |
+| `tests/` | pytest by area (economics, simulator, engine, api, consistency), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests; `ui_check.js` (older browser check) |
+| `tasks.py`, `Makefile` | One entry point for setup, test, lint, pipeline, serve, export, reproduce, golden, docker |
+| `Dockerfile`, `compose.yaml` | The service in a container (non-root, health check) |
+| `.github/workflows/` | CI (lint, tests on Linux and Windows, golden + fuzz, browser tests, Docker, gated deploy), CodeQL |
 | `reports/` | Pipeline outputs. Every number in docs and UI must trace to a file here |
 | `data/processed/restaurants.csv` | The 300 restaurants (public listing fields only) |
 
-Not in git (each person builds locally): `.venv/`, `data/raw/`, `data/processed/model.pkl`, `site/`, `LOG.md` (Yash's private log).
+Not in git (each person builds locally): `.venv/`, `data/raw/`, `data/processed/model.pkl` (+ `.sha256`),
+`data/processed/serving_*.npz` (start-up cache), `site/`, `LOG.md` (Yash's private log).
 
 ## Commands
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python scripts/run_pipeline.py            # ~6 min: simulate, train, evaluate -> reports/, model.pkl
-.venv/bin/uvicorn truelift.api:app --port 8000      # full service + UI at http://localhost:8000
-.venv/bin/python -m pytest -q                       # 11 tests, must pass before any push
-node tests/ui_check.js reports/ui http://localhost:8000/   # browser check (npm i playwright-core; CHROME=path)
-.venv/bin/python scripts/export_static.py 233 248 17 142 191 273 84 172 57 146 283 31   # site/ (~12 restaurants)
-.venv/bin/python scripts/export_static.py --assets  # refresh only the UI files in site/
+uv sync                                  # pinned environment from uv.lock (or: pip install -r requirements-dev.txt)
+python tasks.py pipeline                 # ~6 min: simulate, train, evaluate -> reports/, model.pkl (+ .sha256)
+python tasks.py serve                    # full service + UI at http://localhost:8000 (API docs at /docs)
+python tasks.py test                     # fast tests (~20 s), must pass before any push; --all adds golden + fuzz
+python tasks.py lint                     # ruff check, ruff format --check, pyright
+python tasks.py reproduce                # re-run the pipeline in a temp folder, compare with reports/ (1e-6)
+python tasks.py export                   # site/ with the 12 demo restaurants (~9 min); ids as arguments for fewer
+python tasks.py golden                   # re-record tests/golden/ after an intended change in the numbers
+cd tests/ui && npm ci && npx playwright install chromium && npx playwright test   # browser tests, static + live
 ```
 
-Publish the demo: clone branch `gh-pages` into a temp folder, `rsync -a --delete --exclude .git site/ <temp>/`,
-commit, normal `git push`. Then run `ui_check.js` against the live URL.
+Publish the demo: CI publishes from branch `kshitish` after every check passes, for a commit whose
+message contains `[deploy]` (or a manual run with deploy=true); it refuses a site built without the
+committed model (DECISIONS D15). By hand: clone branch `gh-pages` into a temp folder,
+`rsync -a --delete --exclude .git site/ <temp>/`, commit, normal `git push`, then run the browser tests
+with `UI_PROJECTS=public TRUELIFT_PUBLIC_URL=<url>`.
 UI must keep `/static/app.js` and `/static/style.css` paths in index.html (export_static rewrites them).
+API routes live under `/api/v1/`; the page and the static export use the same paths.
 
 ## Team rules (every Claude follows these, every session)
 

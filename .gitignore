@@ -10,6 +10,7 @@ htmlcov/
 .DS_Store
 data/raw/
 data/processed/model.pkl
+data/processed/model.pkl.sha256
 data/processed/serving_*.npz
 data/processed/*.npz.tmp
 site/

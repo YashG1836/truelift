@@ -1,0 +1,227 @@
+# Every push and pull request: lint and types, tests on Linux and Windows, the slow scientific checks
+# (golden numbers, contract fuzzing), the static site and the live service in a real browser, and the
+# Docker image. Publishing the demo to gh-pages runs only after all of that passes, and only when asked:
+# a push to `kshitish` whose head commit message contains "[deploy]", or a manual run with deploy=true.
+name: CI
+
+on:
+  push:
+    branches: [kshitish, main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Publish the built demo to gh-pages after every check passes (kshitish only)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHONIOENCODING: utf-8
+  UV_FROZEN: "1"
+
+jobs:
+  lint:
+    name: Lint and types
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run pyright
+      - name: Known vulnerabilities in the pinned dependencies (report only)
+        continue-on-error: true
+        run: uvx pip-audit -r requirements.txt
+
+  test:
+    name: Tests (${{ matrix.os }}, Python ${{ matrix.python }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        python: ["3.11", "3.12"]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      - run: uv sync
+      - name: Fast tests with coverage (floor 85%)
+        run: uv run pytest -m "not slow" --cov=truelift --cov-report=term --cov-report=xml
+      - if: matrix.os == 'ubuntu-latest' && matrix.python == '3.12'
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage
+          path: coverage.xml
+
+  science:
+    name: Golden numbers and contract fuzzing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync
+      - name: Slow checks (quick pipeline equals the golden snapshot; Schemathesis over the OpenAPI contract)
+        run: uv run pytest -m slow
+
+  site:
+    name: Static site and live service in a browser
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v7
+        with:
+          python-version: "3.12"
+          enable-cache: true
+      - run: uv sync
+      - name: Model (the committed one; otherwise a quick one, good for testing only)
+        run: |
+          if [ -f data/processed/model.pkl ] && [ -f data/processed/model.pkl.sha256 ]; then
+            echo "Using the committed model."
+          else
+            uv run python scripts/run_pipeline.py --quick --out "$RUNNER_TEMP/reports"
+          fi
+      - name: Export the static demo
+        env:
+          TRUELIFT_EXPORT_WORKERS: "4"
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            uv run python tasks.py export 233 248      # two restaurants keep pull requests fast
+          else
+            uv run python tasks.py export              # the full demo set
+          fi
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: tests/ui/package-lock.json
+      - name: Browser tests (static site and live service)
+        working-directory: tests/ui
+        env:
+          UI_PROJECTS: static,live
+          TRUELIFT_PYTHON: uv run python
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-report
+          path: tests/ui/playwright-report
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        with:
+          name: site
+          path: site
+          include-hidden-files: true # .nojekyll
+          retention-days: 7
+      - uses: actions/upload-artifact@v7
+        with:
+          name: model
+          path: |
+            data/processed/model.pkl
+            data/processed/model.pkl.sha256
+          retention-days: 3
+
+  docker:
+    name: Docker image starts and is healthy
+    needs: site
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: model
+          path: data/processed
+      - run: docker build -t truelift .
+      - name: Run it and wait for /healthz and /readyz
+        run: |
+          docker run -d --name truelift -p 8000:8000 truelift
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8000/readyz; then break; fi
+            sleep 2
+          done
+          curl -fsS http://127.0.0.1:8000/healthz
+          curl -fsS http://127.0.0.1:8000/readyz | grep -q '"ready"'
+          curl -fsS http://127.0.0.1:8000/api/v1/restaurants > /dev/null
+          test "$(docker inspect --format '{{.Config.User}}' truelift)" = "truelift"
+      - if: always()
+        run: docker logs truelift || true
+
+  deploy:
+    name: Publish the demo to gh-pages
+    needs: [lint, test, science, site, docker]
+    if: >-
+      github.ref == 'refs/heads/kshitish' &&
+      ((github.event_name == 'push' && contains(github.event.head_commit.message, '[deploy]')) ||
+       (github.event_name == 'workflow_dispatch' && inputs.deploy))
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    concurrency:
+      group: deploy-gh-pages
+      cancel-in-progress: false
+    env:
+      PUBLIC_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v7
+      - name: Refuse a site built from a CI-trained quick model
+        run: git ls-files --error-unmatch data/processed/model.pkl data/processed/model.pkl.sha256
+      - uses: actions/download-artifact@v8
+        with:
+          name: site
+          path: site
+      - uses: actions/checkout@v7
+        with:
+          ref: gh-pages
+          path: pages
+      - name: Replace the published files and push (a normal push; history is kept)
+        run: |
+          rsync -a --delete --exclude .git site/ pages/
+          touch pages/.nojekyll
+          printf '{"commit": "%s", "branch": "%s", "built_at": "%s"}\n' \
+            "$GITHUB_SHA" "${GITHUB_REF_NAME}" "$(date -u +%Y-%m-%dT%H:%M:%SZ)" > pages/build.json
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then echo "Nothing changed."; exit 0; fi
+          git commit -q -m "Demo from ${GITHUB_REF_NAME}@${GITHUB_SHA::7}"
+          git push origin HEAD:gh-pages
+      - name: Wait until the public URL serves this build
+        run: |
+          for i in $(seq 1 60); do
+            if curl -fsS "${PUBLIC_URL}build.json" | grep -q "$GITHUB_SHA"; then echo "live"; exit 0; fi
+            sleep 10
+          done
+          echo "The public URL did not update within 10 minutes"; exit 1
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - name: Browser tests against the public URL
+        working-directory: tests/ui
+        env:
+          UI_PROJECTS: public
+          TRUELIFT_PUBLIC_URL: ${{ env.PUBLIC_URL }}
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+          npx playwright test
