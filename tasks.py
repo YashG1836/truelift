@@ -31,8 +31,43 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 UI = ROOT / "tests" / "ui"
-# The restaurants on the public demo (see CLAUDE.md); 233 Burger King opens first.
-DEMO_RESTAURANTS = ["233", "248", "17", "142", "191", "273", "84", "172", "57", "146", "283", "31"]
+# The restaurants on the public demo: the twelve the guided demo and the team know, plus one per
+# (locality, order-value band) cell so all six localities x five price bands are covered (32 in all).
+# 233 Burger King opens first.
+DEMO_RESTAURANTS = [
+    "233",
+    "248",
+    "17",
+    "142",
+    "191",
+    "273",
+    "84",
+    "172",
+    "57",
+    "146",
+    "283",
+    "31",
+    "139",
+    "119",
+    "123",
+    "50",
+    "68",
+    "82",
+    "165",
+    "189",
+    "150",
+    "151",
+    "218",
+    "206",
+    "207",
+    "14",
+    "1",
+    "15",
+    "287",
+    "289",
+    "260",
+    "266",
+]
 
 
 def py() -> list[str]:

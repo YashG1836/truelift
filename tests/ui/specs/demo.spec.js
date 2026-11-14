@@ -24,8 +24,16 @@ async function expectCleanText(page, label) {
   expect(m, `${label}: found "${m && m[0]}" near "${near}"`).toBeNull();
 }
 
+// The offline projects must not reach any other host: the demo has to work with no internet.
+test.beforeEach(async ({ page }, testInfo) => {
+  if (testInfo.project.name.startsWith("offline")) {
+    await page.route(/^https?:\/\/(?!127\.0\.0\.1[:/]|localhost[:/])/, (route) => route.abort());
+  }
+});
+
 async function openHome(page) {
-  await page.goto("./");
+  // from disk the page is index.html itself; over HTTP the folder serves it
+  await page.goto(test.info().project.name === "offline-file" ? "index.html" : "./");
   await page.waitForSelector(".hero-card", { timeout: 90_000 });
 }
 
@@ -62,7 +70,7 @@ test("guided demo runs from the first step to Finish", async ({ page }) => {
 test("every tab renders", async ({ page }) => {
   const errors = watch(page);
   await openHome(page);
-  for (const tab of ["how", "evidence", "money", "demo"]) {
+  for (const tab of ["how", "evidence", "money", "ops", "demo"]) {
     await page.click(`nav button[data-tab="${tab}"]`);
     await page.waitForTimeout(500);
     await expectCleanText(page, `tab ${tab}`);

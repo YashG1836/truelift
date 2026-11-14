@@ -110,11 +110,18 @@ the forecasts should not be trusted. Simulated data.</p>
 """
 
 
-def guardrails(records: pd.DataFrame, forecast_per_week: dict[int, float], weeks_per_table: int = 4) -> dict:
+def guardrails(
+    records: pd.DataFrame,
+    forecast_per_week: dict[int, float],
+    weeks_per_table: int = 4,
+    model_error_factor: float | None = None,
+) -> dict:
     """Checks on a period of weekly measurements (one record per offer and week so far).
 
     records: columns rest, weeks, est_profit, w_own, verdict, srm_ok (scripts/measurement_study).
     forecast_per_week: the weekly profit change each offer was approved on, by restaurant.
+    model_error_factor: the model's real error against its stated error, estimated across all
+    running offers' control groups this week (measurement_study fleet calibration).
     """
     last = int(records["weeks"].max())
     g = records[records["weeks"] == last]
@@ -150,16 +157,14 @@ def guardrails(records: pd.DataFrame, forecast_per_week: dict[int, float], weeks
             "bad versions through.",
         },
         {
-            "check": "weight_on_own_data",
-            "value": {
-                "p10": round(float(np.quantile(w, 0.1)), 3),
-                "median": round(float(np.median(w)), 3),
-                "p90": round(float(np.quantile(w, 0.9)), 3),
-            },
-            "threshold": f"median above 0.2 by week {last}",
-            "passed": float(np.median(w)) > 0.2,
-            "meaning": "How much each estimate rests on the offer's own control group rather than the model. "
-            "If it stays near zero, the weekly numbers are mostly the forecast repeated.",
+            "check": "model_error_against_stated",
+            "value": None if model_error_factor is None else round(model_error_factor, 3),
+            "threshold": "at most 1.5",
+            "passed": model_error_factor is None or model_error_factor <= 1.5,
+            "meaning": "All running offers' control groups together say how far the model really misses, "
+            "against the error it states. Above 1.5 the model is worse than it claims: widen the "
+            "ranges and retrain. Each restaurant's own number may lean on the model "
+            f"(median weight on its own control group {float(np.median(w)):.2f}) only while this holds.",
         },
         {
             "check": "decision_table_age",

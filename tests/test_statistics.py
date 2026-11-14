@@ -79,3 +79,16 @@ def test_losing_blanket_offers_are_flagged(quick_report):
     d = quick_report["main"]["detection"]["blanket_fixed_holdout"]["by_week"]["week_4"]
     assert d["losing_paused_or_warned"] >= 0.2
     assert d["profitable_paused"] <= 0.02
+
+
+@pytest.mark.slow
+def test_combined_estimate_beats_both_of_its_parts(quick_report):
+    """The weekly estimate combines the restaurant's control group with the model, with both noise
+    sizes recalibrated each week across the running offers (split halves; spread of own against
+    model estimates). After four weeks it must be more accurate than either part alone, and the
+    fleet calibration must be reported."""
+    m = quick_report["main"]["measurement"]["after_4_weeks"]
+    assert m["mae_combined"] <= min(m["mae_model_only"], m["mae_own_holdout_only"])
+    fleet = quick_report["main"]["fleet_calibration"]
+    assert [c["weeks"] for c in fleet] == [1, 2, 3, 4]
+    assert all(0.25 <= f <= 2.0 for c in fleet for f in c["sigma_factor"])

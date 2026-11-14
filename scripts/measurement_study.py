@@ -51,7 +51,7 @@ def measure_offers(
             continue
         g = g.sort_values("week", kind="stable").reset_index(drop=True)
         prepared[int(r)] = (g, d, *_prior_and_base(engine, g, d, float(aov[int(r)]), baskets[int(r)], placebo))
-    out = []
+    out, calib = [], []
     for upto in horizons:
         first = {}
         for r, (g, d, gain, uplift, base_p, base_o) in prepared.items():
@@ -67,11 +67,23 @@ def measure_offers(
             first[r] = (args, sigma, planned, meas)
         # pooled correction of the model's prior, learned from every other running offer's control
         # group: leave-one-out, by price band, shrunk towards the global value
-        shifts = _pooled_shifts(first, aov) if pooled and not placebo else {}
+        # (placebo offers go through the same procedure: it needs no truth, so the A/A test checks it)
+        shifts = _pooled_shifts(first, aov) if pooled else {}
+        # the fleet recalibrates the two noise sizes from the running offers themselves (no truth
+        # needed): split halves give the real noise of an offer's own estimate, and the spread of own
+        # against model estimates beyond that noise gives the model's real error
+        ratio, factor = _fleet_calibration(engine, first, shifts) if pooled else ((1.0, 1.0), (1.0, 1.0))
+        calib.append({"weeks": upto, "noise_ratio": ratio, "sigma_factor": factor})
+        saved = engine.noise_scale
+        if saved is not None:
+            engine.noise_scale = (saved[0] * ratio[0], saved[1] * ratio[1])
         for r, (args, sigma, planned, meas0) in first.items():
+            fleet_sigma = (sigma[0] * factor[0], sigma[1] * factor[1])
             meas = (
-                engine.measure(*args, sigma=sigma, planned_shown_visits=planned, prior_shift=shifts[r])
-                if r in shifts
+                engine.measure(
+                    *args, sigma=fleet_sigma, planned_shown_visits=planned, prior_shift=shifts.get(r, (0.0, 0.0))
+                )
+                if shifts or factor != (1.0, 1.0) or ratio != (1.0, 1.0)
                 else meas0
             )
             gg = args[0]
@@ -109,7 +121,52 @@ def measure_offers(
                     "high_unpooled": old["high"],
                 }
             )
-    return pd.DataFrame(out)
+        engine.noise_scale = saved
+    df = pd.DataFrame(out)
+    df.attrs["fleet_calibration"] = calib
+    return df
+
+
+def _fleet_calibration(engine: Engine, first: dict, shifts: dict) -> tuple[tuple[float, float], tuple[float, float]]:
+    """Noise ratio and model-error factor (profit, orders) from the running offers themselves.
+
+    Noise: each offer's customers split into two random halves (by customer id); the halves'
+    estimates differ only by noise, so (difference)^2 / 4, summed over offers, against the stated
+    variance of the full estimate, says how much the stated noise is off.
+    Model error: the spread of own estimates around the (pooled) model priors, minus that real
+    noise, against the stated model error (method of moments over the fleet).
+    Both need at least 30 offers; ratios are kept within [0.25, 4] (noise) and [0.25, 2] (error).
+    """
+    num, den = [0.0, 0.0], [0.0, 0.0]
+    dev, noise, stated = [[], []], [[], []], [[], []]
+    for r, (args, sigma, _planned, meas) in first.items():
+        gg = args[0]
+        cust = gg["cust"].to_numpy()
+        halves = []
+        for h in ((cust % 2) == 0, (cust % 2) == 1):
+            sub = gg[h]
+            if sub["shown"].sum() < 5 or sub["holdout"].sum() < 2:
+                break
+            halves.append(engine.measure(sub, args[1], args[2], args[3], args[4][h], args[5][h], sigma=sigma))
+        for i, key in enumerate(("profit", "orders")):
+            full = meas[key]
+            if full["own_se"] is None:
+                continue
+            shift = shifts.get(r, (0.0, 0.0))[i]
+            dev[i].append(full["own_per_visit"] - (full["model_per_visit"] + shift - full.get("prior_shift", 0.0)))
+            noise[i].append(full["own_se"] ** 2)
+            stated[i].append(sigma[i] ** 2)
+            if len(halves) == 2 and all(hv[key]["own_se"] is not None for hv in halves):
+                num[i] += (halves[0][key]["own_per_visit"] - halves[1][key]["own_per_visit"]) ** 2 / 4
+                den[i] += full["own_se"] ** 2
+    ratio, factor = [1.0, 1.0], [1.0, 1.0]
+    for i in (0, 1):
+        if len(dev[i]) >= 30 and den[i] > 0:
+            ratio[i] = float(np.clip(num[i] / den[i], 0.25, 4.0))
+            real_noise = ratio[i] * float(np.mean(noise[i]))
+            spread = float(np.mean(np.square(dev[i])))
+            factor[i] = float(np.clip(np.sqrt(max(spread - real_noise, 0.0) / float(np.mean(stated[i]))), 0.25, 2.0))
+    return (ratio[0], ratio[1]), (factor[0], factor[1])
 
 
 def _pooled_shifts(first: dict, aov: np.ndarray) -> dict:

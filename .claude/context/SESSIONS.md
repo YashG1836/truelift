@@ -13,6 +13,22 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (fleet calibration, M3 UI, docs)
+- Did: weekly measurement recalibrated across running offers (split halves for noise, own-vs-model spread for
+  model error; `measurement_study._fleet_calibration`, engine `fleet_sigma_factor`, placebo offers too). Zomato-style
+  restyle (measured on zomato.com; bundled Figtree OFL font; CSP self only), Evidence page with every new result,
+  Operations tab, Money page computed with commission-base and food-cost switches, guided demo Back/jump keys,
+  deep links, offline bundle (`scripts/build_offline.py`, file:// and local server), Playwright 5 projects,
+  `scripts/render_tables.py`, docs (architecture, model card, simulator datasheet), LICENSE (MIT), NOTICE, SECURITY.
+- Checked: 130 fast tests, lint, pyright; offline browser tests passed on the old export. Not checked: slow suite on
+  this exact commit, full browser suite, export of the 32 demo restaurants.
+- Numbers: NOT frozen yet. The final full run was still going (reports/ and model.pkl uncommitted); README and plan
+  tables are markers to render with `python scripts/render_tables.py` after it (README/plan edits left uncommitted).
+  Full-run findings so far: 4-week combined error Rs 2,054 vs model 2,212 vs own 4,160, coverage 90%; selection
+  advantage overstated 5.3x (79% of suggestions truly better); TrueLift commission now above blanket.
+- Next / open: finish the final run, render tables, update DEVLOG/plan/STATE numbers, slow tests, export 32
+  restaurants, build offline zip, deploy with [deploy]; renewal with evidence and languages not done.
+
 ## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (M2 Brand Pack, monitoring, experiments)
 - Did: Brand Pack reward gets its own control group among regulars (REWARD_SALT; sim, serving, exposure log,
   `measure_reward`, second weekly line in API/WhatsApp/page; TL-016). `truelift/monitoring.py`: drift report

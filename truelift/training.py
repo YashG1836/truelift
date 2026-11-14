@@ -191,6 +191,7 @@ class Trained:
             "topup_value": e.topup_value,
             "gain_scale": list(e.gain_scale),
             "noise_scale": list(e.noise_scale) if e.noise_scale else None,
+            "fleet_sigma_factor": list(e.fleet_sigma_factor),
             "config": asdict(self.market.cfg),
             "terms": asdict(self.market.terms),
             "demo_restaurant": int(demo_restaurant),

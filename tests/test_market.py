@@ -65,3 +65,33 @@ def test_frontier_and_control_set_are_reported(quick_report):
     mh = m["moving_history"]
     fixed, moving = mh["fixed_snapshot"], mh["features_follow_each_week"]
     assert moving["own_offer_profit_effect"] == pytest.approx(fixed["own_offer_profit_effect"], rel=0.05)
+
+
+def test_seed_summary_uses_the_policies_every_run_has():
+    """The detailed main run adds policies (measure-only) that the other seeds do not compute; the
+    summary must use only the common ones (the 14 Nov full run failed here)."""
+    import sys
+    from pathlib import Path
+
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts"))
+    from run_pipeline import SEED_METRICS, seed_summary
+
+    def run(offset: float, extra: bool) -> dict:
+        base = {m: 100.0 + offset for m in SEED_METRICS}
+        pols = {
+            "today_blanket": base,
+            "rule_new_customers": dict(base),
+            "truelift": {m: v + 10 for m, v in base.items()},
+        }
+        if extra:
+            pols["measure_only"] = dict(base)
+        return {"policies": pols}
+
+    out = seed_summary({7: run(0, True), 8: run(1, False), 9: run(-1, False)})
+    assert "measure_only" not in out["policies"] and set(out["policies"]) == {
+        "today_blanket",
+        "rule_new_customers",
+        "truelift",
+    }
+    d = out["differences"]["truelift_minus_today_blanket"]["offers_that_pay"]
+    assert d["mean"] == 10.0 and d["same_sign_every_seed"]

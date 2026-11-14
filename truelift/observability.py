@@ -81,11 +81,11 @@ SECURITY_HEADERS = {
     "X-Frame-Options": "DENY",
     "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
 }
-# The demo page only: inline style attributes are used, scripts come from the same origin.
-# Google Fonts is the page's only third-party resource (stylesheet + font files).
+# The demo page only: inline style attributes are used; scripts, styles and the bundled font
+# (static/fonts, SIL OFL) all come from the same origin, so the page loads nothing from elsewhere.
 PAGE_CSP = (
-    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; "
-    "img-src 'self' data:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self'; "
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; "
+    "img-src 'self' data:; font-src 'self'; connect-src 'self'; "
     "frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
 )
 

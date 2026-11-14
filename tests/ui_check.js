@@ -32,7 +32,7 @@ const bad = /NaN|undefined|\[object Object\]|Infinity/;
     if ((await p.textContent("#tourNext")) === "Finish") { await p.click("#tourNext"); break; }
     await p.click("#tourNext");
   }
-  for (const tab of ["how", "evidence", "money"]) {
+  for (const tab of ["how", "evidence", "money", "ops"]) {
     await p.click(`nav button[data-tab="${tab}"]`); await p.waitForTimeout(800);
     await p.screenshot({ path: `${out}/tab_${tab}.png`, fullPage: true }); await check("tab " + tab);
   }

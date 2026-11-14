@@ -623,8 +623,22 @@ def evaluate(
     weekly_el = {r: q["eligible_visits"] for r, q in enumerate(tl_quotes) if q is not None}
     meas = measure_offers(engine, rows, ds, aov, baskets, EVAL_WEEKS, weekly_el)
     results["measurement"] = coverage(meas)
+    fleet = meas.attrs.get("fleet_calibration", [])
+    results["fleet_calibration"] = [
+        {
+            "weeks": c["weeks"],
+            "noise_ratio": [round(x, 3) for x in c["noise_ratio"]],
+            "sigma_factor": [round(x, 3) for x in c["sigma_factor"]],
+        }
+        for c in fleet
+    ]
     # the weekly guardrails an on-call person would watch (A16 O4)
-    guard = guardrails(meas, {r: q["profit_change"] for r, q in enumerate(tl_quotes) if q is not None})
+    calib = meas.attrs.get("fleet_calibration", [])
+    guard = guardrails(
+        meas,
+        {r: q["profit_change"] for r, q in enumerate(tl_quotes) if q is not None},
+        model_error_factor=calib[-1]["sigma_factor"][0] if calib else None,
+    )
     (out_dir / "guardrails.json").write_text(json.dumps(guard, indent=1), encoding="utf-8")
     results["guardrails"] = {
         "passed": guard["passed"],
@@ -968,6 +982,12 @@ def evaluate(
         "shadow_offers": len(offers),
     }
     meas.to_csv(out_dir / "measurement_check.csv", index=False)
+    # the served engine measures with the fleet's latest recalibration (week 4), like production would
+    if fleet:
+        last = fleet[-1]
+        if engine.noise_scale is not None:
+            engine.noise_scale = tuple(s * r for s, r in zip(engine.noise_scale, last["noise_ratio"], strict=True))
+        engine.fleet_sigma_factor = tuple(last["sigma_factor"])
     save_bundle(
         trained.bundle(
             demo, ds, version=code_version(), data_sha256=file_sha256(ROOT / "data/processed/restaurants.csv")
@@ -1022,7 +1042,9 @@ def seed_summary(by_seed: dict) -> dict:
     """Mean and standard deviation of each headline row over seeds, and whether each policy
     difference is larger than twice its seed-to-seed standard deviation."""
     rows = {}
-    pols = next(iter(by_seed.values()))["policies"]
+    # policies every run has (the detailed main run adds some the others do not compute)
+    common = set.intersection(*(set(r["policies"]) for r in by_seed.values()))
+    pols = [k for k in next(iter(by_seed.values()))["policies"] if k in common]
     for pol in pols:
         rows[pol] = {}
         for m in SEED_METRICS:

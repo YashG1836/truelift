@@ -431,6 +431,9 @@ class Engine:
         # factor turning the model's expected visit variance into the real noise of an estimate
         # (profit, orders), learned by split halves in the shadow phase; None = sample variance
         self.noise_scale: tuple[float, float] | None = None
+        # model error of running offers against what the shadow phase predicted (profit, orders),
+        # re-estimated each week across the fleet of running offers (scripts/measurement_study.py)
+        self.fleet_sigma_factor: tuple[float, float] = (1.0, 1.0)
         self.model_version = ""
         self.fallbacks = 0  # serving decisions that fell back to the owner's rule (must stay 0)
 
@@ -499,7 +502,7 @@ class Engine:
         kind = "targeted" if d.audience == "targeted" else "all"
         band = int(np.searchsorted(self.visit_bands, visits_per_week)) if self.visit_bands else 0
         rel, orders = self.sigma_table.get((kind, band), (self.sigma_rel, self.sigma_orders))
-        return rel * aov, orders
+        return rel * aov * self.fleet_sigma_factor[0], orders * self.fleet_sigma_factor[1]
 
     def mix(self, baskets: np.ndarray, d: Design, aov: float) -> tuple:
         return offer_mix(baskets, d.discount, d.min_order, aov, self.topup_value)

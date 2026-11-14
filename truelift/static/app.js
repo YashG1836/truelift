@@ -30,6 +30,19 @@ const when = (iso) => { // "14 Nov, 4:05 pm" from an ISO 8601 time with its zone
 // On GitHub Pages there is no server: STATIC points to precomputed answers from the real service
 // (scripts/export_static.py), and offers are replayed week by week in the browser.
 const STATIC = window.TRUELIFT_STATIC || null;
+// Deep links: #tab=evidence, #r=233 (restaurant), #names=generic (no real restaurant names), or the
+// older #evidence. Read once at start; the tab part is kept up to date as the visitor moves.
+const LINK = (() => {
+  const h = (location.hash || "").replace(/^#/, "");
+  const q = new URLSearchParams(h.includes("=") ? h : h ? `tab=${h}` : "");
+  return { tab: q.get("tab"), r: q.get("r") === null ? null : +q.get("r"), generic: q.get("names") === "generic" };
+})();
+const TABS = ["demo", "how", "evidence", "money", "ops"];
+// The service's constants, read once at start (GET /api/v1/config; data/config.json when static)
+const CFG = { holdout_share: 0.1, consent_weeks: 4 };
+const oneIn = () => Math.round(1 / CFG.holdout_share);
+// With #names=generic the page shows "Burger place in Jayanagar" instead of the real listing name.
+const shownName = (r) => (LINK.generic ? `${String(r.cuisines || r.name).split(",")[0].trim()} place #${r.restaurant_id}` : r.name);
 const LOCAL = { offers: {}, next: 1 };
 // One file per design. With no discount, minimum order, audience and time make no difference, so
 // those designs share one key (the export writes exactly these keys; scripts/export_static.py key()).
@@ -37,7 +50,23 @@ const dkey = (d) => (d.discount > 0
   ? `${Math.round(d.discount)}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`
   : `0-0-all-0-${Math.round(d.reward)}`);
 
+// Offline bundle opened from disk (file://): browsers refuse fetch() there, so each data file is
+// also shipped as a script that registers its JSON in window.TL_FILES (scripts/build_offline.py).
+const FILE_MODE = location.protocol === "file:";
+function fileGet(file) {
+  const reg = (window.TL_FILES = window.TL_FILES || {});
+  if (file in reg) return Promise.resolve(reg[file]);
+  return new Promise((resolve, reject) => {
+    const tag = document.createElement("script");
+    tag.src = STATIC + file.replace(/\.json$/, ".js");
+    tag.onload = () => (file in reg ? resolve(reg[file]) : reject(new Error("This offline file is damaged; unzip the bundle again.")));
+    tag.onerror = () => reject(new Error("This combination isn't in the offline demo; the live version answers any design."));
+    document.head.appendChild(tag);
+  });
+}
+
 async function sget(file) {
+  if (FILE_MODE) return fileGet(file);
   // one retry: a freshly published site can briefly miss files while the CDN catches up
   for (let attempt = 0; attempt < 2; attempt++) {
     try {
@@ -103,7 +132,11 @@ async function staticApi(path, body) {
   }
   if (path === "/api/v1/calls") return sget("calls.json");
   if (path === "/api/v1/evidence") return sget("evidence.json");
-  if (path === "/api/v1/example") return sget("example.json");
+  if (path.startsWith("/api/v1/example")) { // the Money page's switches: six precomputed variants
+    const q = new URLSearchParams(path.split("?")[1] || "");
+    if (!q.toString()) return sget("example.json");
+    return sget(`example-${q.get("commission_on") || "post_discount"}-${Math.round(100 * +(q.get("food_cost_share") || 0.37))}.json`);
+  }
   if (path === "/api/v1/reset") { LOCAL.offers = {}; return { ok: true }; }
   throw new Error("Not available in the static demo: " + path);
 }
@@ -135,7 +168,7 @@ const S = { rid: null, card: null, design: null, quote: null, offer: null, otp: 
 const AUDIENCES = [["all", "Everyone"], ["new_to_restaurant", "New to you"], ["lapsed", "Stopped ordering"], ["targeted", "Let TrueLift choose"]];
 const STATUS = {
   awaiting_otp: ["Waiting for your OTP", ""], active: ["Running", "good"], paused: ["Paused: it was losing money", "bad"],
-  stopped: ["Stopped", ""], consent_expired: ["4-week approval over", "red"],
+  stopped: ["Stopped", ""], consent_expired: ["Approval period over", "red"],
 };
 
 // The create screen offers exactly the options the server lists on the restaurant's card, so the
@@ -154,36 +187,53 @@ async function boot() {
   $("#tourBtn").addEventListener("click", () => Tour.start());
   $("#tourNext").addEventListener("click", () => Tour.next());
   $("#tourPrev").addEventListener("click", () => Tour.restart());
-  $("#who").innerHTML = `<div class="empty">Loading who sees the discount…</div>`;
+  $("#tourBack").addEventListener("click", () => Tour.back());
+  $("#who").innerHTML = skeleton(4);
   $("#tourExit").addEventListener("click", () => Tour.stop());
   document.addEventListener("keydown", (e) => { // presenter keys while the guided demo is open
-    if (!$("#tour").classList.contains("on") || e.target.matches("input, select, textarea")) return;
-    if (e.key === "ArrowRight" || e.key === "Enter") { e.preventDefault(); if (!$("#tourNext").disabled) Tour.next(); }
-    if (e.key === "Escape") Tour.stop();
+    if (!$("#tour").classList.contains("on") || e.target.matches("input, select, textarea") || e.ctrlKey || e.metaKey || e.altKey) return;
+    const k = e.key;
+    if (k === "ArrowRight" || k === "Enter") { e.preventDefault(); Tour.next(); }
+    else if (k === "ArrowLeft") { e.preventDefault(); Tour.back(); }
+    else if (k === "Escape") Tour.stop();
+    else if (/^[1-9]$/.test(k)) Tour.jump(+k - 1);
+    else if (k === "r" || k === "R") Tour.restart();
+    else if (k === "f" || k === "F") Tour.jump(99);
+    else if (k === "h" || k === "H") { Tour.stop(); showTab("how"); }
   });
   const now = new Date();
   $("#clock").textContent = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
-  $("#screen").innerHTML = `<div class="empty">Loading the market…</div>`;
+  $("#screen").innerHTML = skeleton(5);
+  firstVisitHint();
+  try { Object.assign(CFG, await api("/api/v1/config")); } catch (e) { /* keep the defaults */ }
   const data = await api("/api/v1/restaurants");
   const sel = $("#rest");
   const list = data.restaurants.filter((r) => r.menu_visits_per_week > 0)
     .sort((a, b) => (b.restaurant_id === data.demo_restaurant) - (a.restaurant_id === data.demo_restaurant) || a.name.localeCompare(b.name));
-  sel.innerHTML = list.map((r) => `<option value="${r.restaurant_id}">${esc(r.name)} · ${esc(r.locality)}</option>`).join("");
-  sel.value = data.demo_restaurant;
-  sel.addEventListener("change", () => openRestaurant(+sel.value));
-  const tab = (location.hash || "").replace("#", "");
-  await openRestaurant(data.demo_restaurant);
-  if (["how", "evidence", "money"].includes(tab)) showTab(tab);
+  sel.innerHTML = list.map((r) => `<option value="${r.restaurant_id}">${esc(shownName(r))} · ${esc(r.locality)}</option>`).join("");
+  const first = list.some((r) => r.restaurant_id === LINK.r) ? LINK.r : data.demo_restaurant;
+  sel.value = first;
+  sel.addEventListener("change", () => openRestaurant(+sel.value).catch((e) => { $("#screen").innerHTML = errorCard(e, "this restaurant"); }));
+  await openRestaurant(first);
+  if (TABS.includes(LINK.tab) && LINK.tab !== "demo") showTab(LINK.tab);
+  window.addEventListener("hashchange", () => { // a link to #tab=evidence on the page itself
+    const h = location.hash.replace(/^#/, ""), q = new URLSearchParams(h.includes("=") ? h : `tab=${h}`);
+    const t = q.get("tab") || "demo";
+    if (TABS.includes(t) && !$(`#tab-${t}`).classList.contains("on")) showTab(t);
+  });
 }
 
 function showTab(t) {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
   $(".pick label").style.visibility = $(".pick select").style.visibility = t === "demo" ? "visible" : "hidden";
-  history.replaceState(null, "", t === "demo" ? location.pathname : "#" + t);
+  const keep = LINK.generic ? "names=generic" : "";
+  const hash = [t === "demo" ? "" : `tab=${t}`, keep].filter(Boolean).join("&");
+  history.replaceState(null, "", hash ? `#${hash}` : location.pathname + location.search);
   if (t === "how") renderHow();
   if (t === "evidence") renderEvidence();
   if (t === "money") renderMoney();
+  if (t === "ops") renderOps();
   window.scrollTo(0, 0);
 }
 
@@ -201,7 +251,7 @@ function go(screen) { S.screen = screen; render(); }
 
 function render() {
   const c = S.card;
-  $("#phead").innerHTML = `<div class="row1"><h1>${esc(c.name)}</h1><span class="online">Online</span></div>
+  $("#phead").innerHTML = `<div class="row1"><h1>${esc(shownName(c))}</h1><span class="online">Online</span></div>
     <div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · <span class="rating">${c.rating} ★</span> · <span class="tag sim">simulated data</span></div>`;
   const el = $("#screen");
   el.innerHTML = { home: homeHTML, create: createHTML, otp: otpHTML, live: liveHTML }[S.screen]();
@@ -227,7 +277,7 @@ function homeHTML() {
     <div class="card"><h4>How it works</h4>
       <div class="row"><span class="k">1. Forecast before you approve</span><span class="v">✓</span></div>
       <div class="row"><span class="k">2. Shown to customers it brings in</span><span class="v">✓</span></div>
-      <div class="row"><span class="k">3. 1 in 10 don't see it, so it's measured</span><span class="v">✓</span></div>
+      <div class="row"><span class="k">3. 1 in ${oneIn()} don't see it, so it's measured</span><span class="v">✓</span></div>
       <div class="row"><span class="k">4. Weekly result on WhatsApp</span><span class="v">✓</span></div></div>`;
 }
 
@@ -256,9 +306,16 @@ function rangeHTML(lo, hi, mid) {
     <div class="mid" style="left:${x(mid)}%"></div></div>`;
 }
 
+// Forecasts are shown to two significant figures: "about ₹1,200", not "₹1,234", which would claim
+// a precision the model does not have.
+const sig2 = (v) => { if (!v) return 0; const k = Math.pow(10, Math.max(0, Math.floor(Math.log10(Math.abs(v))) - 1)); return Math.round(v / k) * k; };
+const approx = (v, sign = true) => inr(sig2(v), sign);
+const chanceWords = (p) => (p === undefined || p === null ? "" : p >= 0.9 ? "very likely" : p >= 0.7 ? "likely" : p >= 0.5 ? "slightly more likely than not" : p >= 0.3 ? "unlikely" : "very unlikely");
+
 function forecastBlock(x) {
-  return `<div class="big ${cls(x.profit_change)}">${inr(x.profit_change, true)}<span class="note" style="font-weight:400"> extra profit a week</span></div>
-    <div class="note">likely between ${inr(x.profit_low, true)} and ${inr(x.profit_high, true)}</div>
+  const pp = x.prob_profit_positive;
+  return `<div class="big ${cls(x.profit_change)}">about ${approx(x.profit_change)}<span class="note" style="font-weight:400"> extra profit a week</span></div>
+    <div class="note">likely between ${approx(x.profit_low)} and ${approx(x.profit_high)}${pp === undefined ? "" : `; ${chanceWords(pp)} to make you money (${pct(pp)} chance)`}</div>
     ${rangeHTML(x.profit_low, x.profit_high, x.profit_change)}
     <div class="mini">
       <div><div class="v">${n0(x.redemptions)}</div><div class="l">orders would use it</div></div>
@@ -267,7 +324,8 @@ function forecastBlock(x) {
     </div>
     <div class="row"><span class="k">Discount you give per extra order</span><span class="v">${x.discount_per_extra_order ? inr(x.discount_per_extra_order) : "–"}</span></div>
     <div class="row"><span class="k">Average order with the offer</span><span class="v">${inr(x.order_value_with_offer)}</span></div>
-    <div class="row"><span class="k">Zomato's extra commission</span><span class="v">${inr(x.zomato_commission_change, true)}</span></div>`;
+    <div class="row"><span class="k">Zomato's extra commission</span><span class="v">${inr(x.zomato_commission_change, true)}</span></div>
+    ${x.detectable_effect_4w ? `<p class="note">In four weeks your own control group can confirm an effect of about ${approx(x.detectable_effect_4w, false)} a week or more; smaller effects rest more on the model learned from all restaurants.</p>` : ""}`;
 }
 
 function forecastHTML(q) {
@@ -278,7 +336,7 @@ function forecastHTML(q) {
   return `<div class="card ${o.profit_change < 0 ? "warn" : ""}" id="ownerCard"><div class="eyebrow">Forecast for your offer · one week</div>
       ${forecastBlock(o)}<p class="note">${why}</p></div>
     ${b ? `<div class="card better" id="betterCard"><div class="eyebrow">TrueLift suggests</div><h4>${esc(b.label)}</h4>
-      <p class="note"><b class="pos">${inr(b.profit_change - o.profit_change, true)} more a week</b> than your version, same discount size. Best of ${q.designs_compared} versions compared.</p>
+      <p class="note"><b class="pos">about ${approx(b.profit_change - o.profit_change)} more a week</b> than your version, same discount size. Best of ${q.designs_compared} versions compared, so the gain may be smaller in practice. TrueLift picks the version that earns <i>you</i> the most; it does not weigh Zomato's commission.</p>
       ${forecastBlock(b)}<button class="btn small" data-act="useBetter">Use this version</button></div>`
       : `<div class="card"><p class="note">This is already the best of the ${q.designs_compared} versions compared (who sees it, minimum order, time, Brand Pack). The discount size is yours to choose.</p></div>`}`;
 }
@@ -290,7 +348,7 @@ function otpHTML() {
     <div class="row"><span class="k">Expected extra orders a week</span><span class="v">${n0(q.extra_orders)}</span></div>
     <div class="row"><span class="k">Expected extra profit a week</span><span class="v ${cls(q.profit_change)}">${inr(q.profit_change, true)}</span></div>
     <div class="row"><span class="k">Likely range</span><span class="v">${inr(q.profit_low, true)} to ${inr(q.profit_high, true)}</span></div>
-    <div class="row"><span class="k">Runs for</span><span class="v">4 weeks, then needs a new OTP</span></div>
+    <div class="row"><span class="k">Runs for</span><span class="v">${CFG.consent_weeks} weeks, then needs a new OTP</span></div>
     <p class="note">${esc(off.who_pays)}</p>
     <p class="note">A weekly summary comes on WhatsApp. If the offer is clearly losing money it pauses by itself.</p></div>
   <div class="card" id="otpCard"><div class="note" style="text-align:center">Enter the OTP sent to your registered phone</div>
@@ -310,7 +368,7 @@ function liveHTML() {
     <div class="row" style="margin-top:6px"><span class="k">Approved by OTP</span><span class="v">${esc(when(off.consent?.approved_at))}</span></div>
     <div class="row"><span class="k">Forecast at approval</span><span class="v">${inr(off.quote.profit_change, true)} a week</span></div></div>
   ${canRun ? `<button class="btn" id="runBtn" data-act="runWeek" ${S.busy ? "disabled" : ""}>${S.busy ? "Simulating…" : off.weeks.length ? `Simulate week ${off.weeks.length + 1}` : "Simulate the first week"}</button>
-    <p class="note" style="text-align:center">${off.weeks.length ? `${4 - off.weeks.length} of 4 approved weeks left` : "Runs a week of simulated customers through the offer."}</p>` : ""}
+    <p class="note" style="text-align:center">${off.weeks.length ? `${CFG.consent_weeks - off.weeks.length} of ${CFG.consent_weeks} approved weeks left` : "Runs a week of simulated customers through the offer."}</p>` : ""}
   ${w ? weekHTML(w, off) : `<div class="card empty">No results yet. Simulate a week to see what the offer really adds.</div>`}
   ${off.weeks.length > 1 ? `<div class="card weeks-list"><h4>Week by week</h4>${off.weeks.map((x) => `<div class="wk"><span>Week ${x.week}</span>
      <span>${inr(x.measurement.profit.total, true)} so far</span><span class="tag ${verdictTag(x)}">${shortVerdict(x)}</span></div>`).join("")}</div>` : ""}
@@ -333,8 +391,11 @@ function brandPackHTML(bp) {
 function weekHTML(w, off) {
   const m = w.measurement, p = m.profit, o = m.orders, r = m.report_today, pay = w.payout;
   const n = w.week;
+  const e = w.experiment || {};
+  const rate = (o2, v) => (v ? (100 * o2 / v).toFixed(1) + "%" : "–");
+  const today = new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short" });
   return `<div class="card" id="weekCard"><div class="eyebrow">After ${n} week${n === 1 ? "" : "s"}</div>
-    <span class="tag ${verdictTag(w)}">${cap(m.verdict)}</span>
+    <span class="tag ${verdictTag(w)}">${cap(m.verdict)}</span> <span class="note">advice as of ${esc(today)}</span>
     <div class="mini" style="grid-template-columns:1fr 1fr">
       <div><div class="v">${n0(Math.max(o.total, 0))}</div><div class="l">extra orders the offer created so far (likely ${n0(Math.max(o.low, 0))}–${n0(Math.max(o.high, 0))})</div></div>
       <div><div class="v ${cls(p.total)}">${inr(p.total, true)}</div><div class="l">your extra profit so far</div></div>
@@ -344,7 +405,13 @@ function weekHTML(w, off) {
     ${w.brand_pack ? brandPackHTML(w.brand_pack) : ""}
     <div class="card" style="background:var(--bg);box-shadow:none;margin:10px 0 4px;padding:10px 12px">
       <div class="note"><b>Today's offer report would show ${n0(r.orders_with_offer)} orders</b> using the offer (${inr(r.sales_from_offer)} of sales). TrueLift's measurement says about ${n0(Math.max(o.total, 0))} of them would not have happened without it.</div></div>
-    <details><summary>WhatsApp summary sent to the owner</summary><div class="wa">${esc(w.whatsapp)}</div></details>
+    <details id="howKnow"><summary>Show me how you know</summary>
+      <p class="note">Customers who could get the offer were split at random: most saw it, about 1 in ${oneIn()} did not. The difference in how often each group ordered is what the offer added.</p>
+      <div class="row"><span class="k">Saw the offer</span><span class="v">${n0(e.shown_orders)} orders from ${n0(e.shown_visits)} visits (${rate(e.shown_orders, e.shown_visits)})</span></div>
+      <div class="row"><span class="k">Held out (control group)</span><span class="v">${n0(e.control_orders)} orders from ${n0(e.control_visits)} visits (${rate(e.control_orders, e.control_visits)})</span></div>
+      <p class="note">With few held-out visits the comparison is noisy, so the estimate also leans on the model learned from all restaurants (${pct(p.weight_on_own_data)} of the weight is on your own control group now).</p></details>
+    <details><summary>WhatsApp summary sent to the owner</summary><div class="wa">${esc(w.whatsapp)}</div>
+      <a class="btn small ghost" href="https://wa.me/?text=${encodeURIComponent(w.whatsapp)}" target="_blank" rel="noopener noreferrer">Send to my WhatsApp</a></details>
     <details><summary>Itemised payout for week ${n}</summary>
       <div class="row"><span class="k">Orders</span><span class="v">${pay.orders}</span></div>
       <div class="row"><span class="k">Food sales</span><span class="v">${inr(pay.gross_sales)}</span></div>
@@ -434,7 +501,7 @@ async function refreshInside() {
 
 function whoHTML(c, q) {
   const visits = q.menu_visits || 0, elig = q.eligible_visits || 0;
-  const shown = Math.round(elig * 0.9), ctrl = elig - shown, none = Math.max(visits - elig, 0);
+  const shown = Math.round(elig * (1 - CFG.holdout_share)), ctrl = elig - shown, none = Math.max(visits - elig, 0);
   const w = (v) => (visits ? Math.max((v / visits) * 100, v > 0 ? 3 : 0) : 0);
   const active = S.offer && S.offer.status === "active";
   return `<h2>${active ? "Who sees the discount" : "Who would see it"}</h2>
@@ -445,7 +512,7 @@ function whoHTML(c, q) {
       <div class="f-ctrl" style="width:${w(ctrl)}%"></div>
       <div class="f-no" style="width:${w(none)}%">${none > visits * 0.12 ? n0(none) : ""}</div></div>
     <div class="legend"><span><i style="background:var(--series)"></i>see the discount (${n0(shown)})</span>
-      <span><i style="background:#6f9fd8"></i>control group: 1 in 10 eligible, not shown (${n0(ctrl)})</span>
+      <span><i style="background:#6f9fd8"></i>control group: 1 in ${oneIn()} eligible, not shown (${n0(ctrl)})</span>
       <span><i style="background:var(--series-mute)"></i>not offered (${n0(none)})</span></div>
     <h3 style="margin-top:16px">Some of this restaurant's real visitors (synthetic people)</h3>
     <div class="cust-list">${c.customers.map(custHTML).join("")}</div>`;
@@ -511,32 +578,56 @@ function spot(sel) {
   el.scrollIntoView({ behavior: "smooth", block: inPhone ? "center" : "start" });
 }
 
+// The guided demo. Each step's action runs against the real (or static) service; Back and the
+// number keys rebuild the state by replaying the steps from the start (the simulation is
+// deterministic), and a token makes sure a step that finishes after Exit or Restart changes nothing.
 const Tour = {
-  i: -1, steps: [], ev: null,
-  async start() {
+  i: -1, steps: [], ev: null, token: 0, busy: false,
+  async start(to = 0) {
+    const token = ++this.token;
     showTab("demo");
+    $("#tour").classList.add("on");
+    this.setBusy(true);
     await openRestaurant(S.rid);
     try { this.ev = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { this.ev = null; }
+    if (token !== this.token) return;
     this.steps = tourSteps();
     this.i = -1;
-    $("#tour").classList.add("on");
-    await this.next();
+    while (this.i < to - 1) { if (!(await this.step(token, true))) return; }
+    await this.step(token, false);
   },
-  restart() { this.start(); },
-  stop() { $("#tour").classList.remove("on"); spot(null); this.i = -1; },
-  async next() {
-    if (this.i >= this.steps.length - 1) { this.stop(); return; }
+  async step(token, quiet) {
+    if (this.i >= this.steps.length - 1) { this.stop(); return false; }
     this.i += 1;
-    const s = this.steps[this.i], btn = $("#tourNext");
-    btn.disabled = true; btn.textContent = "…";
+    const s = this.steps[this.i];
+    this.setBusy(true);
     try { if (s.run) await s.run(); } catch (e) { console.warn(e); }
+    if (token !== this.token) return false;
+    if (!quiet) this.show(s);
+    return true;
+  },
+  show(s) {
     $("#tourDots").innerHTML = this.steps.map((_, k) => `<i class="${k <= this.i ? "on" : ""}"></i>`).join("");
     $("#tourStep").textContent = `Step ${this.i + 1} of ${this.steps.length}`;
     $("#tourTitle").textContent = s.title;
     $("#tourText").innerHTML = s.text();
-    btn.disabled = false; btn.textContent = this.i === this.steps.length - 1 ? "Finish" : "Next";
+    this.setBusy(false);
     spot(s.spot);
+    $("#tourNext").focus({ preventScroll: true });
   },
+  setBusy(b) {
+    this.busy = b;
+    const next = $("#tourNext");
+    next.disabled = b;
+    next.textContent = b ? "…" : this.i === this.steps.length - 1 ? "Finish" : "Next";
+    $("#tourPrev").disabled = b;
+    $("#tourBack").disabled = b || this.i <= 0;
+  },
+  next() { if (!this.busy) this.step(this.token, false); },
+  back() { if (!this.busy && this.i > 0) this.start(this.i - 1); },
+  jump(n) { if (!this.busy) this.start(Math.max(0, Math.min(n, (this.steps.length || 10) - 1))); },
+  restart() { if (!this.busy) this.start(0); },
+  stop() { this.token += 1; $("#tour").classList.remove("on"); spot(null); this.i = -1; this.setBusy(false); },
 };
 
 function tourSteps() {
@@ -544,7 +635,7 @@ function tourSteps() {
   const q = () => S.quote?.owner, b = () => S.quote?.better;
   const lastWeek = () => S.offer?.weeks[S.offer.weeks.length - 1];
   return [
-    { title: `Meet ${c.name}, ${c.locality}`, spot: "#phead",
+    { title: `Meet ${shownName(c)}, ${c.locality}`, spot: "#phead",
       text: () => `This is the restaurant's partner app. It gets about <b>${n0(c.orders_per_week)} orders a week</b> at <b>${inr(c.aov)}</b> on average, and ${pct(c.regulars_share_of_orders)} of orders come from ${c.regular_customers} regulars. (Real listing; simulated customers and money.)` },
     { title: "The owner sets up today's usual offer", spot: "#ownerCard",
       run: async () => { S.design = defaultDesign(c); S.quote = null; go("create"); await requestQuote(); await wait(150); },
@@ -554,10 +645,10 @@ function tourSteps() {
       text: () => b() ? `It compared ${S.quote.designs_compared} versions of the same discount and suggests <b>${esc(b().label)}</b>: about <b>${inr(b().profit_change, true)} a week</b>, ${inr(b().profit_change - q().profit_change, true)} more than the owner's version, because the discount goes to customers it actually brings in.` : "The owner's offer is already the best version here, so TrueLift keeps it." },
     { title: "Inside Zomato: who sees the discount", spot: "#who",
       run: async () => { if (S.quote?.better) { S.design = { ...S.quote.better.design }; S.quote = null; render(); await requestQuote(); } await wait(300); },
-      text: () => q() ? `With the better version, about <b>${n0(q().eligible_visits * 0.9)}</b> of ${n0(q().menu_visits)} weekly menu visits see the discount. Regulars who'd order anyway don't get it. <b>1 in 10</b> eligible customers are held back as a control group: comparing them with the rest is how TrueLift measures what the offer really added.` : "" },
+      text: () => q() ? `With the better version, about <b>${n0(q().eligible_visits * (1 - CFG.holdout_share))}</b> of ${n0(q().menu_visits)} weekly menu visits see the discount. Regulars who'd order anyway don't get it. <b>1 in ${oneIn()}</b> eligible customers are held back as a control group: comparing them with the rest is how TrueLift measures what the offer really added.` : "" },
     { title: "The owner approves with an OTP", spot: "#otpCard",
       run: async () => { await ACT.toOtp(); await wait(100); },
-      text: () => `Since August 2026, restaurant-funded offers start only after the owner's OTP. TrueLift stores exactly what the owner was shown (the forecast, who pays, and the 4-week approval period), so every deduction can be checked later.` },
+      text: () => `Since August 2026, restaurant-funded offers start only after the owner's OTP. TrueLift stores exactly what the owner was shown (the forecast, who pays, and the ${CFG.consent_weeks}-week approval period), so every deduction can be checked later.` },
     { title: "The offer is live", spot: "#runBtn",
       run: async () => { await ACT.approve(S.otp); await wait(100); },
       text: () => `Approved. Now we run simulated weeks of customers through the offer, the way real orders would arrive.` },
@@ -573,7 +664,8 @@ function tourSteps() {
       run: async () => { showTab("evidence"); await wait(400); },
       text: () => { const P = Tour.ev?.main?.policies; if (!P) return "See the Evidence tab."; const t = P.truelift, bl = P.today_blanket;
         const v = Tour.ev.real_data_criteo?.results?.find((r) => r.label === "visit");
-        return `In the simulated market, <b>${t.offers_that_pay} of 300</b> TrueLift offers pay for themselves, against ${bl.offers_that_pay} blanket ones. Restaurants make ${lakh(t.restaurant_profit_change)} vs ${lakh(bl.restaurant_profit_change)} extra profit a week with 40% less discount, and Zomato's commission stays about the same.${v ? ` On real randomised data (Criteo), the model's top 30% picks hold <b>${pct(v.top30_share_of_total_lift)}</b> of all the extra visits.` : ""}`; } },
+        const less = 1 - t.customer_savings / bl.customer_savings, dz = t.zomato_commission_change - bl.zomato_commission_change;
+        return `In the simulated market, <b>${t.offers_that_pay} of ${t.restaurants_with_offer}</b> TrueLift offers pay for themselves, against ${bl.offers_that_pay} of ${bl.restaurants_with_offer} blanket ones. Restaurants make ${lakh(t.restaurant_profit_change)} instead of ${lakh(bl.restaurant_profit_change)} extra profit a week with ${pct(less)} less discount, and Zomato's commission changes by ${inr(dz, true)} a week.${v ? ` On real randomised data (Criteo), the model's top 30% picks hold <b>${pct(v.top30_share_of_total_lift)}</b> of all the extra visits.` : ""}`; } },
     { title: "Try it yourself", spot: null,
       run: async () => { showTab("demo"); go("home"); },
       text: () => `Pick any restaurant at the top, create any offer, and run the weeks. <b>How it works</b> explains every step in plain words; <b>Money maths</b> shows every rupee.` },
@@ -587,6 +679,9 @@ async function renderHow() {
   let E = null;
   try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { /* page still works without numbers */ }
   const P = E?.main?.policies, v = E?.real_data_criteo?.results?.find((r) => r.label === "visit");
+  const L = E?.latency, F = E?.main?.fairness;
+  const serveMs = L ? `${L.serve_sequential.server_side.p50_ms} ms` : "about a millisecond";
+  const quoteMs = L ? `${Math.round(L.quote_sequential.p50_ms)} ms` : "a fraction of a second";
   const waffle = Array.from({ length: 100 }, (_, k) => `<i class="${k >= 70 ? "x" : ""}"></i>`).join("");
   el.innerHTML = `<h1>How TrueLift works</h1>
   <p>Restaurant discounts on Zomato are judged by the orders that <b>use</b> them, not the orders they <b>create</b>. Since August 2026 a restaurant-funded offer starts only after the owner approves it with an OTP, so an owner who can't see whether an offer pays will stop approving it. TrueLift shows them, before and after.</p>
@@ -597,22 +692,22 @@ async function renderHow() {
       <p class="p">₹60 off pays for itself only if at least <b>32 of every 100</b> orders using it are truly extra. Nobody measures that today. TrueLift does.</p></div></div>
   <h2>Four steps inside Zomato's existing offer flow</h2>
   <div class="steps4">
-    <div class="step4"><div class="n">1</div><h4>Before approval</h4><p>Forecast the extra orders and profit, with a range, and suggest a better version of the same discount.</p><div class="where">Offer screen and OTP · <code>POST /api/quote</code></div></div>
-    <div class="step4"><div class="n">2</div><h4>While it runs</h4><p>Show the discount only to customers it brings in. A random 1 in 10 eligible customers don't see it: the control group.</p><div class="where">Menu page · <code>GET /api/serve</code> · 1.5 ms</div></div>
+    <div class="step4"><div class="n">1</div><h4>Before approval</h4><p>Forecast the extra orders and profit, with a range, and suggest a better version of the same discount.</p><div class="where">Offer screen and OTP · <code>POST /api/v1/quote</code></div></div>
+    <div class="step4"><div class="n">2</div><h4>While it runs</h4><p>Show the discount only to customers it brings in. A random 1 in ${oneIn()} eligible customers don't see it: the control group.</p><div class="where">Menu page · <code>GET /api/v1/serve</code> · ${serveMs}</div></div>
     <div class="step4"><div class="n">3</div><h4>Who pays</h4><p>The restaurant pays for its own offer, itemised in the payout. Zomato co-funds only where its own measurement shows a gain.</p><div class="where">Payout statement</div></div>
-    <div class="step4"><div class="n">4</div><h4>Every week</h4><p>Measured extra orders and profit, keep / change / stop on WhatsApp. Clear losers pause; renewal needs a new OTP.</p><div class="where">Partner app and WhatsApp · <code>GET /api/offers/{id}</code></div></div>
+    <div class="step4"><div class="n">4</div><h4>Every week</h4><p>Measured extra orders and profit, keep / change / stop on WhatsApp. Clear losers pause; renewal needs a new OTP.</p><div class="where">Partner app and WhatsApp · <code>GET /api/v1/offers/{id}</code></div></div>
   </div>
   <h2>How it knows</h2>
   <div class="steps4" style="grid-template-columns:repeat(3,1fr)">
     <div class="step4"><h4>A control group</h4><p>Customers who were eligible but randomly not shown the offer show what would have happened without it. The difference is what the offer added.</p></div>
     <div class="step4"><h4>A model learned from all restaurants</h4><p>For each visitor it predicts the chance of ordering with and without the discount. That decides who sees it and gives the forecast.</p></div>
-    <div class="step4"><h4>Both, combined</h4><p>A small restaurant's control group is too small alone at first, so the estimate starts from the model and shifts to the restaurant's own data as it grows, always with a range.</p></div>
+    <div class="step4"><h4>Both, combined</h4><p>A small restaurant's control group is too small to rely on alone, so the estimate weights the model and the restaurant's own control group by how noisy each is, re-checked every week across all running offers, and always shows a range.</p></div>
   </div>
   <h2>Built for Zomato's scale</h2>
   <div class="scale">
     <div class="tile"><div class="v">3.34 lakh</div><div class="l">active restaurant partners it would serve (Q2 FY27)</div></div>
-    <div class="tile"><div class="v">1.5 ms</div><div class="l">per serving decision; falls back to the owner's own rule if anything fails</div></div>
-    <div class="tile"><div class="v">≈35 ms</div><div class="l">per forecast, comparing 34 versions of an offer</div></div>
+    <div class="tile"><div class="v">${serveMs}</div><div class="l">median time the service takes per serving decision${L ? " (measured)" : ""}; falls back to the owner's own rule if anything fails</div></div>
+    <div class="tile"><div class="v">${quoteMs}</div><div class="l">median time per forecast over HTTP, comparing about 34 versions of an offer</div></div>
     <div class="tile"><div class="v">Weekly</div><div class="l">batch measurement per offer; no change to how customers order</div></div>
   </div>
   ${P ? `<h2>Does it work?</h2><p>In a simulated market of 300 real Bengaluru listings, <b>${P.truelift.offers_that_pay} of 300</b> TrueLift offers pay for themselves against <b>${P.today_blanket.offers_that_pay}</b> blanket offers, and restaurants make ${lakh(P.truelift.restaurant_profit_change)} vs ${lakh(P.today_blanket.restaurant_profit_change)} extra profit a week.${v ? ` On real randomised data (Criteo's ad holdouts), the model's top 30% picks hold ${pct(v.top30_share_of_total_lift)} of all the extra visits.` : ""} Details on the Evidence tab.</p>` : ""}
@@ -620,7 +715,7 @@ async function renderHow() {
   <div class="gloss">
     <div><b>Extra orders</b>Orders that happened only because of the offer.</div>
     <div><b>Would come anyway</b>Orders that used the discount but would have been placed at full price too.</div>
-    <div><b>Control group</b>A random 1 in 10 eligible customers who don't see the offer; they pay normal prices.</div>
+    <div><b>Control group</b>A random 1 in ${oneIn()} eligible customers who don't see the offer; they pay normal prices.</div>
     <div><b>Likely range</b>An 80% range: the true value should fall inside about 4 times in 5.</div>
     <div><b>Uplift</b>How much the offer raises one customer's chance of ordering.</div>
     <div><b>Brand Pack</b>Zomato's existing reward for a restaurant's repeat customers.</div>
@@ -630,72 +725,269 @@ async function renderHow() {
   <h2>Questions people ask</h2>
   <div class="faq">
     <details><summary>Isn't this just discount targeting? Swiggy and Zomato already have segments.</summary><p>Segments decide who <i>can</i> see an offer. Nobody measures what it <i>caused</i>. In our test the simple "new customers only" segment is a strong baseline, and TrueLift is compared against it, not just against blanket offers.</p></details>
-    <details><summary>Doesn't hiding the offer from 1 in 10 customers lose sales?</summary><p>Held-out customers pay normal menu prices; they are customers who would otherwise have received a discount. The holdout costs no discount money and is the only way to know what the offer added.</p></details>
+    <details><summary>Doesn't hiding the offer from 1 in ${oneIn()} customers lose sales?</summary><p>Held-out customers pay normal menu prices; they are customers who would otherwise have received a discount. The holdout costs no discount money, but it does give up the extra orders the offer would have brought from those customers${E?.main?.zomato_ledger ? ` (about ${inr(E.main.zomato_ledger.control_group_cost_truelift.profit_forgone_a_week)} of restaurant profit a week across the 300 simulated restaurants)` : ""}. That is the price of knowing what each offer adds; without it no one can tell a paying offer from a losing one.</p></details>
     <details><summary>Can a small restaurant really be measured?</summary><p>Not from its own control group in one week. That's why the estimate starts from the model learned from all restaurants and moves to the restaurant's own data over time, always shown as a range.</p></details>
-    <details><summary>Is it fair to give different customers different discounts?</summary><p>Only order history is used: orders here, orders on Zomato, weeks since the last order. Never device, payment method or anything that proxies wealth. Nobody pays more than the menu price.</p></details>
+    <details><summary>Is it fair to give different customers different discounts?</summary><p>Only order history is used: orders here, orders on Zomato, weeks since the last order. Never location, device, payment method or anything that proxies wealth; the tests check the model's inputs against an allow-list. Nobody pays more than the menu price. Targeting does offer a restaurant's regulars fewer discounts, because they order anyway${F?.truelift ? ` (${(F.truelift.loyalty_gap * 100).toFixed(0)} points less often than other customers in the simulation)` : ""}; adding the Brand Pack reward for regulars closes that gap${F?.mitigations?.brand_pack_for_regulars ? ` at ${signed(F.mitigations.brand_pack_for_regulars.own_offer_profit_change_vs_truelift)} a week to restaurants' own-offer profit` : ""}. The Evidence tab has the numbers.</p></details>
     <details><summary>Why trust a simulation?</summary><p>Because it knows the truth, it is the only way to check the whole method end to end. The results hold when customers are 30% more or less price-sensitive, and the targeting was also checked on real randomised data. The next step is a silent test on Zomato's own offer logs.</p></details>
   </div>`;
   el.dataset.done = "1";
 }
 
+// Grey placeholder blocks while data loads, so the layout does not jump.
+const skeleton = (n) => `<div aria-busy="true" aria-label="Loading">${Array.from({ length: n }, (_, i) => `<div class="skel" style="width:${[92, 70, 84, 60, 76][i % 5]}%"></div>`).join("")}</div>`;
+
+// First visit: point at the guided demo once, then never again (remembered in this browser only).
+function firstVisitHint() {
+  let seen = true;
+  try { seen = !!localStorage.getItem("truelift-seen"); localStorage.setItem("truelift-seen", "1"); } catch (e) { /* private mode */ }
+  if (seen || $("#hint")) return;
+  const tip = document.createElement("div");
+  tip.id = "hint";
+  tip.className = "hint";
+  tip.setAttribute("role", "status");
+  tip.innerHTML = `New here? <b>▶ Guided demo</b> walks through one restaurant in 10 steps. <button class="hint-x" aria-label="Close">×</button>`;
+  $(".pick").appendChild(tip);
+  tip.querySelector("button").addEventListener("click", () => tip.remove());
+  $("#tourBtn").addEventListener("click", () => tip.remove(), { once: true });
+}
+
+// A failed load shows what went wrong and a way to try again, never a blank or broken page.
+function errorCard(e, what = "this page") {
+  return `<div class="card warn" role="alert"><h4>Couldn't load ${esc(what)}</h4><p class="note">${esc(e?.message || e)}</p>
+    <button class="btn small" data-reload="1">Try again</button></div>`;
+}
+document.addEventListener("click", (ev) => { if (ev.target.closest?.("[data-reload]")) location.reload(); });
+
 // ---------------- evidence ----------------
-const POLICY_NAMES = { no_offer: "No offer", today_blanket: "Today: same discount for everyone", rule_new_customers: "Rule: new customers only", truelift: "TrueLift", zomato_cofund_naive: "Unmeasured Zomato co-funding" };
+const POLICY_NAMES = { no_offer: "No offer", today_blanket: "Today: same discount for everyone", rule_new_customers: "Rule: new customers only",
+  truelift: "TrueLift", measure_only: "Today's offers, measured (losers stop at renewal)", zomato_cofund_naive: "Unmeasured Zomato co-funding" };
+const signed = (v) => inr(v, true);
+const num = (v, d = 0) => (v === null || v === undefined || Number.isNaN(v) ? "–" : Number(v).toLocaleString("en-IN", { maximumFractionDigits: d, minimumFractionDigits: d }));
+const tableHTML = (head, rows, cap = "") => `<div class="tablewrap"><table class="t">${cap ? `<caption>${cap}</caption>` : ""}<tr>${head.map((h) => `<th>${h}</th>`).join("")}</tr>${rows.join("")}</table></div>`;
+const tr = (cells, hl = false) => `<tr class="${hl ? "hl" : ""}">${cells.map((c) => `<td>${c}</td>`).join("")}</tr>`;
 
 async function renderEvidence() {
   const el = $("#evidence");
   if (el.dataset.done) return;
   let E;
-  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { el.innerHTML = `<p class="neg">${esc(e.message)}</p>`; return; }
+  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { el.innerHTML = errorCard(e, "the evidence"); return; }
   const M = E.main, P = M.policies, A = M.measurement;
-  const keys = ["today_blanket", "rule_new_customers", "truelift", "zomato_cofund_naive"], main3 = keys.slice(0, 3);
-  const row = (label, f, fmt = (v) => v, hl = false) => `<tr class="${hl ? "hl" : ""}"><td>${label}</td>${keys.map((k) => `<td>${fmt(f(P[k]))}</td>`).join("")}</tr>`;
-  const tl = P.truelift, bl = P.today_blanket;
+  const keys = ["today_blanket", "rule_new_customers", "truelift", "measure_only", "zomato_cofund_naive"].filter((k) => P[k]);
+  const main3 = ["today_blanket", "rule_new_customers", "truelift"];
+  const row = (label, f, fmt = (v) => v, hl = false) => tr([label, ...keys.map((k) => fmt(f(P[k])))], hl);
+  const tl = P.truelift, bl = P.today_blanket, a2 = A.after_2_weeks || {}, a4 = A.after_4_weeks || {};
+  const keepRight = a2.verdicts && a2.verdicts.keep ? a2.said_keep_and_truly_positive / a2.verdicts.keep : null;
   el.innerHTML = `<h1>Does it work?</h1>
-  <p>A simulated market of 300 real Bengaluru restaurants (Zomato listings) and 30,000 synthetic customers whose true response to every discount is known. The models only see order history, like Zomato would. Each policy runs for 4 weeks on identical customer visits. All rupee figures are per week across the 300 restaurants.</p>
+  <p>A simulated market of 300 real Bengaluru restaurants (public 2019 Zomato listings) and 30,000 synthetic customers whose true response to every discount is known. The models see only order history, as Zomato would. Each policy runs for four weeks on the same customer visits. Rupee figures are per week across the 300 restaurants. All outcomes are simulated.</p>
   <div class="tiles" id="evTiles">
     <div class="tile"><div class="v">${bl.offers_that_lose} of ${bl.restaurants_with_offer}</div><div class="l">blanket offers lose the restaurant money</div></div>
     <div class="tile"><div class="v">${tl.offers_that_pay} of ${tl.restaurants_with_offer}</div><div class="l">TrueLift offers pay for themselves</div></div>
-    <div class="tile"><div class="v">${lakh(bl.customer_savings)} → ${lakh(tl.customer_savings)}</div><div class="l">discount given a week, with ${lakh(tl.restaurant_profit_change)} vs ${lakh(bl.restaurant_profit_change)} extra restaurant profit</div></div>
-    <div class="tile"><div class="v">${pct(A.after_2_weeks.said_keep_and_truly_positive / A.after_2_weeks.said_keep)}</div><div class="l">of TrueLift's "keep" verdicts were right after 2 weeks</div></div>
+    <div class="tile"><div class="v">${lakh(bl.customer_savings)} → ${lakh(tl.customer_savings)}</div><div class="l">discount given a week, with ${lakh(tl.restaurant_profit_change)} instead of ${lakh(bl.restaurant_profit_change)} extra restaurant profit</div></div>
+    <div class="tile"><div class="v">${keepRight === null ? "–" : pct(keepRight)}</div><div class="l">of TrueLift's "keep" verdicts were right after two weeks</div></div>
   </div>
   <div class="charts">
-    <div class="chart"><h3>Profit the offers create for their own restaurants</h3><div class="s">₹ per week, all 300 restaurants; each offer vs not running it</div>${hbar(main3.map((k) => [POLICY_NAMES[k], P[k].own_offer_profit_effect, k === "truelift"]), inr)}</div>
-    <div class="chart"><h3>Zomato's extra commission</h3><div class="s">₹ per week vs a market with no offers (gross commission, before delivery costs)</div>${hbar(main3.map((k) => [POLICY_NAMES[k], P[k].zomato_commission_change, k === "truelift"]), inr)}</div>
+    <div class="chart"><h3>Profit the offers create for their own restaurants</h3><div class="s">₹ a week, all 300 restaurants; each offer against not running it</div>${hbar(main3.map((k) => [POLICY_NAMES[k], P[k].own_offer_profit_effect, k === "truelift"]), inr)}</div>
+    <div class="chart"><h3>Zomato's extra commission</h3><div class="s">₹ a week against a market with no offers (gross commission, before delivery costs)</div>${hbar(main3.map((k) => [POLICY_NAMES[k], P[k].zomato_commission_change, k === "truelift"]), inr)}</div>
   </div>
   <h2>Policy comparison (true expected values)</h2>
-  <div class="tablewrap"><table class="t"><tr><th></th>${keys.map((k) => `<th>${POLICY_NAMES[k]}</th>`).join("")}</tr>
-    ${row("Offers that pay for themselves", (p) => p.offers_that_pay, (v) => v, true)}
-    ${row("Offers that lose money", (p) => p.offers_that_lose)}
-    ${row("Profit created by own offers (₹/week)", (p) => p.own_offer_profit_effect, (v) => inr(v, true), true)}
-    ${row("Orders using a discount", (p) => p.redemptions, n0)}
-    ${row("Share that would have come anyway", (p) => p.anyway_share_of_redemptions, pct)}
-    ${row("Extra orders vs no offers", (p) => p.extra_orders_vs_no_offer, n0)}
-    ${row("Discount given to customers (₹/week)", (p) => p.customer_savings, inr)}
-    ${row("Discount per extra order", (p) => p.savings_per_extra_order, inr)}
-    ${row("Average order value", (p) => p.order_value, inr)}
-    ${row("Restaurant profit vs no offers (₹/week)", (p) => p.restaurant_profit_change, (v) => inr(v, true), true)}
-    ${row("Zomato commission vs no offers", (p) => p.zomato_commission_change, (v) => inr(v, true))}
-    ${row("Zomato contribution vs no offers (8.5% of bill − Zomato-paid discount)", (p) => p.zomato_contribution_change, (v) => inr(v, true))}
-    ${row("Discount paid by Zomato", (p) => p.zomato_funded_discount, inr)}
-    ${row("Loyal customers' visits going to Swiggy", (p) => p.swiggy_share_loyal, (v) => (v * 100).toFixed(1) + "%")}
-  </table></div>
-  <p class="note">No-offer world for reference: ${n0(P.no_offer.orders_per_week)} orders a week; loyal customers' Swiggy share ${(P.no_offer.swiggy_share_loyal * 100).toFixed(1)}%. TrueLift's figures include the cost of its 10% control group. The last column is a warning, not a feature: when Zomato pays half the discount for customers new to Zomato without measuring its own gain, it spends ${lakh(P.zomato_cofund_naive.zomato_funded_discount)} a week for about ${n0(P.zomato_cofund_naive.extra_orders_vs_no_offer - tl.extra_orders_vs_no_offer)} more orders.</p>
-  ${realDataHTML(E.real_data_criteo)}
+  ${tableHTML(["", ...keys.map((k) => POLICY_NAMES[k])], [
+    row("Offers that pay for themselves", (p) => p.offers_that_pay, (v) => v, true),
+    row("Offers that lose money", (p) => p.offers_that_lose),
+    row("Profit created by own offers (₹ a week)", (p) => p.own_offer_profit_effect, signed, true),
+    row("Orders using a discount", (p) => p.redemptions, n0),
+    row("Share that would have come anyway", (p) => p.anyway_share_of_redemptions, pct),
+    row("Extra orders against no offers", (p) => p.extra_orders_vs_no_offer, n0),
+    row("Extra orders new to the platform (not taken from other Zomato restaurants)", (p) => p.platform_extra_orders, n0),
+    row("Discount given to customers (₹ a week)", (p) => p.customer_savings, inr),
+    row("Discount per extra order", (p) => p.savings_per_extra_order, inr),
+    row("Restaurant profit against no offers (₹ a week)", (p) => p.restaurant_profit_change, signed, true),
+    row("Restaurants better off / worse off than with no offers", (p) => `${p.restaurants_better_off_vs_no_offers} / ${p.restaurants_worse_off_vs_no_offers}`),
+    row("Zomato commission against no offers", (p) => p.zomato_commission_change, signed),
+    row("Zomato contribution against no offers (8.5% of bill minus Zomato-paid discount)", (p) => p.zomato_contribution_change, signed),
+    row("Discount paid by Zomato", (p) => p.zomato_funded_discount, inr),
+    row("Loyal customers' visits going to Swiggy", (p) => p.swiggy_share_loyal, (v) => (v * 100).toFixed(1) + "%"),
+  ])}
+  <p class="note">No-offer world for reference: ${n0(P.no_offer.orders_per_week)} orders a week; loyal customers' Swiggy share ${(P.no_offer.swiggy_share_loyal * 100).toFixed(1)}%. TrueLift's figures include the cost of its control group.</p>
+  ${consentHTML(M)}
+  ${ledgerHTML(M, P)}
+  ${forecastHTML2(M)}
   <h2>Are TrueLift's weekly numbers right?</h2>
-  <p>For every TrueLift offer we compare its estimate of extra profit with the true value. "Control group only" uses just the restaurant's 10% holdout; "model only" uses just the learned model; TrueLift combines them.</p>
-  <div class="tablewrap"><table class="t"><tr><th>After</th><th>Truth inside 80% range</th><th>Avg error: control group only</th><th>Model only</th><th>TrueLift combined</th><th>"Keep" verdicts right</th></tr>
-  ${Object.entries(A).map(([k, a]) => `<tr><td>${k.replace("after_", "").replace("_", " ").replace("1 weeks", "1 week")}</td><td>${pct(a.coverage_80)}</td><td>${inr(a.mae_own_holdout_only)}</td><td>${inr(a.mae_model_only)}</td><td><b>${inr(a.mae_combined)}</b></td><td>${a.said_keep ? `${a.said_keep_and_truly_positive} of ${a.said_keep}` : "–"}</td></tr>`).join("")}</table></div>
+  <p>For every TrueLift offer we compare its estimate of extra profit with the true value. "Control group only" uses just the restaurant's held-out customers; "model only" uses just the learned model; TrueLift combines them, weighting each by how noisy it is. Both noise sizes are re-estimated every week across all running offers, with no need for the truth: two random halves of each offer's customers show the real noise of its own estimate, and the spread of own estimates around the model's shows the model's real error.${M.fleet_calibration?.length ? ` After four weeks the running offers said the model's error was ${pct(M.fleet_calibration[M.fleet_calibration.length - 1].sigma_factor[0])} of what the shadow phase suggested, and the control groups' noise ${M.fleet_calibration[M.fleet_calibration.length - 1].noise_ratio[0].toFixed(2)} times it.` : ""}</p>
+  ${tableHTML(["After", "Truth inside the 80% range", "Average error: control group only", "Model only", "TrueLift combined", "\"Keep\" verdicts right"],
+    Object.entries(A).map(([k, a]) => tr([k.replace("after_", "").replace("_", " ").replace("1 weeks", "1 week"), pct(a.coverage_80), inr(a.mae_own_holdout_only), inr(a.mae_model_only), `<b>${inr(a.mae_combined)}</b>`, a.verdicts && a.verdicts.keep ? `${a.said_keep_and_truly_positive} of ${a.verdicts.keep}` : "–"])))}
+  ${aaHTML(M)}
   <p class="note">Uplift ranking on the evaluation weeks: Qini ${M.uplift_quality.qini_model} (0 = random); correlation of predicted and true uplift per visit ${M.uplift_quality.corr_with_true_uplift}.</p>
-  <h2>If customers are more or less price-sensitive</h2>
-  <div class="tablewrap"><table class="t"><tr><th>Scenario</th><th>Blanket: offers losing money</th><th>Blanket: own-offer profit</th><th>TrueLift: offers paying</th><th>TrueLift: own-offer profit</th><th>TrueLift: Zomato commission vs no offers</th></tr>
-  ${[["Less price-sensitive (−30%)", E.less_price_sensitive], ["Base case", E.main], ["More price-sensitive (+30%)", E.more_price_sensitive]].filter((s) => s[1]).map(([l, s]) => {
-    const b = s.policies.today_blanket, t = s.policies.truelift;
-    return `<tr><td>${l}</td><td>${b.offers_that_lose} of ${b.restaurants_with_offer}</td><td>${inr(b.own_offer_profit_effect, true)}</td><td>${t.offers_that_pay} of ${t.restaurants_with_offer}</td><td>${inr(t.own_offer_profit_effect, true)}</td><td>${inr(t.zomato_commission_change, true)}</td></tr>`; }).join("")}
-  </table></div>
+  ${seedsHTML(E.seeds)}
+  ${scenarioHTML(E)}
+  ${tornadoHTML(E.sensitivity)}
+  ${adoptionHTML(M)}
+  ${fairnessHTML(M)}
+  ${benchmarkHTML(E.learner_benchmark)}
+  ${realDataHTML(E.real_data_criteo)}
+  ${experimentsHTML(E.experiments)}
+  ${frontierHTML(M)}
+  ${speedHTML(E.latency)}
   <h2>What this does not prove</h2>
-  <p>The market is simulated: customer types, price sensitivity and the Swiggy option are our assumptions, chosen to be plausible and then varied. It shows that TrueLift's method finds the truth when there is one to find, and how much better targeted offers do than blanket ones under those assumptions. Real numbers need Zomato's own offer logs or a silent test on live offers.</p>`;
+  <p>The market is simulated: customer types, price sensitivity and the Swiggy option are our assumptions, chosen to be plausible and then varied above. It shows that TrueLift's method finds the truth when there is one to find, and how much better targeted offers do than blanket ones under those assumptions. Real numbers need Zomato's own offer logs or a silent test on live offers.</p>`;
   el.dataset.done = "1";
   bindTips(el);
+}
+
+function consentHTML(M) {
+  const c = M.consent_attrition;
+  if (!c) return "";
+  const P = M.policies, blind = c.blanket_owners_decline_blind;
+  const pts = [[0, P.today_blanket.zomato_commission_change], ...Object.entries(blind).map(([k, v]) => [parseFloat(k) / 100, v.zomato_commission_change])];
+  const be = c.break_even_blind_decline_share;
+  return `<h2>For Zomato: when owners must approve every offer</h2>
+  <p>Since August 2026 a restaurant-funded offer runs only after the owner's OTP. An owner who cannot see whether an offer pays may stop approving. The chart shows Zomato's extra commission when a share of owners stop approving blanket offers at random, against TrueLift with every owner approving.</p>
+  <div class="charts"><div class="chart"><h3>Zomato's extra commission as owners stop approving</h3><div class="s">₹ a week against no offers; blanket offers with a share of owners declining at random</div>
+    ${lineChart(pts, P.truelift.zomato_commission_change, be)}
+    <div class="legend"><span><i class="line" style="background:var(--series)"></i>Blanket offers</span><span><i class="line" style="background:var(--ink-2)"></i>TrueLift, every owner approves</span></div></div>
+    <div class="chart"><h3>What it means</h3>
+      <p class="note">${be === null || be === undefined ? "Blanket offers stay above TrueLift's commission at every share tested." : be <= 0 ? "TrueLift already earns Zomato at least as much commission as blanket offers before any owner declines." : `Once more than <b>${pct(be)}</b> of owners stop approving blanket offers they cannot judge, Zomato earns less than with TrueLift, whose owners can see what each offer adds.`}</p>
+      <div class="row"><span class="k">Owners with losing blanket offers decline (${c.blanket_losing_owners_decline.owners})</span><span class="v">${signed(c.blanket_losing_owners_decline.zomato_commission_change)}</span></div>
+      <div class="row"><span class="k">TrueLift owners with losing offers decline (${c.truelift_losing_owners_decline.owners})</span><span class="v">${signed(c.truelift_losing_owners_decline.zomato_commission_change)}</span></div>
+      <div class="row"><span class="k">TrueLift, every owner approves</span><span class="v">${signed(c.truelift_all_approve.zomato_commission_change)}</span></div></div></div>`;
+}
+
+function lineChart(pts, ref, marker) {
+  const W = 460, H = 220, L = 70, Rm = 18, T = 14, B = 40;
+  const ys = [...pts.map((p) => p[1]), ref], ymin = Math.min(0, ...ys), ymax = Math.max(...ys) * 1.08;
+  const xmax = Math.max(...pts.map((p) => p[0]));
+  const x = (v) => L + (v / xmax) * (W - L - Rm), y = (v) => T + (1 - (v - ymin) / (ymax - ymin)) * (H - T - B);
+  const path = pts.map((p, i) => `${i ? "L" : "M"}${x(p[0]).toFixed(1)},${y(p[1]).toFixed(1)}`).join(" ");
+  const yt = [0, 0.5, 1].map((g) => ymin + g * (ymax - ymin)).map((v) => `<line x1="${L}" x2="${W - Rm}" y1="${y(v)}" y2="${y(v)}" stroke="#ececec"></line><text x="${L - 6}" y="${y(v) + 4}" text-anchor="end">${lakh(v)}</text>`).join("");
+  const xt = pts.map((p) => `<text x="${x(p[0])}" y="${H - B + 16}" text-anchor="middle">${Math.round(p[0] * 100)}%</text>`).join("");
+  const dots = pts.map((p) => `<circle cx="${x(p[0])}" cy="${y(p[1])}" r="4" fill="var(--series)" data-tip="${Math.round(p[0] * 100)}% of owners decline: ${esc(signed(p[1]))} a week"></circle>`).join("");
+  const mk = marker > 0 && marker <= xmax ? `<line x1="${x(marker)}" x2="${x(marker)}" y1="${T}" y2="${H - B}" stroke="var(--ink-2)" stroke-dasharray="3 3"></line><text class="lbl" x="${x(marker) + 5}" y="${T + 12}">break-even ${Math.round(marker * 100)}%</text>` : "";
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Zomato commission as owners decline blanket offers">
+    ${yt}${xt}<text x="${(L + W - Rm) / 2}" y="${H - 4}" text-anchor="middle">share of owners who stop approving</text>
+    <line x1="${L}" x2="${W - Rm}" y1="${y(ref)}" y2="${y(ref)}" stroke="var(--ink-2)" stroke-width="1.5"></line>
+    <path d="${path}" fill="none" stroke="var(--series)" stroke-width="2.2" stroke-linejoin="round"></path>${dots}${mk}</svg>`;
+}
+
+function ledgerHTML(M, P) {
+  const z = M.zomato_ledger;
+  if (!z) return "";
+  const cf = z.cofunding, cg = z.control_group_cost_truelift, sh = z.platform_incremental_share_of_extra_orders;
+  return `<h2>Zomato's own ledger</h2>
+  <p>An extra order for a restaurant is not always an extra order for Zomato: some come from other restaurants on Zomato. The share that is new to the platform is what Zomato gains.</p>
+  ${tableHTML(["", ...Object.keys(sh).map((k) => POLICY_NAMES[k] || k)], [tr(["Share of the offers' extra orders new to Zomato", ...Object.values(sh).map(pct)])])}
+  <div class="calc"><h4>Zomato paying half the discount for customers new to Zomato, unmeasured</h4>
+    <div class="row"><span class="k">Extra discount Zomato pays a week</span><span class="v">${inr(cf.extra_zomato_funded_discount)}</span></div>
+    <div class="row"><span class="k">Extra orders new to the platform it buys</span><span class="v">${n0(cf.extra_platform_incremental_orders)}</span></div>
+    <div class="row total"><span class="k">${cf.pure_transfer ? "The customer sees the same offer whoever pays for it, so this moves money from Zomato to restaurants and creates no order." : `Cost to Zomato per extra platform order: ${inr(cf.cost_per_extra_platform_incremental_order)}`}</span><span class="v">${signed(cf.contribution_change_vs_truelift)}</span></div></div>
+  <p class="note">The price of measuring: TrueLift's control group (${pct(cg.holdout_share)} of eligible customers) forgoes about ${inr(cg.profit_forgone_a_week)} of restaurant profit and ${n0(cg.orders_forgone_a_week)} orders a week across the 300 restaurants, the cost of knowing what each offer adds.</p>`;
+}
+
+function forecastHTML2(M) {
+  const f = M.forecast?.truelift_design_in_todays_market, o = M.forecast?.owner_blanket_offer_in_todays_market, s = M.selection;
+  if (!f) return "";
+  return `<h2>Are the forecasts owners approve right?</h2>
+  <p>Each quote shown before the OTP is checked against the truth in the market it was made for, where a tenth of restaurants switch at a time.</p>
+  ${tableHTML(["", "Forecast against truth", "Truth inside the 80% range", "Average miss a week"], [
+    tr(["TrueLift's suggested version", `${f.ratio_forecast_to_truth}×`, pct(f.coverage_80), inr(f.mean_abs_error)]),
+    tr(["The owner's own offer", `${o.ratio_forecast_to_truth}×`, pct(o.coverage_80), inr(o.mean_abs_error)]),
+  ])}
+  ${s ? `<p class="note">Of ${s.restaurants_with_a_different_version} suggested versions, ${pct(s.share_truly_better_than_owner)} truly beat the owner's own offer. Their stated advantage (${signed(s.forecast_advantage_total)} a week in total) runs about ${(s.forecast_advantage_total / s.true_advantage_total).toFixed(1)} times the true advantage (${signed(s.true_advantage_total)}): picking the best of about 34 forecasts favours the ones that came out high.</p>` : ""}`;
+}
+
+function aaHTML(M) {
+  const aa = M.aa_test, d = M.detection?.blanket_fixed_holdout?.by_week?.week_4;
+  if (!aa) return "";
+  return `<p>Two checks of the weekly verdicts. <b>Placebo offers</b> that change nothing: over a four-week approval TrueLift paused ${pct(aa.lifetime_false_pause_4_looks)} of them (the rule used before, pause when the range is below zero, would have paused ${pct(aa.lifetime_false_pause_4_looks_rule_before)}).${d ? ` <b>Blanket offers that truly lose money</b>: by week 4, ${pct(d.losing_paused_or_warned)} are paused or flagged "probably losing", and ${pct(d.profitable_paused)} of profitable ones are paused.` : ""}</p>`;
+}
+
+function seedsHTML(S) {
+  if (!S) return "";
+  const lab = { offers_that_pay: "Offers that pay", own_offer_profit_effect: "Own-offer profit (₹ a week)", restaurant_profit_change: "Restaurant profit against no offers", zomato_commission_change: "Zomato commission", customer_savings: "Discount given" };
+  const fmt = (m, v) => (m === "offers_that_pay" ? num(v) : signed(v));
+  const rows = [];
+  for (const [pair, ms] of Object.entries(S.differences)) {
+    const other = pair.replace("truelift_minus_", "");
+    for (const [m, d] of Object.entries(ms)) rows.push(tr([`TrueLift minus ${POLICY_NAMES[other] || other}: ${lab[m] || m}`, fmt(m, d.mean), fmt(m, d.sd), d.exceeds_2_sd ? "yes" : "no", d.same_sign_every_seed ? "yes" : "no"]));
+  }
+  return `<h2>Five different markets</h2>
+  <p>The whole simulation repeated with ${S.seeds.length} market seeds (different customers, tastes and draws). Each row is TrueLift's difference from a comparison policy: the average, how much it varies, and whether it is larger than twice that variation.</p>
+  ${tableHTML(["Difference", "Average", "Standard deviation", "Beyond 2 sd", "Same sign in every market"], rows)}`;
+}
+
+function scenarioHTML(E) {
+  const sc = [["Customers 30% less price-sensitive", E.less_price_sensitive], ["Base case", E.main], ["Customers 30% more price-sensitive", E.more_price_sensitive], ["Commission charged on the price before the discount", E.pre_discount_commission]].filter((s) => s[1]);
+  if (sc.length < 2) return "";
+  return `<h2>If customers or commercial terms differ</h2>
+  ${tableHTML(["Scenario", "Blanket: offers losing money", "Blanket: own-offer profit", "Rule: own-offer profit", "TrueLift: offers paying", "TrueLift: own-offer profit", "TrueLift: Zomato commission"],
+    sc.map(([l, s]) => { const b = s.policies.today_blanket, r = s.policies.rule_new_customers, t = s.policies.truelift;
+      return tr([l, `${b.offers_that_lose} of ${b.restaurants_with_offer}`, signed(b.own_offer_profit_effect), signed(r.own_offer_profit_effect), `${t.offers_that_pay} of ${t.restaurants_with_offer}`, signed(t.own_offer_profit_effect), signed(t.zomato_commission_change)], l === "Base case"); }))}
+  <p class="note">Whether Zomato's commission is charged before or after the discount is a question for Eternal; it changes how much a blanket offer costs the owner.</p>`;
+}
+
+function tornadoHTML(S) {
+  if (!S) return "";
+  const outs = [["own_offer_profit", "TrueLift minus the rule: restaurants' profit from their own offers (₹ a week)", signed], ["zomato_commission", "TrueLift minus blanket: Zomato's commission (₹ a week)", signed], ["offers_that_pay", "TrueLift minus blanket: offers that pay", (v) => num(v)]];
+  const params = Object.values(S.parameters);
+  const charts = outs.map(([k, title, fmt]) => {
+    const base = params[0].base.outputs[k];
+    const items = params.map((p) => ({ label: p.label, lo: p.low.outputs[k], hi: p.high.outputs[k], lv: p.low.value, hv: p.high.value }))
+      .sort((a, b) => Math.abs(b.hi - b.lo) - Math.abs(a.hi - a.lo));
+    return `<div class="chart"><h3>${title}</h3><div class="s">Base ${esc(fmt(base))}; each bar moves one assumption to its low and high value (quick market)</div>${tornado(items, base, fmt)}</div>`;
+  }).join("");
+  return `<h2>Which assumptions matter</h2>
+  <p>Eight assumptions, each moved to a low and a high value with everything else held. The longest bars are the assumptions a real pilot should pin down first.</p>
+  <div class="charts">${charts}<div class="chart"><h3>Where a claim stops holding</h3>${S.boundaries.length ? `<ul class="note">${S.boundaries.map((b) => `<li>${esc(b)}</li>`).join("")}</ul>` : `<p class="note">No claim changes sign within these ranges.</p>`}</div></div>`;
+}
+
+function tornado(items, base, fmt) {
+  const W = 460, rowH = 30, left = 168, right = 20, H = items.length * rowH + 24;
+  const vals = items.flatMap((i) => [i.lo, i.hi, base]);
+  const lo = Math.min(0, ...vals), hi = Math.max(0, ...vals);
+  const x = (v) => left + ((v - lo) / (hi - lo || 1)) * (W - left - right);
+  const bars = items.map((it, i) => {
+    const y = 6 + i * rowH, a = x(Math.min(it.lo, it.hi)), b = x(Math.max(it.lo, it.hi));
+    return `<g data-tip="${esc(it.label)}: ${esc(String(it.lv))} → ${esc(fmt(it.lo))}; ${esc(String(it.hv))} → ${esc(fmt(it.hi))}"><rect x="0" y="${y - 4}" width="${W}" height="${rowH}" fill="transparent"></rect>
+      <text x="${left - 8}" y="${y + 12}" text-anchor="end">${esc(it.label.length > 26 ? it.label.slice(0, 25) + "…" : it.label)}</text>
+      <rect x="${a}" y="${y + 2}" width="${Math.max(b - a, 1.5)}" height="14" rx="3" fill="var(--series)" opacity=".75"></rect></g>`;
+  }).join("");
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Sensitivity of the result to each assumption">
+    <line x1="${x(0)}" x2="${x(0)}" y1="0" y2="${H - 18}" stroke="#c3c2b7"></line><line x1="${x(base)}" x2="${x(base)}" y1="0" y2="${H - 18}" stroke="var(--ink-2)" stroke-dasharray="3 3"></line>
+    <text x="${x(base)}" y="${H - 4}" text-anchor="middle">base</text>${bars}</svg>`;
+}
+
+function adoptionHTML(M) {
+  const a = M.partial_adoption;
+  if (!a) return "";
+  const rows = ["10%", "30%"].filter((k) => a[k]).map((k) => tr([`${k} of restaurants (${a[k].adopters})`, signed(a[k].adopters_profit_change_a_week), signed(a[k].others_profit_change_a_week), signed(a[k].zomato_commission_change_a_week), num(a[k].orders_change_a_week)]));
+  const mh = M.moving_history;
+  return `<h2>A pilot with some restaurants, not all</h2>
+  <p>A real rollout starts with a few restaurants while the rest keep today's offers. Against today's market on the same visits:</p>
+  ${tableHTML(["Restaurants on TrueLift", "Their profit (₹ a week)", "Everyone else's profit", "Zomato commission", "Orders"], rows)}
+  ${mh ? `<p class="note">Letting customers' history move during the four weeks (a customer who orders in week 1 is no longer "new" in week 4) changes TrueLift's own-offer profit from ${signed(mh.fixed_snapshot.own_offer_profit_effect)} to ${signed(mh.features_follow_each_week.own_offer_profit_effect)} a week.</p>` : ""}`;
+}
+
+function fairnessHTML(M) {
+  const f = M.fairness;
+  if (!f || !f.truelift) return "";
+  const pols = ["today_blanket", "truelift", "brand_pack_for_regulars", "regulars_always_eligible", "random_20pct_also_shown"].filter((k) => f[k]);
+  const name = { today_blanket: "Blanket", truelift: "TrueLift", brand_pack_for_regulars: "TrueLift + Brand Pack for regulars", regulars_always_eligible: "TrueLift + regulars always eligible", random_20pct_also_shown: "TrueLift + 1 in 5 others shown at random" };
+  const seg = (k, dim, v) => f[k].by_segment[dim]?.[v];
+  const dims = [["regular", "regular here"], ["regular", "not a regular"], ["new_account", "new to Zomato"], ["price_band", "under Rs 300"], ["price_band", "Rs 500+"]];
+  const rows = dims.map(([d, v]) => tr([`${v.replace("Rs ", "₹")} (${d === "price_band" ? "restaurant price" : d === "regular" ? "customer" : "account"})`, ...pols.map((k) => { const s = seg(k, d, v); return s ? `${pct(s.share_of_visits_offered_a_saving)} · ${inr(s.saving_received_per_visit)}` : "–"; })]));
+  const mit = f.mitigations || {};
+  return `<h2>Who gets the savings</h2>
+  <p>Targeting gives discounts to the customers they move, so a restaurant's regulars, who order anyway, are offered less. Each cell: share of menu visits offered a saving (discount or Brand Pack reward) · saving received per visit.</p>
+  ${tableHTML(["Visits by", ...pols.map((k) => name[k])], [...rows, tr(["Loyalty gap (others minus regulars, share offered)", ...pols.map((k) => (f[k].loyalty_gap === null ? "–" : (f[k].loyalty_gap * 100).toFixed(0) + " points"))], true)])}
+  <p class="note">What closing the gap costs restaurants, in profit from their own offers against TrueLift: ${Object.entries(mit).map(([k, v]) => `${name[k]} ${signed(v.own_offer_profit_change_vs_truelift)}`).join("; ")} a week. The model reads only order and visit history, never location, device or payment method (an allow-list checked by the tests).</p>`;
+}
+
+function benchmarkHTML(B) {
+  if (!B) return "";
+  const nm = { random: "Random", response: "Likely buyers (chance of ordering with the offer)", rule: "Rule: new to the restaurant", s_learner: "S-learner (one model)", t_learner: "TrueLift (T-learner)", x_learner: "X-learner", dr_learner: "Doubly robust learner", oracle: "Oracle (true uplift)" };
+  const ms = (o) => `${o.mean.toFixed(2)} ± ${o.sd.toFixed(2)}`;
+  return `<h2>How the model compares with other ways to choose</h2>
+  <p>Each method ranks next week's visits by how much the offer would move them; the simulator knows the truth. Averages over ${B.by_seed.length} markets, ± one standard deviation.</p>
+  ${tableHTML(["Method", "Qini, share of the oracle's", "Correlation with true uplift", "Profit from the top 30%, share of the best possible"],
+    Object.entries(B.summary).map(([k, m]) => tr([nm[k] || k, ms(m.normalised_qini), ms(m.corr_with_true_uplift), ms(m.profit_top_30pct_vs_best_possible)], k === "t_learner")))}`;
 }
 
 function realDataHTML(R) {
@@ -708,13 +1000,81 @@ function realDataHTML(R) {
       ${qiniChart(v.curve)}
       <div class="legend"><span><i class="line" style="background:var(--series)"></i>TrueLift's model</span><span><i class="line" style="background:var(--series-mute)"></i>Random targeting</span></div></div>
     <div class="chart"><h3>What it means</h3>
-      <div class="row"><span class="k">Visits: held out vs shown ads</span><span class="v">${(v.rate_control * 100).toFixed(2)}% → ${(v.rate_treated * 100).toFixed(2)}%</span></div>
-      <div class="row"><span class="k">Qini score, model vs random (visits)</span><span class="v">${v.qini_t_learner} vs ${v.qini_random}</span></div>
+      <div class="row"><span class="k">Visits: held out against shown ads</span><span class="v">${(v.rate_control * 100).toFixed(2)}% → ${(v.rate_treated * 100).toFixed(2)}%</span></div>
+      <div class="row"><span class="k">Qini score, model against random (visits)</span><span class="v">${v.qini_t_learner} vs ${v.qini_random}</span></div>
       <div class="row"><span class="k">Extra visits in the top 30% the model picks</span><span class="v">${pct(v.top30_share_of_total_lift)}</span></div>
-      <div class="row"><span class="k">Qini score, model vs random (purchases, rare)</span><span class="v">${c.qini_t_learner} vs ${c.qini_random}</span></div>
+      <div class="row"><span class="k">Qini score, model against random (purchases, rare)</span><span class="v">${c.qini_t_learner} vs ${c.qini_random}</span></div>
       <div class="row"><span class="k">Extra purchases in the top 30%</span><span class="v">${pct(c.top30_share_of_total_lift)}</span></div>
       <p class="note">If a campaign could reach only 30% of people, the model's choice would capture ${pct(v.top30_share_of_total_lift)} of all the extra visits the full campaign creates; random choice captures about 30%.</p></div>
   </div>`;
+}
+
+function experimentsHTML(X) {
+  if (!X) return "";
+  const o = X.oracle, d = X.depth_choice, v = X.variance_reduction, h = X.holdout_draws, r = X.retrain_loop, t = X.depth_test;
+  const items = [];
+  if (o) items.push(`<b>Targeting against a perfect oracle.</b> With one fixed discount at every restaurant, the model's choice of who sees it adds ${signed(o.model_targeting_profit_gain_a_week - o.blanket_profit_gain_a_week)} a week over showing it to everyone; an oracle that knows every visit's true response would add ${signed(o.oracle_profit_gain_a_week - o.blanket_profit_gain_a_week)}. The model captures ${pct(o.share_of_oracle_gain_over_blanket_captured)} of what is possible.`);
+  if (d) items.push(`<b>Letting the model pick the discount size.</b> Own-offer profit ${signed(d.model_picks_size.own_offer_profit_effect)} against ${signed(d.owner_size_kept.own_offer_profit_effect)} with the owner's size, but restaurant profit across the market ${signed(d.model_picks_size.restaurant_profit_change)} against ${signed(d.owner_size_kept.restaurant_profit_change)}, and ${d.model_picks_size.offers_that_lose} losing offers against ${d.owner_size_kept.offers_that_lose}. Deeper discounts win orders from other restaurants. The size stays the owner's call.`);
+  if (t) items.push(`<b>A test of two sizes.</b> When customers are split at random between the owner's size and the next one up, four weeks of a restaurant's own data pick the truly better size ${pct(t.share_picking_the_truly_better_size)} of the time (${pct(t.share_right_larger_half)} for the larger half of restaurants, ${pct(t.share_right_smaller_half)} for the smaller). A size change needs a longer test or pooling across similar restaurants.`);
+  if (v) items.push(`<b>Subtracting each visit's predicted outcome.</b> Cuts the error of an offer's own estimate by ${pct(v.noise_cut)} (${inr(v.rmse_without_adjustment)} → ${inr(v.rmse_with_adjustment)} over four weeks, ${v.draws} random holdout draws).`);
+  if (h) items.push(`<b>Ten holdout draws.</b> Across ${h.draws} random choices of who is held out, the weekly estimate's average error is ${signed(h.mean_error_rs)} (standard error ${inr(h.mean_error_se_rs)}): centred on the truth. Its 80% range held the truth ${pct(h.coverage_80)} of the time.`);
+  if (r) items.push(`<b>Retraining on live weeks.</b> A model retrained after two weeks of running offers ranks the next two weeks ${r.promote ? "better" : "no better"} (Qini ${r.candidate_model.qini_on_holdout} against ${r.current_model.qini_on_holdout}), so it ${r.promote ? "would be promoted" : "would not be promoted"} under the rule: promote only on the random holdout's evidence.`);
+  return `<h2>Experiments behind the write-up</h2><div class="faq">${items.map((i) => `<p class="p">${i}</p>`).join("")}</div>`;
+}
+
+function frontierHTML(M) {
+  const f = M.zomato_weight_frontier;
+  if (!f) return "";
+  return `<h2>Should TrueLift weigh Zomato's revenue?</h2>
+  <p>We tried giving Zomato's contribution a weight when choosing each restaurant's version. It buys Zomato almost nothing, because restaurant and platform earn from the same extra orders, while restaurants lose. TrueLift chooses for the restaurant.</p>
+  ${tableHTML(["Weight on Zomato's contribution", "Restaurant profit against no offers", "Zomato commission", "Offers that lose"], f.points.map((p) => tr([String(p.zomato_weight), signed(p.restaurant_profit_change), signed(p.zomato_commission_change), num(p.offers_that_lose)], p.zomato_weight === 0)))}`;
+}
+
+// ---------------- operations ----------------
+async function renderOps() {
+  const el = $("#ops");
+  if (el.dataset.done) return;
+  let E;
+  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { el.innerHTML = errorCard(e, "the operations view"); return; }
+  const G = E.guardrails, D = E.drift, meta = E.meta || {}, r = E.experiments?.retrain_loop;
+  const status = (ok) => `<span class="tag ${ok ? "good" : "bad"}">${ok ? "pass" : "fail"}</span>`;
+  const val = (v) => (v === null || v === undefined ? "–" : typeof v === "object" ? Object.entries(v).map(([k, x]) => `${esc(k.replace(/_/g, " "))} ${esc(typeof x === "number" && x < 1 ? pct(x) : String(x))}`).join(", ") : esc(String(v)));
+  const tables = D ? [...new Set(Object.values(D.features).flatMap((f) => Object.keys(f).filter((k) => typeof f[k] === "object")))] : [];
+  el.innerHTML = `<h1>Operations</h1>
+  <p>What an on-call person at Zomato would watch once TrueLift runs: the weekly guardrails, whether the model's inputs have drifted from what it learned on, how fast the hooks answer, and how a new model is promoted. Computed by the pipeline from the simulated market; in production the same checks run on the exposure log.</p>
+  ${G ? `<h2>Weekly guardrails</h2><p>Checked on ${G.offers} running offers after ${G.weeks} weeks. ${G.passed ? "All pass." : "At least one fails: the line says what it would mean."}</p>
+  ${tableHTML(["Check", "Value", "Threshold", "Status", "What a failure means"], G.checks.map((c) => tr([esc(c.check.replace(/_/g, " ")), val(c.value), esc(c.threshold), status(c.passed), esc(c.meaning)])))}` : ""}
+  ${D ? `<h2>Input drift</h2><p>Each model input in the tables it is used on, against the rows it was trained on (population stability index; below ${D.psi_watch} is stable, above ${D.psi_fail} fails the pipeline). Largest: ${D.worst_psi}. ${D.passed ? "No input has moved." : "An input has moved: retrain before trusting the forecasts."}</p>
+  ${tableHTML(["Input", ...tables.map((t) => t.replace(/_/g, " "))], Object.entries(D.features).map(([f, e]) => tr([`<code>${esc(f)}</code>`, ...tables.map((t) => (e[t] ? `<span class="tag ${e[t].status === "pass" ? "good" : e[t].status === "watch" ? "warn" : "bad"}">${e[t].status}</span> ${e[t].psi.toFixed(3)}` : "–"))])))}` : ""}
+  ${speedHTML(E.latency)}
+  <h2>How a new model goes live</h2>
+  <div class="steps4">
+    <div class="step4"><div class="n">1</div><h4>Log</h4><p>Every shown and held-out visit and every order, with the model version that decided it.</p></div>
+    <div class="step4"><div class="n">2</div><h4>Retrain</h4><p>A candidate model learns from the shadow phase plus the weeks offers have run.</p></div>
+    <div class="step4"><div class="n">3</div><h4>Compare on the holdout</h4><p>It must rank the next weeks' visits better, judged only on the random control groups.</p></div>
+    <div class="step4"><div class="n">4</div><h4>Promote and record</h4><p>The new version's number goes into every quote, decision and consent record.</p></div>
+  </div>
+  ${r ? `<p class="note">In the simulation, a model retrained after two weeks of running offers scores Qini ${r.candidate_model.qini_on_holdout} on the next two weeks against ${r.current_model.qini_on_holdout} for the current one, so it ${r.promote ? "would be promoted" : "would not be promoted"}.</p>` : ""}
+  <h2>This run</h2>
+  <div class="calc">
+    <div class="row"><span class="k">Code version</span><span class="v"><code>${esc((meta.commit || "").slice(0, 10) || "–")}</code>${meta.uncommitted_changes ? " (with uncommitted changes)" : ""}</span></div>
+    <div class="row"><span class="k">Run at (UTC)</span><span class="v">${esc(meta.started_utc || "–")}</span></div>
+    <div class="row"><span class="k">Libraries</span><span class="v">${esc(Object.entries(meta.libraries || {}).map(([k, v]) => `${k} ${v}`).join(", ") || "–")}</span></div>
+    <div class="row"><span class="k">Live service endpoints</span><span class="v"><code>/healthz</code> <code>/readyz</code> <code>/metrics</code></span></div>
+  </div>`;
+  el.dataset.done = "1";
+}
+
+function speedHTML(L) {
+  if (!L) return "";
+  const s = L.serve_sequential, p = Object.entries(L).find(([k]) => /^serve_\d+_threads$/.test(k)), q = L.quote_sequential;
+  return `<h2>Speed</h2>
+  <p>Measured over HTTP on ${esc(L.hardware.processor || "a laptop")} (${L.hardware.logical_cpus} threads). A serving decision is a table lookup plus the control-group hash.</p>
+  ${tableHTML(["Call", "Median", "95th percentile", "99th percentile"], [
+    tr(["Serve one customer, one at a time", `${s.p50_ms} ms`, `${s.p95_ms} ms`, `${s.p99_ms} ms`]),
+    p ? tr([`Serve, ${p[0].match(/\d+/)[0]} at once (${num(p[1].throughput_per_second)} a second)`, `${p[1].p50_ms} ms`, `${p[1].p95_ms} ms`, `${p[1].p99_ms} ms`]) : "",
+    tr(["Forecast an offer (about 34 versions compared)", `${q.p50_ms} ms`, `${q.p95_ms} ms`, `${q.p99_ms} ms`]),
+  ])}`;
 }
 
 function qiniChart(cu) {
@@ -756,47 +1116,73 @@ function hbar(items, fmt) {
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img"><line x1="${x(0)}" x2="${x(0)}" y1="0" y2="${H}" stroke="#c3c2b7"></line>${bars}</svg>`;
 }
 
+// Chart tooltips work with a mouse, a keyboard (each mark is focusable) and touch (tap to show).
 function bindTips(root) {
   const tip = $("#tip");
+  const place = (x, y) => { tip.style.left = Math.max(8, Math.min(x + 12, innerWidth - 310)) + "px"; tip.style.top = Math.min(y + 12, innerHeight - 60) + "px"; };
+  const show = (g, x, y) => { tip.textContent = g.dataset.tip; tip.style.display = "block"; place(x, y); };
+  const hide = () => { tip.style.display = "none"; };
   root.querySelectorAll("[data-tip]").forEach((g) => {
-    g.addEventListener("mousemove", (e) => { tip.textContent = g.dataset.tip; tip.style.display = "block"; tip.style.left = Math.min(e.clientX + 12, innerWidth - 290) + "px"; tip.style.top = e.clientY + 12 + "px"; });
-    g.addEventListener("mouseleave", () => { tip.style.display = "none"; });
+    g.setAttribute("tabindex", "0");
+    g.setAttribute("role", "img");
+    g.setAttribute("aria-label", g.dataset.tip);
+    g.addEventListener("mousemove", (e) => show(g, e.clientX, e.clientY));
+    g.addEventListener("mouseleave", hide);
+    g.addEventListener("focus", () => { const r = g.getBoundingClientRect(); show(g, r.left + r.width / 2, r.top); });
+    g.addEventListener("blur", hide);
+    g.addEventListener("touchstart", (e) => { const t = e.touches[0]; show(g, t.clientX, t.clientY); }, { passive: true });
   });
+  document.addEventListener("touchstart", (e) => { if (!e.target.closest?.("[data-tip]")) hide(); }, { passive: true });
 }
 
 // ---------------- money maths ----------------
+const MONEY = { commission_on: "post_discount", food: 0.37 };
 async function renderMoney() {
   const el = $("#money");
-  if (el.dataset.done) return;
-  const e = await once("example", () => api("/api/v1/example"));
-  const f = e.per_order_full, d = e.per_order_discounted, b = e.blanket, t = e.truelift, n = e.no_offer;
+  let e;
+  try {
+    e = await once(`example-${MONEY.commission_on}-${MONEY.food}`, () => api(`/api/v1/example?commission_on=${MONEY.commission_on}&food_cost_share=${MONEY.food}`));
+  } catch (err) { el.innerHTML = errorCard(err, "the money example"); return; }
+  const f = e.per_order_full, d = e.per_order_discounted, b = e.blanket, t = e.truelift, n = e.no_offer, T = e.terms;
+  const pre = T.commission_on === "pre_discount";
+  const be = e.break_even.find((x) => Math.round(x.discount) === Math.round(e.discount)) || e.break_even[1];
   const line = (k, v, total) => `<div class="row ${total ? "total" : ""}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
+  const pc = (x) => `${Math.round(x * 1000) / 10}%`;
+  const chip = (key, val, label) => `<button class="chip ${MONEY[key] === val ? "on" : ""}" data-money="${key}" data-val="${val}" aria-pressed="${MONEY[key] === val}">${label}</button>`;
   el.innerHTML = `<h1>The money, step by step</h1>
-  <p>The Round 1 example: a restaurant with ₹400 orders and 70 orders a week from regulars. A ₹60-off offer brings 30 new orders. Commission is 25% plus 18% GST on it (29.5% in total); food and packaging cost 37% of the order.</p>
+  <p>The Round 1 example: a restaurant with ${inr(e.basket)} orders and ${e.regulars} orders a week from regulars. A ${inr(e.discount)}-off offer brings ${e.new_orders} new orders. Commission is ${pct(T.commission_rate)} plus ${pct(T.gst_on_commission)} GST on it; food and packaging cost ${pct(T.food_cost_share)} of the order. Every figure below is computed by the same code the service uses.</p>
+  <div class="field"><span class="lab">Commission is charged on</span><div class="chips" role="group" aria-label="Commission base">
+    ${chip("commission_on", "post_discount", "the price after the discount")}${chip("commission_on", "pre_discount", "the menu price, before the discount")}</div></div>
+  <div class="field"><span class="lab">Food and packaging cost</span><div class="chips" role="group" aria-label="Food cost">
+    ${chip("food", 0.3, "30%")}${chip("food", 0.37, "37% (typical)")}${chip("food", 0.45, "45%")}</div></div>
   <div class="charts">
-  <div class="calc"><h4>One ₹400 order</h4>
-    ${line("Food sales", inr2(f.basket))}${line("Commission (25%)", "−" + inr2(f.commission))}${line("GST on commission (18%)", "−" + inr2(f.gst_on_commission))}${line("Food and packaging (37%)", "−" + inr2(f.food_cost))}
+  <div class="calc"><h4>One ${inr(e.basket)} order</h4>
+    ${line("Food sales", inr2(f.basket))}${line(`Commission (${pct(T.commission_rate)})`, "−" + inr2(f.commission))}${line(`GST on commission (${pct(T.gst_on_commission)})`, "−" + inr2(f.gst_on_commission))}${line(`Food and packaging (${pct(T.food_cost_share)})`, "−" + inr2(f.food_cost))}
     ${line("<b>Restaurant keeps</b>", inr2(f.restaurant_profit), true)}${line("Zomato's gross commission", inr2(f.commission))}</div>
-  <div class="calc"><h4>The same order with ₹60 off (paid by the restaurant)</h4>
-    ${line("Food sales", inr2(d.basket))}${line("Discount", "−" + inr2(d.discount))}${line("Commission (25% of ₹340)", "−" + inr2(d.commission))}${line("GST on commission", "−" + inr2(d.gst_on_commission))}${line("Food and packaging", "−" + inr2(d.food_cost))}
+  <div class="calc"><h4>The same order with ${inr(e.discount)} off (paid by the restaurant)</h4>
+    ${line("Food sales", inr2(d.basket))}${line("Discount", "−" + inr2(d.discount))}${line(`Commission (${pct(T.commission_rate)} of ${inr(pre ? d.basket : d.basket - d.discount)})`, "−" + inr2(d.commission))}${line("GST on commission", "−" + inr2(d.gst_on_commission))}${line("Food and packaging", "−" + inr2(d.food_cost))}
     ${line("<b>Restaurant keeps</b>", inr2(d.restaurant_profit), true)}${line("Zomato's gross commission", inr2(d.commission))}</div>
   </div>
-  <div class="calc"><h4>When does ₹60 off pay for itself?</h4>
-    <p class="note">Of the orders using the offer, let <i>f</i> be the share that would not have happened without it. The restaurant gains ₹91.70 on those and loses ₹134 − ₹91.70 = ₹42.30 on every other one. It breaks even when f × ₹91.70 = (1 − f) × ₹42.30, so <b>f = 1 − 91.70 / 134 = 31.6%</b>.</p>
-    ${line("10% off (₹40)", "pays only if ≥ 21% of its orders are extra")}${line("15% off (₹60)", "≥ 32%")}${line("20% off (₹80)", "≥ 42%")}${line("25% off (₹100)", "≥ 53%")}</div>
+  <div class="calc"><h4>When does ${inr(e.discount)} off pay for itself?</h4>
+    <p class="note">Of the orders using the offer, let <i>f</i> be the share that would not have happened without it. The restaurant gains ${inr2(d.restaurant_profit)} on those and loses ${inr2(f.restaurant_profit)} − ${inr2(d.restaurant_profit)} = ${inr2(f.restaurant_profit - d.restaurant_profit)} on every other one. It breaks even when f × ${inr2(d.restaurant_profit)} = (1 − f) × ${inr2(f.restaurant_profit - d.restaurant_profit)}, so <b>f = 1 − ${inr2(d.restaurant_profit)} / ${inr2(f.restaurant_profit)} = ${pc(be.extra_share_needed)}</b>.</p>
+    ${e.break_even.map((x) => line(`${Math.round(x.share_of_basket * 100)}% off (${inr(x.discount)})`, `pays only if ≥ ${Math.round(x.extra_share_needed * 100)}% of its orders are extra`)).join("")}</div>
   <div class="calc"><h4>One week</h4>
-    ${line("No offer: 70 × " + inr2(f.restaurant_profit), inr2(n.restaurant_profit))}
-    ${line("Today, ₹60 off for everyone: 100 × " + inr2(d.restaurant_profit), inr2(b.restaurant_profit))}
+    ${line(`No offer: ${e.regulars} × ${inr2(f.restaurant_profit)}`, inr2(n.restaurant_profit))}
+    ${line(`Today, ${inr(e.discount)} off for everyone: ${e.regulars + e.new_orders} × ${inr2(d.restaurant_profit)}`, inr2(b.restaurant_profit))}
     ${line("<b>Change for the restaurant</b>", `<span class="${cls(b.restaurant_change)}">${inr2(b.restaurant_change, true)}</span>`, true)}
-    ${line("Zomato: 100 × " + inr2(d.commission) + " − 70 × " + inr2(f.commission), inr2(b.zomato_change, true))}
-    ${line("Discount given: " + inr2(b.discount_spend) + " (of which " + inr2(b.discount_on_regulars) + " on regulars) ÷ 30 extra orders", inr2(b.discount_per_extra_order) + " per extra order")}
+    ${line(`Zomato: ${e.regulars + e.new_orders} × ${inr2(d.commission)} − ${e.regulars} × ${inr2(f.commission)}`, inr2(b.zomato_change, true))}
+    ${line(`Discount given: ${inr2(b.discount_spend)} (of which ${inr2(b.discount_on_regulars)} on regulars) ÷ ${e.new_orders} extra orders`, inr2(b.discount_per_extra_order) + " per extra order")}
     <br>
-    ${line("TrueLift: 70 × " + inr2(f.restaurant_profit) + " + 30 × " + inr2(d.restaurant_profit) + " − ₹650 rewards", inr2(t.restaurant_profit))}
+    ${line(`TrueLift: ${e.regulars} × ${inr2(f.restaurant_profit)} + ${e.new_orders} × ${inr2(d.restaurant_profit)} − ${inr(e.rewards)} rewards`, inr2(t.restaurant_profit))}
     ${line("<b>Change for the restaurant</b>", `<span class="${cls(t.restaurant_change)}">${inr2(t.restaurant_change, true)}</span>`, true)}
-    ${line("Zomato: 30 × " + inr2(d.commission), inr2(t.zomato_change, true))}
-    ${line("Spend: 30 × ₹60 + ₹650 rewards = " + inr2(t.discount_spend) + " ÷ 30 extra orders", inr2(t.discount_per_extra_order) + " per extra order")}</div>
-  <p class="note">The Round 1 page rounded commission + GST to 30%, which gave −₹240 and +₹2,050; the exact 29.5% gives the figures above. Zomato's gross commission is not its profit: after delivery costs, Zomato's food-delivery business earns about 5.5% of order value as adjusted EBITDA (Q2 FY27).</p>`;
-  el.dataset.done = "1";
+    ${line(`Zomato: ${e.new_orders} × ${inr2(d.commission)}`, inr2(t.zomato_change, true))}
+    ${line(`Spend: ${e.new_orders} × ${inr(e.discount)} + ${inr(e.rewards)} rewards = ${inr2(t.discount_spend)} ÷ ${e.new_orders} extra orders`, inr2(t.discount_per_extra_order) + " per extra order")}</div>
+  <p class="note">The Round 1 page rounded commission + GST to 30%; the exact figures are above. Whether Zomato charges commission before or after the discount is a question for Eternal: it moves the break-even share. Zomato's gross commission is not its profit: after delivery costs, Zomato's food-delivery business earns about 5.5% of order value as adjusted EBITDA (Q2 FY27).</p>`;
+  el.querySelectorAll("[data-money]").forEach((btn) => btn.addEventListener("click", () => {
+    const k = btn.dataset.money;
+    MONEY[k] = k === "food" ? +btn.dataset.val : btn.dataset.val;
+    renderMoney();
+  }));
 }
 
-boot().catch((e) => { $("#screen").innerHTML = `<div class="card neg">${esc(e.message)}</div>`; });
+boot().catch((e) => { $("#screen").innerHTML = errorCard(e, "the demo"); });

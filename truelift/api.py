@@ -721,8 +721,13 @@ def calls(sess: Session = Depends(session_of)):
 
 
 @router.get("/example", tags=["demo"], summary="The Round 1 worked example, recomputed exactly")
-def example(commission_on: Literal["post_discount", "pre_discount"] = "post_discount"):
-    return weekly_example(Terms(commission_on=commission_on))
+def example(
+    commission_on: Literal["post_discount", "pre_discount"] = "post_discount",
+    food_cost_share: float = Query(
+        0.37, ge=0.2, le=0.6, description="Food and packaging cost, share of the menu price"
+    ),
+):
+    return weekly_example(Terms(commission_on=commission_on, food_cost_share=food_cost_share))
 
 
 @router.get("/evidence", tags=["demo"], summary="The evaluation reports behind the Evidence page")
@@ -731,9 +736,22 @@ def evidence():
     if not p.exists():
         raise ProblemError(404, "no-report", "No report", "Run `python scripts/run_pipeline.py` first.")
     out = json.loads(p.read_text(encoding="utf-8"))
-    real = ROOT / "reports/uplift_validation_criteo.json"  # check on real randomised data
-    if real.exists():
-        out["real_data_criteo"] = json.loads(real.read_text(encoding="utf-8"))
+    # the other reports the Evidence and Operations pages show, when they have been produced
+    extra = {
+        "real_data_criteo": "uplift_validation_criteo.json",  # check on real randomised data
+        "sensitivity": "sensitivity.json",
+        "learner_benchmark": "learner_benchmark.json",
+        "guardrails": "guardrails.json",
+        "drift": "drift.json",
+        "latency": "latency.json",
+    }
+    for key, name in extra.items():
+        f = ROOT / "reports" / name
+        if f.exists():
+            out[key] = json.loads(f.read_text(encoding="utf-8"))
+    exps = sorted((ROOT / "reports").glob("exp_*.json"))
+    if exps:
+        out["experiments"] = {f.stem[4:]: json.loads(f.read_text(encoding="utf-8"))["result"] for f in exps}
     return out
 
 

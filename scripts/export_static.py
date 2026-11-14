@@ -165,6 +165,10 @@ def main() -> int:
     )
     write(data / "evidence.json", c.get("/api/v1/evidence").json())
     write(data / "example.json", c.get("/api/v1/example").json())
+    for base in ("post_discount", "pre_discount"):  # the Money page's switches
+        for food in (0.30, 0.37, 0.45):
+            params = {"commission_on": base, "food_cost_share": food}
+            write(data / f"example-{base}-{round(food * 100)}.json", c.get("/api/v1/example", params=params).json())
     write(data / "config.json", c.get("/api/v1/config").json())
     workers = int(os.environ.get("TRUELIFT_EXPORT_WORKERS", "4"))
     with ProcessPoolExecutor(max_workers=max(1, min(len(rids), workers))) as pool:

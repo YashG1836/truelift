@@ -298,7 +298,9 @@ def test_health_readiness_and_metrics(client, session_headers):
 def test_security_headers(client):
     r = client.get("/")
     assert r.headers["x-content-type-options"] == "nosniff"
-    assert "frame-ancestors 'none'" in r.headers["content-security-policy"]
+    csp = r.headers["content-security-policy"]
+    assert "frame-ancestors 'none'" in csp
+    assert "https:" not in csp  # nothing from other origins: the font is bundled (works offline)
     assert "content-security-policy" not in client.get("/docs").headers  # Swagger UI loads its own assets
 
 
