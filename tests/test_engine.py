@@ -261,3 +261,22 @@ def test_serve_never_calls_the_model():
         out = eng.serve(t, c, 2, regular=False)
         assert out["degraded"] is False
     eng.serve(t, 999, 2, regular=False)  # unseen customer: the table's default, still no model call
+
+
+def test_empty_visit_tables_are_handled():
+    """A narrow design can have no eligible visit in a week: no crash, zeros (found by CI)."""
+    from truelift.model import UpliftModel
+
+    assert len(UpliftModel(None, None).p0(pd.DataFrame())) == 0  # type: ignore[arg-type]
+    eng = Engine(_FlatModel())
+    q = eng.quote(_x(0), Design(60, audience="targeted"), aov=400, baskets=np.full(5, 400.0))
+    assert q["extra_orders"] == 0 and q["profit_change"] == 0
+    m = eng.measure(
+        pd.DataFrame(columns=["shown", "holdout", "chosen", "takes", "profit", "basket", "discount"]).astype(
+            {"shown": bool, "holdout": bool, "chosen": bool, "takes": bool}
+        ),
+        400,
+        0.0,
+        0.0,
+    )
+    assert m["verdict_code"] == "wait" and m["profit"]["total"] == 0

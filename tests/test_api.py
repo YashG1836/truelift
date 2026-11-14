@@ -446,3 +446,18 @@ def test_csp_allows_every_external_resource_the_page_loads(client):
         assert origin in csp, f"{origin} is linked from index.html but blocked by the CSP"
     if "fonts.googleapis.com/css" in html:
         assert "https://fonts.gstatic.com" in csp  # the stylesheet's font files come from here
+
+
+@pytest.mark.parametrize("audience", ["all", "new_to_restaurant", "lapsed", "targeted"])
+def test_every_audience_and_slot_runs_two_weeks_without_errors(client, session_headers, audience):
+    """Narrow designs on a small market can have weeks with no eligible visit (CI found a 500 here)."""
+    import math
+
+    for offpeak in (False, True):
+        design = {**DESIGN, "audience": audience, "offpeak_only": offpeak, "min_order": 0}
+        oid = approved_offer(client, session_headers, design=design)["offer_id"]
+        for _ in range(2):
+            r = client.post(f"/api/v1/offers/{oid}/run_week", headers=session_headers)
+            assert r.status_code == 200, r.text
+        m = r.json()["weeks"][-1]["measurement"]["profit"]
+        assert all(math.isfinite(m[k]) for k in ("total", "low", "high"))

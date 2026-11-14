@@ -17,7 +17,8 @@ Template:
 - Did: M1 of Kshitish's audit plan. Pinned `uv` environment; service v1 (typed `/api/v1` hooks, RFC 9457 errors,
   per-visitor sessions, OTP expiry and attempt limit, hash-chained consent ledger, exposure log, decision-table
   serving, health/readiness/metrics); tests split by area + golden + Schemathesis fuzz; Playwright suite (static
-  and live); `tasks.py`, Makefile, Docker, pre-commit, CI with a gated deploy (D15). Fixed: CSP blocked Google Fonts.
+  and live); `tasks.py`, Makefile, Docker, pre-commit, CI with a gated deploy (D15). Fixed: CSP blocked Google Fonts;
+  `run_week` returned 500 for a narrow design with no eligible visit in a week (found by CI, smaller market).
 - Files: `truelift/*` (9 new modules), `scripts/` (run_pipeline, export_static, compare_reports), `tests/*`,
   `tests/ui/*`, `tasks.py`, `Dockerfile`, `.github/*`, `pyproject.toml`, `uv.lock`, CLAUDE.md, README (Run it).
 - Checked: 93 fast tests, golden, fuzz, ruff, pyright, pre-commit; full pipeline equals `reports/`; browser suite

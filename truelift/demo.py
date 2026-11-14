@@ -87,11 +87,12 @@ def simulate_week(state, offer) -> dict:
     state.store.log_week(offer.id, w, el, engine.model_version)
 
     rows = state.store.measurement_rows(offer.id)
+    has_rows = len(rows) > 0  # a narrow design can have no eligible visit yet
     meas = engine.measure(
         rows,
         aov,
-        float(rows["gain"].mean()),
-        float((rows["p1"] - rows["p0"]).mean()),
+        float(rows["gain"].mean()) if has_rows else 0.0,
+        float((rows["p1"] - rows["p0"]).mean()) if has_rows else 0.0,
         rows["base_profit"].to_numpy(),
         rows["p0"].to_numpy(),
     )

@@ -81,9 +81,13 @@ class UpliftModel:
         return cls(m0, m1)
 
     def p0(self, x: pd.DataFrame) -> np.ndarray:
+        if len(x) == 0:  # e.g. a narrow design with no eligible visit this week
+            return np.zeros(0)
         return self.m0.predict_proba(x[BASE_FEATURES])[:, 1]
 
     def p1(self, x: pd.DataFrame, discount, min_order) -> np.ndarray:
+        if len(x) == 0:
+            return np.zeros(0)
         d = pd.DataFrame({"offer_discount": discount, "min_order": min_order, "r_aov": x["r_aov"]}, index=x.index)
         return self.m1.predict_proba(pd.concat([x[BASE_FEATURES], design_columns(d)], axis=1))[:, 1]
 
