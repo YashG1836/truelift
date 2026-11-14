@@ -1,0 +1,24 @@
+# Same bytes on every platform: checksums of committed data (restaurants.csv, the model's
+# .sha256 sidecar) and the golden numbers must not depend on the checkout's line endings.
+* text=auto eol=lf
+
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+*.pkl binary
+*.npz binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.webp binary
+*.ico binary
+*.pdf binary
+*.pptx binary
+*.mp4 binary
+*.webm binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.otf binary
+*.zip binary
