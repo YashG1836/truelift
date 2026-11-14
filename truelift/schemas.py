@@ -281,6 +281,7 @@ class MeasuredQuantity(Schema):
     own_se: float | None
     model_per_visit: float
     weight_on_own_data: float = Field(description="0 = all from the model, 1 = all from this offer's control group")
+    prob_positive: float = Field(description="Chance the true effect is above zero")
     total: float
     low: float
     high: float
@@ -296,7 +297,9 @@ class Measurement(Schema):
     orders: MeasuredQuantity
     report_today: dict[str, float]
     verdict: str
-    verdict_code: Literal["keep", "pause", "wait"]
+    verdict_code: Literal["keep", "pause", "probably_losing", "wait", "check_failed"]
+    sample_ratio: dict[str, Any] = Field(description="Customers held out against the planned share (A04 M2)")
+    pause_check: dict[str, Any] = Field(description="Always-valid bound on the offer's own evidence (TL-017)")
 
 
 class Payout(Schema):

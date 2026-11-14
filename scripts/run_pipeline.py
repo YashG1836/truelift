@@ -35,15 +35,18 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from measurement_study import aa_summary, adaptive_holdout, coverage, detection, measure_offers  # noqa: E402
+
 from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine  # noqa: E402
-from truelift.features import skew_report  # noqa: E402
+from truelift.features import FEATURE_NAMES, skew_report  # noqa: E402
 from truelift.model import file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
 from truelift.sim import Config, Market, Policy, display_name, recent_visits, status_quo_policy  # noqa: E402
 from truelift.training import train as train_model  # noqa: E402
 
 EVAL_WEEKS = (1, 2, 3, 4)
-MEASUREMENT_VARIANTS = (("visit", "fixed"), ("customer", "fixed"), ("visit", "lin"), ("customer", "lin"))
+AA_WEEKS = tuple(range(1, 13))  # the A/A test looks 12 times: three consent periods
+MEASUREMENT_VARIANTS = (("model", "fixed"), ("model", "lin"), ("customer", "fixed"), ("visit", "fixed"))
 
 
 def log(msg: str) -> None:
@@ -90,12 +93,46 @@ def run_meta(args: argparse.Namespace, cfg: Config, started: float) -> dict:
     }
 
 
-def run_world(market: Market, hist, policy: Policy, keep_rows: bool = False) -> dict:
-    """Four evaluation weeks under one policy. Returns true expected totals (and rows if asked)."""
+KEPT = (
+    *FEATURE_NAMES,
+    "c_new_account",
+    "c_offer_share_4w",
+    "week",
+    "cust",
+    "rest",
+    "local",
+    "slot",
+    "type",
+    "regular",
+    "eligible",
+    "holdout",
+    "shown",
+    "share",
+    "takes",
+    "chosen",
+    "discount",
+    "reward",
+    "saving",
+    "basket",
+    "profit",
+    "p",
+    "p_cf",
+    "profit_cf",
+)
+
+
+def run_world(
+    market: Market, hist, policy: Policy, keep_rows: bool = False, weeks=EVAL_WEEKS, holdout_by_week=None
+) -> dict:
+    """Evaluation weeks under one policy. Returns true expected totals (and eligible rows if asked).
+
+    holdout_by_week: {week: holdout share per restaurant} for weeks that differ from the policy's.
+    """
     per_rest, swiggy, kept = [], [], []
-    for w in EVAL_WEEKS:
+    for w in weeks:
         occ = market.occasions(w)
-        res = market.run_week(occ, policy, market.flat_features(hist, occ), salt=3, truth=True)
+        pol = replace(policy, holdout=holdout_by_week[w]) if holdout_by_week and w in holdout_by_week else policy
+        res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=3, truth=True)
         p, sh = res["p"], res["shown"]
         df = pd.DataFrame(
             {
@@ -122,12 +159,8 @@ def run_world(market: Market, hist, policy: Policy, keep_rows: bool = False) -> 
         swiggy.append(pd.DataFrame({"type": res["type"][first], "p_swiggy": res["p_swiggy"][first]}))
         if keep_rows:
             m = res["eligible"]
-            kept.append(
-                pd.DataFrame(
-                    {k: (v[m] if isinstance(v, np.ndarray) and len(v) == len(m) else v) for k, v in res.items()}
-                )
-            )
-    pr = sum(per_rest) / len(EVAL_WEEKS)  # weekly averages per restaurant
+            kept.append(pd.DataFrame({k: res[k][m] for k in KEPT}))
+    pr = sum(per_rest) / len(weeks)  # weekly averages per restaurant
     sw = pd.concat(swiggy)
     out = {
         "per_rest": pr.reindex(range(market.n_rest), fill_value=0.0),
@@ -389,33 +422,39 @@ def evaluate(
         ),
     }
 
-    # measurement accuracy in the TrueLift world (cumulative after 1, 2 and 4 weeks)
+    # weekly measurement, judged against the truth (scripts/measurement_study.py)
     rows = worlds["truelift"]["rows"]
-    meas, variants = [], []
+    tl_quotes = [q[1] for q in quotes["truelift"]]
+    weekly_el = {r: q["eligible_visits"] for r, q in enumerate(tl_quotes) if q is not None}
+    meas = measure_offers(engine, rows, ds, aov, baskets, EVAL_WEEKS, weekly_el)
+    results["measurement"] = coverage(meas)
+    results["detection"] = {"truelift_offers": detection(meas)}
+    log("measurement checked against the truth")
+
+    # decision D7: which noise estimate and which regression adjustment cover the truth best
+    variants = []
     for r, g in rows.groupby("rest"):
         d = ds[r]
         if d.discount <= 0:
             continue
+        g = g.sort_values("week", kind="stable").reset_index(drop=True)
+        v = engine.design_values(g, d, aov[r], baskets[r])
         for upto in (1, 2, 4):
-            gg = g[g["week"] <= upto]
+            m = (g["week"] <= upto).to_numpy()
+            gg = g[m]
             if gg["shown"].sum() < 10:
                 continue
-            v = engine.design_values(gg.reset_index(drop=True), d, aov[r], baskets[r])
-            m = engine.measure(
-                gg, aov[r], float(v["gain"].mean()), float((v["p1"] - v["p0"]).mean()), v["p0"] * v["profit0"], v["p0"]
-            )
             sh = gg["shown"].to_numpy()
             true_total = float((gg["p"] * gg["profit"] - gg["p_cf"] * gg["profit_cf"]).to_numpy()[sh].sum())
             true_orders = float((gg["p"] - gg["p_cf"]).to_numpy()[sh].sum())
-            # decision D7: which noise estimate and which regression adjustment cover the truth best
             for var, adj in MEASUREMENT_VARIANTS:
                 mv = engine.measure(
                     gg,
                     aov[r],
-                    float(v["gain"].mean()),
-                    float((v["p1"] - v["p0"]).mean()),
-                    v["p0"] * v["profit0"],
-                    v["p0"],
+                    float(v["gain"][m].mean()),
+                    float((v["p1"] - v["p0"])[m].mean()),
+                    (v["p0"] * v["profit0"])[m],
+                    v["p0"][m],
                     variance=var,
                     adjust=adj,
                 )
@@ -428,47 +467,6 @@ def evaluate(
                         "profit_width": mv["profit"]["high"] - mv["profit"]["low"],
                     }
                 )
-            p = m["profit"]
-            meas.append(
-                {
-                    "rest": r,
-                    "weeks": upto,
-                    "true_profit": true_total,
-                    "est_profit": p["total"],
-                    "low": p["low"],
-                    "high": p["high"],
-                    "own_only": p["own_per_visit"] * m["shown_visits"],
-                    "model_only": p["model_per_visit"] * m["shown_visits"],
-                    "w_own": p["weight_on_own_data"],
-                    "true_orders": true_orders,
-                    "est_orders": m["orders"]["total"],
-                    "orders_low": m["orders"]["low"],
-                    "orders_high": m["orders"]["high"],
-                    "redemptions": m["report_today"]["orders_with_offer"],
-                }
-            )
-    meas = pd.DataFrame(meas)
-    acc = {}
-    for upto, g in meas.groupby("weeks"):
-        acc[f"after_{upto}_weeks"] = {
-            "offers": len(g),
-            "coverage_80": round(float(((g["true_profit"] >= g["low"]) & (g["true_profit"] <= g["high"])).mean()), 3),
-            "coverage_80_orders": round(
-                float(((g["true_orders"] >= g["orders_low"]) & (g["true_orders"] <= g["orders_high"])).mean()), 3
-            ),
-            "mae_combined": round(float((g["est_profit"] - g["true_profit"]).abs().mean())),
-            "mae_own_holdout_only": round(float((g["own_only"] - g["true_profit"]).abs().mean())),
-            "mae_model_only": round(float((g["model_only"] - g["true_profit"]).abs().mean())),
-            "mean_weight_on_own_data": round(float(g["w_own"].mean()), 3),
-            "verdict_right_sign": round(float((np.sign(g["est_profit"]) == np.sign(g["true_profit"])).mean()), 3),
-            # the decisions the owner sees: keep (range above 0), auto-pause (range below 0), wait
-            "said_keep": int((g["low"] > 0).sum()),
-            "said_keep_and_truly_positive": int(((g["low"] > 0) & (g["true_profit"] > 0)).sum()),
-            "said_pause": int((g["high"] < 0).sum()),
-            "said_pause_and_truly_negative": int(((g["high"] < 0) & (g["true_profit"] < 0)).sum()),
-            "said_wait": int(((g["low"] <= 0) & (g["high"] >= 0)).sum()),
-        }
-    results["measurement"] = acc
     vt = pd.DataFrame(variants)
     cover = {
         name: {
@@ -492,6 +490,59 @@ def evaluate(
         "coverage": cover,
         "closest_to_nominal": min(gap, key=gap.get),
         "in_use": f"{engine.variance}+{engine.adjust}",
+    }
+
+    # A/A test: TrueLift's offers as placebos for twelve weekly looks (A04 M2, TL-017)
+    aa = run_world(market, hist, replace(pols["truelift"], placebo=True, name="A/A"), keep_rows=True, weeks=AA_WEEKS)
+    results["aa_test"] = aa_summary(
+        measure_offers(engine, aa["rows"], ds, aov, baskets, AA_WEEKS, weekly_el, placebo=True)
+    )
+    del aa
+    log("A/A test done")
+
+    # owners' blanket offers measured with a control group: fixed 10%, and 30% in weeks 1-2 when
+    # the forecast range includes zero (TL-009, A04 M3)
+    bl_designs = [Design(float(depth[r])) for r in range(n)]
+    bl_quotes = [q[0] for q in quotes["truelift"]]
+    weekly_bl = {r: q["eligible_visits"] for r, q in enumerate(bl_quotes) if q is not None}
+    blanket_measured = replace(blanket, holdout=0.10, name="today: blanket, measured")
+    world = run_world(market, hist, blanket_measured, keep_rows=True)
+    bl_records = measure_offers(engine, world["rows"], bl_designs, aov, baskets, EVAL_WEEKS, weekly_bl)
+    early_bl = adaptive_holdout(bl_quotes)
+    world = run_world(market, hist, blanket_measured, keep_rows=True, holdout_by_week={1: early_bl, 2: early_bl})
+    ba_records = measure_offers(engine, world["rows"], bl_designs, aov, baskets, EVAL_WEEKS, weekly_bl)
+    early_tl = adaptive_holdout(tl_quotes)
+    world_ta = run_world(market, hist, pols["truelift"], keep_rows=True, holdout_by_week={1: early_tl, 2: early_tl})
+    ta_records = measure_offers(engine, world_ta["rows"], ds, aov, baskets, EVAL_WEEKS, weekly_el)
+    del world
+    results["detection"].update(
+        {
+            "blanket_fixed_holdout": detection(bl_records),
+            "blanket_adaptive_holdout": detection(ba_records),
+            "truelift_adaptive_holdout": detection(ta_records),
+            "adaptive_rule": "30% control group in weeks 1-2 when the forecast range includes zero, then 10%",
+            "blanket_offers_with_early_30pct": int((early_bl > 0.1).sum()),
+            "truelift_offers_with_early_30pct": int((early_tl > 0.1).sum()),
+            # what the larger early control group costs TrueLift's owners (true own-offer profit a week)
+            "truelift_own_offer_profit_fixed": round(float(worlds["truelift"]["per_rest"]["lift_profit"].sum())),
+            "truelift_own_offer_profit_adaptive": round(float(world_ta["per_rest"]["lift_profit"].sum())),
+        }
+    )
+    del world_ta
+    log("detection of losing offers checked")
+
+    # measure-only (A01 I2): today's blanket offers, measured; offers paused or flagged as probably
+    # losing by week 4 stop at renewal. Shown on the same customer visits as the other policies.
+    stopped = bl_records.loc[
+        (bl_records["weeks"] == EVAL_WEEKS[-1]) & bl_records["verdict"].isin(["pause", "probably_losing"]), "rest"
+    ].to_numpy()
+    mo_pol = replace(blanket_measured, discount=np.where(np.isin(np.arange(n), stopped), 0.0, blanket.discount))
+    mo_pol.name = "measure only: losing offers stop at renewal"
+    worlds["measure_only"] = run_world(market, hist, mo_pol)
+    results["policies"]["measure_only"] = {
+        "name": mo_pol.name,
+        **summarise(worlds["measure_only"], base),
+        "offers_stopped_at_renewal": int(len(stopped)),
     }
 
     # uplift ranking quality on the evaluation weeks (sampled outcomes, random holdout)

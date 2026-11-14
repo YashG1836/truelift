@@ -88,6 +88,7 @@ def simulate_week(state, offer) -> dict:
 
     rows = state.store.measurement_rows(offer.id)
     has_rows = len(rows) > 0  # a narrow design can have no eligible visit yet
+    weekly_eligible = float(offer.quote["eligible_visits"])
     meas = engine.measure(
         rows,
         aov,
@@ -95,6 +96,8 @@ def simulate_week(state, offer) -> dict:
         float((rows["p1"] - rows["p0"]).mean()) if has_rows else 0.0,
         rows["base_profit"].to_numpy(),
         rows["p0"].to_numpy(),
+        sigma=engine.sigma_for(d, weekly_eligible, aov),
+        planned_shown_visits=weekly_eligible * state.settings.consent_weeks * (1 - engine.holdout),
     )
     sh = el["shown"].to_numpy()
     week_truth = {

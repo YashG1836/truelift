@@ -162,6 +162,8 @@ class State:
         )
         self.engine.model_version = str(art.get("version") or "unversioned")
         self.engine.gain_scale = tuple(art.get("gain_scale", (1.0, 1.0)))
+        noise = art.get("noise_scale")
+        self.engine.noise_scale = tuple(noise) if noise else None
         visits = recent_visits(self.market, self.hist)
         self.visits = dict(tuple(visits.groupby("rest")))
         ids = {int(x) for x in self.R["restaurant_id"]}

@@ -318,8 +318,9 @@ function liveHTML() {
   ${off.weeks.length && canRun ? `<button class="btn ghost" data-act="stop">Stop offer</button>` : ""}`;
 }
 
-const verdictTag = (w) => ({ keep: "good", pause: "bad" }[w.measurement.verdict_code] || "");
-const shortVerdict = (w) => ({ keep: "Making money", pause: "Losing money" }[w.measurement.verdict_code] || "Too early");
+const verdictTag = (w) => ({ keep: "good", pause: "bad", probably_losing: "warn" }[w.measurement.verdict_code] || "");
+const shortVerdict = (w) => ({ keep: "Making money", pause: "Losing money", probably_losing: "Probably losing",
+  check_failed: "Check failed" }[w.measurement.verdict_code] || "Too early");
 
 function weekHTML(w, off) {
   const m = w.measurement, p = m.profit, o = m.orders, r = m.report_today, pay = w.payout;

@@ -1,10 +1,10 @@
 {
   "meta": {
-    "commit": "f50a056e60eb93b47031d98f07e786125fc1d00d",
+    "commit": "1c70241bf4c8f7085fa52d21c4cc98e14b0e4010",
     "uncommitted_changes": true,
-    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q8 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q8/model.pkl",
-    "started_utc": "2026-11-14T04:09:02Z",
-    "wall_seconds": 48,
+    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q10 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q10/model.pkl",
+    "started_utc": "2026-11-14T11:40:57Z",
+    "wall_seconds": 62,
     "python": "3.12.10",
     "libraries": {
       "python": "3.12.10",
@@ -164,264 +164,670 @@
       },
       "truelift": {
         "name": "TrueLift",
-        "orders_per_week": 8188,
-        "extra_orders_vs_no_offer": 1801,
-        "restaurant_profit": 1175112,
-        "restaurant_profit_change": 194443,
-        "zomato_commission": 996659,
-        "zomato_commission_change": 264816,
-        "zomato_contribution_change": 90038,
+        "orders_per_week": 8181,
+        "extra_orders_vs_no_offer": 1794,
+        "restaurant_profit": 1175828,
+        "restaurant_profit_change": 195159,
+        "zomato_commission": 996692,
+        "zomato_commission_change": 264850,
+        "zomato_contribution_change": 90049,
         "zomato_funded_discount": 0,
-        "customer_savings": 433543,
+        "customer_savings": 431729,
         "savings_per_extra_order": 241,
-        "redemptions": 4488,
-        "anyway_share_of_redemptions": 0.426,
+        "redemptions": 4439,
+        "anyway_share_of_redemptions": 0.422,
         "order_value": 540,
-        "restaurants_with_offer": 190,
-        "own_offer_profit_effect": 319848,
-        "own_offer_extra_orders": 2576,
-        "offers_that_pay": 172,
-        "offers_that_lose": 18,
-        "platform_extra_orders": 1325,
-        "restaurants_better_off_vs_no_offers": 89,
-        "restaurants_worse_off_vs_no_offers": 211,
-        "swiggy_share_of_occasions": 0.181,
+        "restaurants_with_offer": 174,
+        "own_offer_profit_effect": 319997,
+        "own_offer_extra_orders": 2565,
+        "offers_that_pay": 164,
+        "offers_that_lose": 10,
+        "platform_extra_orders": 1322,
+        "restaurants_better_off_vs_no_offers": 88,
+        "restaurants_worse_off_vs_no_offers": 212,
+        "swiggy_share_of_occasions": 0.1813,
         "swiggy_share_loyal": 0.0873
       },
       "zomato_cofund_naive": {
         "name": "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured",
-        "orders_per_week": 8189,
-        "extra_orders_vs_no_offer": 1802,
-        "restaurant_profit": 1197917,
-        "restaurant_profit_change": 217247,
-        "zomato_commission": 996661,
-        "zomato_commission_change": 264818,
-        "zomato_contribution_change": 67139,
-        "zomato_funded_discount": 22899,
-        "customer_savings": 433806,
+        "orders_per_week": 8181,
+        "extra_orders_vs_no_offer": 1794,
+        "restaurant_profit": 1198500,
+        "restaurant_profit_change": 217830,
+        "zomato_commission": 996699,
+        "zomato_commission_change": 264856,
+        "zomato_contribution_change": 67332,
+        "zomato_funded_discount": 22719,
+        "customer_savings": 431881,
         "savings_per_extra_order": 241,
-        "redemptions": 4495,
-        "anyway_share_of_redemptions": 0.427,
+        "redemptions": 4443,
+        "anyway_share_of_redemptions": 0.422,
         "order_value": 540,
-        "restaurants_with_offer": 190,
-        "own_offer_profit_effect": 342710,
-        "own_offer_extra_orders": 2577,
-        "offers_that_pay": 180,
-        "offers_that_lose": 10,
-        "platform_extra_orders": 1326,
-        "restaurants_better_off_vs_no_offers": 98,
-        "restaurants_worse_off_vs_no_offers": 201,
-        "swiggy_share_of_occasions": 0.181,
+        "restaurants_with_offer": 174,
+        "own_offer_profit_effect": 342706,
+        "own_offer_extra_orders": 2566,
+        "offers_that_pay": 168,
+        "offers_that_lose": 6,
+        "platform_extra_orders": 1322,
+        "restaurants_better_off_vs_no_offers": 97,
+        "restaurants_worse_off_vs_no_offers": 202,
+        "swiggy_share_of_occasions": 0.1813,
         "swiggy_share_loyal": 0.0873
+      },
+      "measure_only": {
+        "name": "measure only: losing offers stop at renewal",
+        "orders_per_week": 8400,
+        "extra_orders_vs_no_offer": 2013,
+        "restaurant_profit": 1099738,
+        "restaurant_profit_change": 119069,
+        "zomato_commission": 981104,
+        "zomato_commission_change": 249261,
+        "zomato_contribution_change": 84749,
+        "zomato_funded_discount": 0,
+        "customer_savings": 580922,
+        "savings_per_extra_order": 289,
+        "redemptions": 6931,
+        "anyway_share_of_redemptions": 0.573,
+        "order_value": 536,
+        "restaurants_with_offer": 237,
+        "own_offer_profit_effect": 269871,
+        "own_offer_extra_orders": 2960,
+        "offers_that_pay": 130,
+        "offers_that_lose": 107,
+        "platform_extra_orders": 1505,
+        "restaurants_better_off_vs_no_offers": 55,
+        "restaurants_worse_off_vs_no_offers": 245,
+        "swiggy_share_of_occasions": 0.1756,
+        "swiggy_share_loyal": 0.0805,
+        "offers_stopped_at_renewal": 63
       }
     },
     "selection": {
       "rule": "mean",
-      "restaurants_with_a_different_version": 190,
-      "share_truly_better_than_owner": 0.805,
-      "forecast_advantage_total": 12262,
-      "true_advantage_total": 10597,
-      "suggested_to_owner": 190,
-      "share_of_suggestions_truly_better": 0.805,
-      "no_offer_chosen": 110
+      "restaurants_with_a_different_version": 174,
+      "share_truly_better_than_owner": 0.787,
+      "forecast_advantage_total": 11663,
+      "true_advantage_total": 8326,
+      "suggested_to_owner": 174,
+      "share_of_suggestions_truly_better": 0.787,
+      "no_offer_chosen": 126
     },
     "forecast": {
       "truelift_design_in_todays_market": {
-        "offers": 190,
-        "forecast_total": 349997,
-        "truth_total": 392764,
-        "ratio_forecast_to_truth": 0.891,
-        "mean_abs_error": 350,
+        "offers": 174,
+        "forecast_total": 344765,
+        "truth_total": 392553,
+        "ratio_forecast_to_truth": 0.878,
+        "mean_abs_error": 391,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.921,
-        "share_forecast_below_truth": 0.495,
-        "truth_from_new_accounts": 29113,
-        "ratio_to_truth_existing_customers": 0.962,
+        "sign_right": 0.948,
+        "share_forecast_below_truth": 0.552,
+        "truth_from_new_accounts": 29106,
+        "ratio_to_truth_existing_customers": 0.949,
         "coverage_80_existing_customers": 1.0
       },
       "owner_blanket_offer_in_todays_market": {
         "offers": 300,
-        "forecast_total": 340463,
+        "forecast_total": 336252,
         "truth_total": 371144,
-        "ratio_forecast_to_truth": 0.917,
-        "mean_abs_error": 371,
-        "coverage_80": 0.997,
+        "ratio_forecast_to_truth": 0.906,
+        "mean_abs_error": 378,
+        "coverage_80": 0.993,
         "misses_below_range": 0,
-        "misses_above_range": 1,
-        "sign_right": 0.603,
-        "share_forecast_below_truth": 0.197,
+        "misses_above_range": 2,
+        "sign_right": 0.607,
+        "share_forecast_below_truth": 0.2,
         "truth_from_new_accounts": 31337,
-        "ratio_to_truth_existing_customers": 1.002,
+        "ratio_to_truth_existing_customers": 0.99,
         "coverage_80_existing_customers": 1.0
       },
       "truelift_design_after_everyone_switches": {
-        "offers": 190,
-        "forecast_total": 349997,
-        "truth_total": 319848,
-        "ratio_forecast_to_truth": 1.094,
-        "mean_abs_error": 301,
+        "offers": 174,
+        "forecast_total": 344765,
+        "truth_total": 319997,
+        "ratio_forecast_to_truth": 1.077,
+        "mean_abs_error": 315,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.905,
-        "share_forecast_below_truth": 0.153,
-        "truth_from_new_accounts": 23025,
-        "ratio_to_truth_existing_customers": 1.179,
+        "sign_right": 0.943,
+        "share_forecast_below_truth": 0.172,
+        "truth_from_new_accounts": 23054,
+        "ratio_to_truth_existing_customers": 1.161,
         "coverage_80_existing_customers": 1.0
       },
       "owner_blanket_offer_after_everyone_switches": {
         "offers": 300,
-        "forecast_total": 340463,
+        "forecast_total": 336252,
         "truth_total": 279383,
-        "ratio_forecast_to_truth": 1.219,
-        "mean_abs_error": 303,
+        "ratio_forecast_to_truth": 1.204,
+        "mean_abs_error": 299,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.557,
+        "sign_right": 0.56,
         "share_forecast_below_truth": 0.057,
         "truth_from_new_accounts": 23294,
-        "ratio_to_truth_existing_customers": 1.329,
+        "ratio_to_truth_existing_customers": 1.313,
         "coverage_80_existing_customers": 1.0
       }
     },
     "truelift_designs": {
-      "no_discount": 110,
+      "no_discount": 126,
       "brand_pack": 2,
       "audience": {
-        "targeted": 190
+        "targeted": 174
       },
-      "with_min_order": 21,
+      "with_min_order": 9,
       "offpeak_only": 0,
-      "depth_share_of_aov": 0.147
+      "depth_share_of_aov": 0.146
     },
     "measurement": {
       "after_1_weeks": {
-        "offers": 190,
-        "coverage_80": 0.605,
-        "coverage_80_orders": 0.689,
-        "mae_combined": 697,
-        "mae_own_holdout_only": 1448,
-        "mae_model_only": 412,
-        "mean_weight_on_own_data": 0.517,
-        "verdict_right_sign": 0.884,
-        "said_keep": 102,
-        "said_keep_and_truly_positive": 97,
-        "said_pause": 0,
+        "offers": 173,
+        "coverage_80": 0.902,
+        "coverage_80_orders": 0.942,
+        "coverage_80_without_pooling": 0.902,
+        "mae_combined": 845,
+        "mae_without_pooling": 872,
+        "mae_own_holdout_only": 1560,
+        "mae_model_only": 384,
+        "misses_below": 4,
+        "misses_above": 13,
+        "mean_weight_on_own_data": 0.463,
+        "verdict_right_sign": 0.809,
+        "verdicts": {
+          "wait": 119,
+          "keep": 45,
+          "probably_losing": 9
+        },
+        "verdicts_rule_before": {
+          "wait": 119,
+          "keep": 49,
+          "pause": 5
+        },
+        "said_keep_and_truly_positive": 44,
         "said_pause_and_truly_negative": 0,
-        "said_wait": 88
+        "sample_ratio_flags": 0
       },
       "after_2_weeks": {
-        "offers": 190,
-        "coverage_80": 0.705,
-        "coverage_80_orders": 0.711,
-        "mae_combined": 1161,
-        "mae_own_holdout_only": 1927,
-        "mae_model_only": 798,
-        "mean_weight_on_own_data": 0.591,
-        "verdict_right_sign": 0.884,
-        "said_keep": 93,
-        "said_keep_and_truly_positive": 87,
-        "said_pause": 0,
+        "offers": 174,
+        "coverage_80": 0.851,
+        "coverage_80_orders": 0.902,
+        "coverage_80_without_pooling": 0.839,
+        "mae_combined": 1410,
+        "mae_without_pooling": 1432,
+        "mae_own_holdout_only": 2069,
+        "mae_model_only": 658,
+        "misses_below": 11,
+        "misses_above": 15,
+        "mean_weight_on_own_data": 0.619,
+        "verdict_right_sign": 0.793,
+        "verdicts": {
+          "wait": 97,
+          "keep": 67,
+          "probably_losing": 10
+        },
+        "verdicts_rule_before": {
+          "wait": 105,
+          "keep": 68,
+          "pause": 1
+        },
+        "said_keep_and_truly_positive": 66,
         "said_pause_and_truly_negative": 0,
-        "said_wait": 97
+        "sample_ratio_flags": 0
+      },
+      "after_3_weeks": {
+        "offers": 174,
+        "coverage_80": 0.822,
+        "coverage_80_orders": 0.897,
+        "coverage_80_without_pooling": 0.822,
+        "mae_combined": 1885,
+        "mae_without_pooling": 1927,
+        "mae_own_holdout_only": 2472,
+        "mae_model_only": 941,
+        "misses_below": 14,
+        "misses_above": 17,
+        "mean_weight_on_own_data": 0.705,
+        "verdict_right_sign": 0.776,
+        "verdicts": {
+          "wait": 96,
+          "keep": 69,
+          "probably_losing": 9
+        },
+        "verdicts_rule_before": {
+          "wait": 94,
+          "keep": 76,
+          "pause": 4
+        },
+        "said_keep_and_truly_positive": 68,
+        "said_pause_and_truly_negative": 0,
+        "sample_ratio_flags": 0
       },
       "after_4_weeks": {
-        "offers": 190,
-        "coverage_80": 0.826,
-        "coverage_80_orders": 0.826,
-        "mae_combined": 1911,
-        "mae_own_holdout_only": 2766,
-        "mae_model_only": 1660,
-        "mean_weight_on_own_data": 0.668,
-        "verdict_right_sign": 0.832,
-        "said_keep": 87,
-        "said_keep_and_truly_positive": 84,
-        "said_pause": 0,
+        "offers": 174,
+        "coverage_80": 0.822,
+        "coverage_80_orders": 0.891,
+        "coverage_80_without_pooling": 0.787,
+        "mae_combined": 2363,
+        "mae_without_pooling": 2408,
+        "mae_own_holdout_only": 2945,
+        "mae_model_only": 1230,
+        "misses_below": 13,
+        "misses_above": 18,
+        "mean_weight_on_own_data": 0.757,
+        "verdict_right_sign": 0.782,
+        "verdicts": {
+          "wait": 86,
+          "keep": 75,
+          "probably_losing": 13
+        },
+        "verdicts_rule_before": {
+          "wait": 89,
+          "keep": 78,
+          "pause": 7
+        },
+        "said_keep_and_truly_positive": 74,
         "said_pause_and_truly_negative": 0,
-        "said_wait": 103
+        "sample_ratio_flags": 0
       }
+    },
+    "detection": {
+      "truelift_offers": {
+        "truly_losing_offers": 10,
+        "truly_profitable_offers": 164,
+        "by_week": {
+          "week_1": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.111,
+            "losing_paused_rule_before": 0.111,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.024,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.024
+          },
+          "week_2": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.2,
+            "losing_paused_rule_before": 0.0,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.006,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.024
+          },
+          "week_3": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.1,
+            "losing_paused_rule_before": 0.0,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.024,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.043
+          },
+          "week_4": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.1,
+            "losing_paused_rule_before": 0.0,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.043,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.061
+          }
+        }
+      },
+      "blanket_fixed_holdout": {
+        "truly_losing_offers": 162,
+        "truly_profitable_offers": 138,
+        "by_week": {
+          "week_1": {
+            "losing_paused": 0.006,
+            "losing_paused_or_warned": 0.191,
+            "losing_paused_rule_before": 0.086,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.022,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.022
+          },
+          "week_2": {
+            "losing_paused": 0.012,
+            "losing_paused_or_warned": 0.284,
+            "losing_paused_rule_before": 0.13,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.022,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.043
+          },
+          "week_3": {
+            "losing_paused": 0.012,
+            "losing_paused_or_warned": 0.327,
+            "losing_paused_rule_before": 0.142,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.029,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.058
+          },
+          "week_4": {
+            "losing_paused": 0.012,
+            "losing_paused_or_warned": 0.333,
+            "losing_paused_rule_before": 0.154,
+            "profitable_paused": 0.007,
+            "profitable_paused_rule_before": 0.022,
+            "profitable_ever_paused": 0.007,
+            "profitable_ever_paused_rule_before": 0.058
+          }
+        }
+      },
+      "blanket_adaptive_holdout": {
+        "truly_losing_offers": 160,
+        "truly_profitable_offers": 140,
+        "by_week": {
+          "week_1": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.281,
+            "losing_paused_rule_before": 0.138,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.029,
+            "profitable_ever_paused": 0.0,
+            "profitable_ever_paused_rule_before": 0.029
+          },
+          "week_2": {
+            "losing_paused": 0.006,
+            "losing_paused_or_warned": 0.356,
+            "losing_paused_rule_before": 0.225,
+            "profitable_paused": 0.007,
+            "profitable_paused_rule_before": 0.043,
+            "profitable_ever_paused": 0.007,
+            "profitable_ever_paused_rule_before": 0.064
+          },
+          "week_3": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.356,
+            "losing_paused_rule_before": 0.181,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.021,
+            "profitable_ever_paused": 0.007,
+            "profitable_ever_paused_rule_before": 0.079
+          },
+          "week_4": {
+            "losing_paused": 0.013,
+            "losing_paused_or_warned": 0.338,
+            "losing_paused_rule_before": 0.169,
+            "profitable_paused": 0.007,
+            "profitable_paused_rule_before": 0.036,
+            "profitable_ever_paused": 0.014,
+            "profitable_ever_paused_rule_before": 0.107
+          }
+        }
+      },
+      "truelift_adaptive_holdout": {
+        "truly_losing_offers": 10,
+        "truly_profitable_offers": 164,
+        "by_week": {
+          "week_1": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.3,
+            "losing_paused_rule_before": 0.2,
+            "profitable_paused": 0.006,
+            "profitable_paused_rule_before": 0.037,
+            "profitable_ever_paused": 0.006,
+            "profitable_ever_paused_rule_before": 0.037
+          },
+          "week_2": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.2,
+            "losing_paused_rule_before": 0.1,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.03,
+            "profitable_ever_paused": 0.006,
+            "profitable_ever_paused_rule_before": 0.055
+          },
+          "week_3": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.2,
+            "losing_paused_rule_before": 0.0,
+            "profitable_paused": 0.006,
+            "profitable_paused_rule_before": 0.03,
+            "profitable_ever_paused": 0.012,
+            "profitable_ever_paused_rule_before": 0.079
+          },
+          "week_4": {
+            "losing_paused": 0.0,
+            "losing_paused_or_warned": 0.0,
+            "losing_paused_rule_before": 0.0,
+            "profitable_paused": 0.0,
+            "profitable_paused_rule_before": 0.037,
+            "profitable_ever_paused": 0.012,
+            "profitable_ever_paused_rule_before": 0.098
+          }
+        }
+      },
+      "adaptive_rule": "30% control group in weeks 1-2 when the forecast range includes zero, then 10%",
+      "blanket_offers_with_early_30pct": 276,
+      "truelift_offers_with_early_30pct": 153,
+      "truelift_own_offer_profit_fixed": 319997,
+      "truelift_own_offer_profit_adaptive": 314051
     },
     "measurement_variants": {
       "rule": "the variant whose 80% coverage is closest to 80% at weeks 1, 2 and 4, profit and orders (D7)",
       "coverage": {
         "customer+fixed": {
           "after_1_weeks": {
-            "coverage_80_profit": 0.605,
-            "coverage_80_orders": 0.689,
-            "mean_width_profit": 2320
+            "coverage_80_profit": 1.0,
+            "coverage_80_orders": 0.994,
+            "mean_width_profit": 4908
           },
           "after_2_weeks": {
-            "coverage_80_profit": 0.705,
-            "coverage_80_orders": 0.711,
-            "mean_width_profit": 4174
+            "coverage_80_profit": 0.994,
+            "coverage_80_orders": 0.994,
+            "mean_width_profit": 8196
           },
           "after_4_weeks": {
-            "coverage_80_profit": 0.826,
-            "coverage_80_orders": 0.826,
-            "mean_width_profit": 7180
+            "coverage_80_profit": 0.977,
+            "coverage_80_orders": 0.989,
+            "mean_width_profit": 12220
           }
         },
-        "customer+lin": {
+        "model+fixed": {
           "after_1_weeks": {
-            "coverage_80_profit": 0.568,
-            "coverage_80_orders": 0.653,
-            "mean_width_profit": 2239
+            "coverage_80_profit": 0.885,
+            "coverage_80_orders": 0.954,
+            "mean_width_profit": 2999
           },
           "after_2_weeks": {
-            "coverage_80_profit": 0.663,
-            "coverage_80_orders": 0.658,
-            "mean_width_profit": 4088
+            "coverage_80_profit": 0.81,
+            "coverage_80_orders": 0.897,
+            "mean_width_profit": 4702
           },
           "after_4_weeks": {
-            "coverage_80_profit": 0.763,
-            "coverage_80_orders": 0.747,
-            "mean_width_profit": 7017
+            "coverage_80_profit": 0.764,
+            "coverage_80_orders": 0.874,
+            "mean_width_profit": 7153
+          }
+        },
+        "model+lin": {
+          "after_1_weeks": {
+            "coverage_80_profit": 0.833,
+            "coverage_80_orders": 0.914,
+            "mean_width_profit": 2999
+          },
+          "after_2_weeks": {
+            "coverage_80_profit": 0.782,
+            "coverage_80_orders": 0.851,
+            "mean_width_profit": 4702
+          },
+          "after_4_weeks": {
+            "coverage_80_profit": 0.73,
+            "coverage_80_orders": 0.828,
+            "mean_width_profit": 7153
           }
         },
         "visit+fixed": {
           "after_1_weeks": {
-            "coverage_80_profit": 0.605,
-            "coverage_80_orders": 0.679,
-            "mean_width_profit": 2308
+            "coverage_80_profit": 1.0,
+            "coverage_80_orders": 0.994,
+            "mean_width_profit": 4882
           },
           "after_2_weeks": {
-            "coverage_80_profit": 0.689,
-            "coverage_80_orders": 0.705,
-            "mean_width_profit": 4081
+            "coverage_80_profit": 1.0,
+            "coverage_80_orders": 0.994,
+            "mean_width_profit": 8088
           },
           "after_4_weeks": {
-            "coverage_80_profit": 0.821,
-            "coverage_80_orders": 0.805,
-            "mean_width_profit": 6852
-          }
-        },
-        "visit+lin": {
-          "after_1_weeks": {
-            "coverage_80_profit": 0.584,
-            "coverage_80_orders": 0.658,
-            "mean_width_profit": 2262
-          },
-          "after_2_weeks": {
-            "coverage_80_profit": 0.668,
-            "coverage_80_orders": 0.668,
-            "mean_width_profit": 4033
-          },
-          "after_4_weeks": {
-            "coverage_80_profit": 0.774,
-            "coverage_80_orders": 0.737,
-            "mean_width_profit": 6811
+            "coverage_80_profit": 0.96,
+            "coverage_80_orders": 0.971,
+            "mean_width_profit": 11800
           }
         }
       },
-      "closest_to_nominal": "customer+fixed",
-      "in_use": "customer+fixed"
+      "closest_to_nominal": "model+lin",
+      "in_use": "model+fixed"
+    },
+    "aa_test": {
+      "offers": 174,
+      "by_week": {
+        "week_1": {
+          "covers_zero": 0.879,
+          "own_estimate_mean_per_offer": -43.6,
+          "said_keep": 0.04,
+          "said_probably_losing": 0.168,
+          "said_pause": 0.006,
+          "said_pause_rule_before": 0.081,
+          "ever_paused": 0.006,
+          "ever_said_keep": 0.04,
+          "sample_ratio_flags": 0
+        },
+        "week_2": {
+          "covers_zero": 0.81,
+          "own_estimate_mean_per_offer": 18.8,
+          "said_keep": 0.092,
+          "said_probably_losing": 0.195,
+          "said_pause": 0.011,
+          "said_pause_rule_before": 0.098,
+          "ever_paused": 0.017,
+          "ever_said_keep": 0.098,
+          "sample_ratio_flags": 0
+        },
+        "week_3": {
+          "covers_zero": 0.793,
+          "own_estimate_mean_per_offer": -5.2,
+          "said_keep": 0.08,
+          "said_probably_losing": 0.23,
+          "said_pause": 0.0,
+          "said_pause_rule_before": 0.126,
+          "ever_paused": 0.017,
+          "ever_said_keep": 0.138,
+          "sample_ratio_flags": 0
+        },
+        "week_4": {
+          "covers_zero": 0.759,
+          "own_estimate_mean_per_offer": 76.2,
+          "said_keep": 0.103,
+          "said_probably_losing": 0.247,
+          "said_pause": 0.0,
+          "said_pause_rule_before": 0.138,
+          "ever_paused": 0.017,
+          "ever_said_keep": 0.161,
+          "sample_ratio_flags": 0
+        },
+        "week_5": {
+          "covers_zero": 0.73,
+          "own_estimate_mean_per_offer": -351.1,
+          "said_keep": 0.103,
+          "said_probably_losing": 0.224,
+          "said_pause": 0.006,
+          "said_pause_rule_before": 0.167,
+          "ever_paused": 0.023,
+          "ever_said_keep": 0.167,
+          "sample_ratio_flags": 0
+        },
+        "week_6": {
+          "covers_zero": 0.695,
+          "own_estimate_mean_per_offer": -294.7,
+          "said_keep": 0.138,
+          "said_probably_losing": 0.27,
+          "said_pause": 0.017,
+          "said_pause_rule_before": 0.167,
+          "ever_paused": 0.04,
+          "ever_said_keep": 0.213,
+          "sample_ratio_flags": 0
+        },
+        "week_7": {
+          "covers_zero": 0.649,
+          "own_estimate_mean_per_offer": -100.8,
+          "said_keep": 0.167,
+          "said_probably_losing": 0.23,
+          "said_pause": 0.006,
+          "said_pause_rule_before": 0.184,
+          "ever_paused": 0.046,
+          "ever_said_keep": 0.247,
+          "sample_ratio_flags": 0
+        },
+        "week_8": {
+          "covers_zero": 0.69,
+          "own_estimate_mean_per_offer": -53.9,
+          "said_keep": 0.161,
+          "said_probably_losing": 0.224,
+          "said_pause": 0.011,
+          "said_pause_rule_before": 0.149,
+          "ever_paused": 0.057,
+          "ever_said_keep": 0.259,
+          "sample_ratio_flags": 0
+        },
+        "week_9": {
+          "covers_zero": 0.684,
+          "own_estimate_mean_per_offer": -57.1,
+          "said_keep": 0.155,
+          "said_probably_losing": 0.23,
+          "said_pause": 0.011,
+          "said_pause_rule_before": 0.161,
+          "ever_paused": 0.063,
+          "ever_said_keep": 0.259,
+          "sample_ratio_flags": 0
+        },
+        "week_10": {
+          "covers_zero": 0.667,
+          "own_estimate_mean_per_offer": 180.3,
+          "said_keep": 0.155,
+          "said_probably_losing": 0.23,
+          "said_pause": 0.017,
+          "said_pause_rule_before": 0.178,
+          "ever_paused": 0.063,
+          "ever_said_keep": 0.287,
+          "sample_ratio_flags": 0
+        },
+        "week_11": {
+          "covers_zero": 0.672,
+          "own_estimate_mean_per_offer": 111.2,
+          "said_keep": 0.155,
+          "said_probably_losing": 0.241,
+          "said_pause": 0.011,
+          "said_pause_rule_before": 0.172,
+          "ever_paused": 0.063,
+          "ever_said_keep": 0.299,
+          "sample_ratio_flags": 0
+        },
+        "week_12": {
+          "covers_zero": 0.655,
+          "own_estimate_mean_per_offer": 68.6,
+          "said_keep": 0.161,
+          "said_probably_losing": 0.241,
+          "said_pause": 0.017,
+          "said_pause_rule_before": 0.184,
+          "ever_paused": 0.069,
+          "ever_said_keep": 0.299,
+          "sample_ratio_flags": 0
+        }
+      },
+      "lifetime_false_pause_4_looks": 0.017,
+      "lifetime_false_pause_12_looks": 0.069,
+      "lifetime_false_pause_4_looks_rule_before": 0.247,
+      "lifetime_false_pause_12_looks_rule_before": 0.356
     },
     "uplift_quality": {
-      "qini_model": 0.236,
-      "corr_with_true_uplift": 0.61
+      "qini_model": 0.224,
+      "corr_with_true_uplift": 0.606
     },
     "demo_restaurant": {
       "restaurant_id": 57,
@@ -434,11 +840,11 @@
       "blanket_extra_orders": 31.6,
       "truelift_profit_change": 378.0,
       "truelift_design": "\u20b960 off only for customers it brings in",
-      "truelift_forecast": 1641,
-      "truelift_forecast_low": -2124,
-      "truelift_forecast_high": 5406,
+      "truelift_forecast": 1622,
+      "truelift_forecast_low": -2692,
+      "truelift_forecast_high": 5935,
       "truelift_truth_todays_market": 1727.0,
-      "owner_forecast": 1358,
+      "owner_forecast": 1339,
       "owner_truth_todays_market": 601.0
     },
     "blanket_restaurants_losing": 247,
@@ -449,8 +855,8 @@
         0.55
       ],
       "topup_value_simulator_truth": 0.5,
-      "sigma_profit_share_of_aov": 0.0087,
-      "sigma_orders_per_visit": 0.03191,
+      "sigma_profit_share_of_aov": 0.0116,
+      "sigma_orders_per_visit": 0.03071,
       "shadow_offers": 759
     }
   }

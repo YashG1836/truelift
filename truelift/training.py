@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .engine import Design, Engine, effect_and_se, fit_topup_value
+from .engine import Design, Engine, effect_and_se, expected_variance, fit_topup_value
 from .model import UpliftModel
 from .sim import History, Market, build_history, restaurant_baskets
 
@@ -37,6 +37,8 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
         v = engine.design_values(g, d, aov[r], baskets[r])
         yp = g["chosen"].to_numpy() * g["profit"].to_numpy()
         yo = g["chosen"].to_numpy().astype(float)
+        noise_o = v["p0"] * (1 - v["p0"])
+        noise_p = noise_o * v["profit0"] ** 2
         # the whole offer, the visits a targeted version would show and those it would skip
         # (selection is on features only, so shown vs held-out stays random inside each)
         subsets = (("all", np.ones(len(g), bool)), ("targeted", v["gain"] > 0), ("excluded", v["gain"] <= 0))
@@ -46,10 +48,26 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
                 continue
 
             # the same estimator and noise as the weekly measurement (customer-level, audit TL-029)
-            own_p, se_p = effect_and_se(yp, tt, cc, cust, by_customer=engine.variance == "customer")
-            own_o, se_o = effect_and_se(yo, tt, cc, cust, by_customer=engine.variance == "customer")
-            if not (math.isfinite(se_p) and math.isfinite(se_o)):
+            # every offer counts here, however few orders it has (its noise averages out across
+            # offers); two random halves of its customers give the material for split-half noise
+            # the weekly measurement's own estimator: regression-adjusted by each visit's
+            # predicted no-offer outcome, in the engine's adjustment mode
+            base_p, base_o, how = v["p0"] * v["profit0"], v["p0"], engine.adjust
+            own_p, _ = effect_and_se(yp, tt, cc, cust, base_p, adjust=how, min_events=0)
+            own_o, _ = effect_and_se(yo, tt, cc, cust, base_o, adjust=how, min_events=0)
+            half = (cust % 2) == 0
+            halves = [
+                (
+                    effect_and_se(yp, tt & h, cc & h, cust, base_p, adjust=how, min_events=0)[0],
+                    effect_and_se(yo, tt & h, cc & h, cust, base_o, adjust=how, min_events=0)[0],
+                )
+                for h in (half, ~half)
+            ]
+            ev_p, ev_o = expected_variance(noise_p, tt, cc), expected_variance(noise_o, tt, cc)
+            if not (math.isfinite(ev_p) and math.isfinite(ev_o)):
                 continue
+            scale = engine.noise_scale or (1.0, 1.0)
+            se_p, se_o = math.sqrt(scale[0] * ev_p), math.sqrt(scale[1] * ev_o)
             out.append(
                 {
                     "rest": r,
@@ -57,15 +75,39 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
                     "aov": aov[r],
                     "subset": subset,
                     "visits": int(tt.sum()),
+                    "control_visits": int(cc.sum()),
                     "own_profit": own_p,
                     "se_profit": se_p,
                     "prior_profit": float(v["gain"][keep].mean()),
                     "own_orders": own_o,
                     "se_orders": se_o,
+                    "expected_var_profit": ev_p,
+                    "expected_var_orders": ev_o,
+                    "half_diff_profit": halves[0][0] - halves[1][0],
+                    "half_diff_orders": halves[0][1] - halves[1][1],
                     "prior_orders": float((v["p1"] - v["p0"])[keep].mean()),
                 }
             )
     return pd.DataFrame(out)
+
+
+def noise_scale(offers: pd.DataFrame) -> tuple[float, float]:
+    """How much real noise an offer's estimate has, per unit of the model's expected variance.
+
+    Each shadow offer's customers are split into two random halves (by customer, so one customer's
+    visits stay together) and the effect is estimated in each. The two halves differ only by noise,
+    so the squared difference over four estimates the variance of the full estimate, clustering of
+    a customer's visits included, without trusting any one offer's tiny control group. Summed over
+    offers and divided by the model's expected variance, it gives one factor per outcome.
+    """
+    g = offers[offers["subset"] == "all"]
+    out = []
+    for diff, ev in (("half_diff_profit", "expected_var_profit"), ("half_diff_orders", "expected_var_orders")):
+        ok = np.isfinite(g[diff]) & np.isfinite(g[ev]) & (g[ev] > 0)
+        real = float((g.loc[ok, diff] ** 2).sum() / 4)
+        model = float(g.loc[ok, ev].sum())
+        out.append(real / model if model > 0 and ok.sum() >= 20 else 1.0)
+    return out[0], out[1]
 
 
 def gain_calibration(offers: pd.DataFrame) -> tuple[float, float]:
@@ -148,6 +190,7 @@ class Trained:
             "sigma_orders": e.sigma_orders,
             "topup_value": e.topup_value,
             "gain_scale": list(e.gain_scale),
+            "noise_scale": list(e.noise_scale) if e.noise_scale else None,
             "config": asdict(self.market.cfg),
             "terms": asdict(self.market.terms),
             "demo_restaurant": int(demo_restaurant),
@@ -179,19 +222,21 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     fold = rows["rest"] % 2
     fold_models = [UpliftModel.fit(rows[fold != f], seed=f) for f in (0, 1)]
 
-    def checks(scale: tuple[float, float]) -> pd.DataFrame:
+    def checks(scale: tuple[float, float], noise: tuple[float, float] | None) -> pd.DataFrame:
         parts = []
         for f in (0, 1):
             e = Engine(fold_models[f], topup_value=topup)
-            e.gain_scale = scale
+            e.gain_scale, e.noise_scale = scale, noise
             parts.append(shadow_offers(rows[fold == f], e, baskets, aov))
         return pd.concat(parts, ignore_index=True)
 
-    scale = gain_calibration(checks((1.0, 1.0)))
+    first = checks((1.0, 1.0), None)
+    scale, noise = gain_calibration(first), noise_scale(first)
     log(f"predicted gains scaled by {scale[0]:.2f} above zero and {scale[1]:.2f} below (shadow-phase holdouts)")
-    offers = checks(scale)  # the error left after that calibration sets the ranges
+    log(f"real noise of an offer's estimate: {noise[0]:.2f} (profit) and {noise[1]:.2f} (orders) x the model's")
+    offers = checks(scale, noise)  # the error left after that calibration sets the ranges
     engine = Engine(model, topup_value=topup)
-    engine.gain_scale = scale
+    engine.gain_scale, engine.noise_scale = scale, noise
     sig = engine.calibrate(offers[offers["subset"] != "excluded"])
     log(
         f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "

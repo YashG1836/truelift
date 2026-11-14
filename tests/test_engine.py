@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import math
+
 import numpy as np
 import pandas as pd
 import pytest
@@ -354,3 +356,131 @@ def test_gain_calibration_scales_each_side_and_keeps_signs():
     v = eng.row_values(_x(4), 60.0, 0.0, 0.0, 0.0, (1.0, 400.0, 400.0, 400.0))
     raw = Engine(_FlatModel()).row_values(_x(4), 60.0, 0.0, 0.0, 0.0, (1.0, 400.0, 400.0, 400.0))
     assert np.array_equal(np.sign(v["gain"]), np.sign(raw["gain"]))
+
+
+def _rows(n, rng, effect=0.0, share=0.10, customers=None):
+    cust = rng.integers(0, customers or n, n)
+    from truelift.assignment import stable_uniform
+
+    hold = stable_uniform(cust, np.full(n, 7), 2) < share
+    p = np.where(hold, 0.10, 0.10 + effect)
+    chosen = rng.random(n) < p
+    return pd.DataFrame(
+        {
+            "cust": cust,
+            "shown": ~hold,
+            "holdout": hold,
+            "chosen": chosen,
+            "takes": ~hold & chosen,
+            "profit": np.full(n, 100.0),
+            "basket": 400.0,
+            "discount": np.where(hold, 0.0, 40.0),
+        }
+    )
+
+
+def test_zero_order_control_group_does_not_look_certain():
+    """A/A finding: a control group with no orders must not make a noisy difference look certain."""
+    from truelift.engine import effect_and_se
+
+    y = np.r_[np.full(50, 0.0), np.where(np.arange(450) % 10 == 0, 100.0, 0.0)]
+    held = np.r_[np.ones(50, bool), np.zeros(450, bool)]
+    cust = np.arange(500)
+    noise = np.full(500, 0.1 * 0.9 * 100.0**2)
+    _, se_sample = effect_and_se(y, ~held, held, cust, min_events=0)
+    _, se_model = effect_and_se(y, ~held, held, cust, noise=noise, noise_scale=1.0)
+    assert se_model > 2 * se_sample  # the sample variance of a group with no orders is zero
+    assert effect_and_se(y, ~held, held, cust)[1] == float("inf")  # without the model: too few orders
+
+
+def test_confidence_sequence_is_wider_than_a_fixed_interval_and_never_shrinks_below_it():
+    from truelift.engine import cs_halfwidth, cs_rho
+
+    rho = cs_rho(1.0, 1000)
+    for n in (10, 100, 1000, 10000):
+        se = 30.0 / math.sqrt(n)
+        assert cs_halfwidth(se, n, rho) > 1.96 * se  # wider than a one-look 95% bound, at every n
+    assert cs_halfwidth(float("inf"), 100, rho) == float("inf")
+
+
+def test_sample_ratio_check_flags_a_broken_split():
+    from truelift.engine import sample_ratio
+
+    rng = np.random.default_rng(1)
+    good = _rows(20000, rng)
+    assert sample_ratio(good, 0.10)["ok"]
+    broken = good.copy()
+    broken.loc[broken.index[:4000], "holdout"] = True  # a logging fault adds controls
+    broken["shown"] = ~broken["holdout"]
+    assert not sample_ratio(broken, 0.10)["ok"]
+
+
+def test_stratified_effect_compares_within_each_holdout_period():
+    """Periods with different holdout shares are compared separately, then combined."""
+    from truelift.engine import stratified_effect
+
+    rng = np.random.default_rng(2)
+    a = _rows(30000, rng, effect=0.05, share=0.30)
+    b = _rows(30000, rng, effect=0.05, share=0.10)
+    rows = pd.concat([a.assign(share=0.3, profit=200.0), b.assign(share=0.1)], ignore_index=True)
+    y = rows["chosen"].to_numpy() * 1.0
+    est, se = stratified_effect(
+        y,
+        rows["shown"].to_numpy(),
+        rows["holdout"].to_numpy(),
+        rows["cust"].to_numpy(),
+        None,
+        rows["share"].to_numpy(),
+        adjust="fixed",
+    )
+    assert est == pytest.approx(0.05, abs=3 * se)
+
+
+def test_pause_needs_its_own_evidence_and_a_real_control_group():
+    """TL-017: a strongly losing offer is paused; a tiny control group never pauses anything."""
+    rng = np.random.default_rng(3)
+    eng = Engine(_FlatModel(), sigma_rel=1.0, sigma_orders=1.0)
+    big = _rows(40000, rng, effect=-0.05, customers=20000)
+    big["profit"] = np.where(big["holdout"], 134.0, 40.0)
+    m = eng.measure(big, 400, -5.0, 0.0)
+    assert m["verdict_code"] == "pause" and m["pause_check"]["control_customers"] >= 30
+    small = big.iloc[:150]
+    m2 = eng.measure(small, 400, -5.0, 0.0)
+    assert m2["pause_check"]["control_customers"] < 30 and m2["verdict_code"] != "pause"
+
+
+def test_probably_losing_warns_without_pausing():
+    from truelift.engine import PROBABLY_LOSING
+
+    eng = Engine(_FlatModel(), sigma_rel=0.01)
+    rows = _rows(400, np.random.default_rng(4))
+    m = eng.measure(rows, 400, prior_profit=-3.0, prior_orders=0.0)  # the model expects a loss
+    assert 1 - m["profit"]["prob_positive"] > PROBABLY_LOSING
+    assert m["verdict_code"] == "probably_losing"
+
+
+def test_noise_scale_from_split_halves():
+    from truelift.training import noise_scale
+
+    rng = np.random.default_rng(5)
+    rows = []
+    for _ in range(200):  # true variance of a full estimate: 4.0; the model says 2.0
+        rows.append(
+            {
+                "subset": "all",
+                "half_diff_profit": rng.normal(0, 4.0),
+                "expected_var_profit": 2.0,
+                "half_diff_orders": rng.normal(0, 2.0),
+                "expected_var_orders": 1.0,
+            }
+        )
+    p, o = noise_scale(pd.DataFrame(rows))
+    assert p == pytest.approx(2.0, rel=0.25) and o == pytest.approx(1.0, rel=0.25)
+
+
+def test_quote_states_the_smallest_detectable_effect():
+    eng = Engine(_FlatModel())
+    eng.visit_noise_rel = 0.08
+    q = eng.quote(_x(1000), Design(60), aov=400, baskets=np.full(50, 400.0))
+    assert q["detectable_effect_4w"] is not None and q["detectable_effect_4w"] > 0
+    assert Engine(_FlatModel()).quote(_x(1000), Design(60), 400, np.full(50, 400.0))["detectable_effect_4w"] is None

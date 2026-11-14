@@ -34,6 +34,17 @@ Z80 = 1.2816  # half-width of an 80% interval, in standard deviations
 # Chosen on the quick configuration against the truth (TL-018): at 60% TrueLift drops 48 of 70
 # truly losing offers and keeps the same total true profit; at 50% it keeps all 70.
 MIN_CHANCE_TO_OFFER = 0.6
+MIN_EVENTS = 5  # orders each group needs before an offer's own control group counts
+# Weekly verdicts (audit TL-009, TL-017). "Pause" is the one irreversible action, so it needs evidence
+# that stays valid however often the owner looks: the offer's own control group must show a loss
+# beyond an always-valid boundary (one-sided error PAUSE_ALPHA). The model cannot pause an offer.
+# "Probably losing" is a warning when the combined estimate gives a loss more than
+# PROBABLY_LOSING chance; the offer keeps running unless the owner stops it.
+PAUSE_ALPHA = 0.025
+PAUSE_MIN_CONTROL = 30  # distinct held-out customers before the pause can fire (tiny groups mislead)
+PROBABLY_LOSING = 0.8
+SRM_P = 0.001  # a sample-ratio check below this p-value flags a broken control group (A04 M2)
+Z_POWER = 0.8416  # 80% power, for the smallest effect four weeks can detect (A04 M5)
 log = logging.getLogger("truelift.engine")
 
 
@@ -180,28 +191,25 @@ def _cached(cache: dict | None, key: tuple, fn: Callable[[], np.ndarray], n: int
     return value
 
 
-def arm_mean(y: np.ndarray, cust: np.ndarray | None, by_customer: bool = True) -> tuple[float, float]:
-    """Mean outcome per visit in one group (shown or held out) and the variance of that mean.
+def arm_mean(y: np.ndarray, cust: np.ndarray | None, by_customer: bool = True) -> tuple[float, np.ndarray, float]:
+    """Mean outcome per visit in one group (shown or held out), with the pieces of its noise.
 
     Customers, not visits, are assigned to the control group, and one customer's visits are alike
     (same tastes, same history), so treating visits as independent understates the noise (audit
-    TL-029). by_customer=True sums each customer's visits and uses the delta method for the ratio
-    estimator: mean = sum(Y_i) / sum(N_i), variance = var(Y_i - mean * N_i) / (k * mean(N)^2) over
-    the k customers.
+    TL-029). by_customer=True sums each customer's visits: mean = sum(Y_i) / sum(N_i) (a ratio
+    estimator). Returns (mean, residuals, scale) with var(mean) = var(residuals) x scale (delta
+    method: residual Y_i - mean x N_i, scale 1 / (k x mean(N)^2) over the k customers).
     """
     n = len(y)
     if n == 0:
-        return 0.0, math.inf
+        return 0.0, np.zeros(0), math.inf
     if not by_customer or cust is None:
-        return float(y.mean()), float(y.var(ddof=1) / n) if n >= 2 else math.inf
+        m = float(y.mean())
+        return m, y - m, 1.0 / n
     _, idx = np.unique(np.asarray(cust), return_inverse=True)
     totals, visits = np.bincount(idx, weights=y), np.bincount(idx).astype(float)
     m = float(totals.sum() / visits.sum())
-    k = len(visits)
-    if k < 2:
-        return m, math.inf
-    resid = totals - m * visits
-    return m, float(resid.var(ddof=1) / (k * visits.mean() ** 2))
+    return m, totals - m * visits, 1.0 / (len(visits) * visits.mean() ** 2)
 
 
 def effect_and_se(
@@ -212,6 +220,9 @@ def effect_and_se(
     base: np.ndarray | None = None,
     by_customer: bool = True,
     adjust: str = "fixed",
+    min_events: int = MIN_EVENTS,
+    noise: np.ndarray | None = None,
+    noise_scale: float | None = None,
 ) -> tuple[float, float]:
     """Difference in mean outcome per visit (shown minus held out) and its standard error.
 
@@ -219,8 +230,18 @@ def effect_and_se(
     subtracts it (coefficient 1, the regression adjustment used so far); adjust="lin" estimates the
     coefficient in each group around the overall mean of the prediction (Lin 2013), which can only
     reduce variance and keeps the comparison unbiased because assignment is random.
+
+    noise, noise_scale: each visit's variance of the no-offer outcome under the model (orders
+    p0(1 - p0); profit p0(1 - p0) x profit0^2), and the factor that turns it into the real noise of
+    an estimate, learned in the shadow phase by split halves (training.noise_scale). A control group
+    of a few dozen visits has only a handful of orders, so its sample variance is erratic, and zero
+    when it has no order at all: the A/A test called 35% of placebo offers "keep" in week 1 that
+    way. The model's expected variance never collapses, and the factor makes it honest, clustering
+    of one customer's visits included. Without them, the sample variance is used and each group
+    needs `min_events` orders before the offer's own data counts.
     """
     y = np.asarray(y, float)
+    raw = y  # outcomes before the regression adjustment: an order is a nonzero value
     if base is not None:
         b = np.asarray(base, float)
         if adjust == "lin":
@@ -233,11 +254,123 @@ def effect_and_se(
         else:
             y = y - b
     c = None if cust is None else np.asarray(cust)
-    mt, vt = arm_mean(y[shown], None if c is None else c[shown], by_customer)
-    mc, vc = arm_mean(y[held], None if c is None else c[held], by_customer)
-    if math.isinf(vt) or math.isinf(vc) or shown.sum() < 2 or held.sum() < 2:
+    model_noise = noise is not None and noise_scale is not None and noise_scale > 0
+    if not model_noise and (np.count_nonzero(raw[shown]) < min_events or np.count_nonzero(raw[held]) < min_events):
         return 0.0, math.inf
-    return mt - mc, math.sqrt(vt + vc)
+    mt, rt, st = arm_mean(y[shown], None if c is None else c[shown], by_customer)
+    mc, rc, sc = arm_mean(y[held], None if c is None else c[held], by_customer)
+    if len(rt) < 1 or len(rc) < 1:
+        return 0.0, math.inf
+    if model_noise and noise_scale is not None:
+        nz = np.asarray(noise, float)
+        return mt - mc, math.sqrt(noise_scale * expected_variance(nz, shown, held))
+    if len(rt) < 2 or len(rc) < 2:
+        return 0.0, math.inf
+    return mt - mc, math.sqrt(float(rt.var(ddof=1)) * st + float(rc.var(ddof=1)) * sc)
+
+
+def expected_variance(noise: np.ndarray, shown: np.ndarray, held: np.ndarray) -> float:
+    """Variance of the shown-minus-held difference in mean outcome per visit if visits were
+    independent and the model's no-offer variances were right."""
+    n_t, n_c = int(shown.sum()), int(held.sum())
+    if n_t == 0 or n_c == 0:
+        return math.inf
+    return float(noise[shown].sum()) / n_t**2 + float(noise[held].sum()) / n_c**2
+
+
+def normal_cdf(z: float) -> float:
+    return 0.5 * (1 + math.erf(z / math.sqrt(2)))
+
+
+def stratified_effect(
+    y: np.ndarray,
+    shown: np.ndarray,
+    held: np.ndarray,
+    cust: np.ndarray | None,
+    base: np.ndarray | None,
+    stratum: np.ndarray,
+    by_customer: bool = True,
+    adjust: str = "fixed",
+    noise: np.ndarray | None = None,
+    noise_scale: float | None = None,
+) -> tuple[float, float]:
+    """effect_and_se within each stratum (a period with one holdout share), combined in proportion
+    to shown visits. Pooling periods with different holdout shares directly would bias the
+    comparison whenever outcomes differ between periods."""
+    values = np.unique(stratum)
+    if len(values) <= 1:
+        return effect_and_se(y, shown, held, cust, base, by_customer, adjust, noise=noise, noise_scale=noise_scale)
+    total = weight = var = 0.0
+    for v in values:
+        m = stratum == v
+        e, se = effect_and_se(
+            y[m],
+            shown[m],
+            held[m],
+            None if cust is None else cust[m],
+            None if base is None else base[m],
+            by_customer,
+            adjust,
+            noise=None if noise is None else noise[m],
+            noise_scale=noise_scale,
+        )
+        if not math.isfinite(se):
+            continue
+        w = float(shown[m].sum())
+        total, weight, var = total + w * e, weight + w, var + (w * se) ** 2
+    return (total / weight, math.sqrt(var) / weight) if weight else (0.0, math.inf)
+
+
+def cs_rho(se_target: float, n_target: float, alpha: float = PAUSE_ALPHA) -> float:
+    """Mixing variance that makes the always-valid boundary tightest at the planned horizon (Howard
+    et al. 2021). It is fixed from the plan, not from the data, so the boundary stays valid."""
+    v = max((n_target * se_target) ** 2, 1e-12)
+    ell = 2 * math.log(1 / alpha)
+    return v / (ell + math.log(1 + ell))
+
+
+def cs_halfwidth(se: float, n: float, rho: float, alpha: float = PAUSE_ALPHA) -> float:
+    """One-sided always-valid half-width for a mean estimate with standard error `se` after `n`
+    units (normal-mixture confidence sequence). Valid at every look, so weekly peeking cannot
+    inflate the chance of a false pause (audit TL-017)."""
+    if not (math.isfinite(se) and n > 0 and rho > 0):
+        return math.inf
+    v = (n * se) ** 2
+    return math.sqrt((v + rho) * (math.log(1 + v / rho) + 2 * math.log(1 / alpha))) / n
+
+
+def sample_ratio(rows: pd.DataFrame, share: float) -> dict:
+    """Are as many customers held out as the assignment says? (sample-ratio mismatch, A04 M2)
+
+    Counted per customer (the unit of assignment) within each holdout-share period; the smallest
+    p-value, Bonferroni-corrected, decides. A failure means the control group is broken (a logging
+    or assignment fault) and the measurement must not be trusted.
+    """
+    if "cust" not in rows or not len(rows):
+        return {"checked": False, "ok": True}
+    shares = rows["share"].to_numpy() if "share" in rows else np.full(len(rows), share)
+    p_min, held_total, cust_total = 1.0, 0, 0
+    values = np.unique(shares)
+    for v in values:
+        m = shares == v
+        cust = rows["cust"].to_numpy()[m]
+        held = rows["holdout"].to_numpy().astype(bool)[m]
+        n_held = len(np.unique(cust[held]))
+        n_all = len(np.unique(cust))
+        held_total, cust_total = held_total + n_held, cust_total + n_all
+        if n_all < 20 or not 0 < v < 1:
+            continue
+        z = (n_held - n_all * v) / math.sqrt(n_all * v * (1 - v))
+        p_min = min(p_min, 2 * (1 - normal_cdf(abs(z))))
+    p = min(1.0, p_min * len(values))
+    return {
+        "checked": True,
+        "customers": cust_total,
+        "customers_held_out": held_total,
+        "expected_share": round(float(np.mean(values)), 3),
+        "p_value": round(p, 5),
+        "ok": p >= SRM_P,
+    }
 
 
 @dataclass
@@ -274,7 +407,7 @@ class Engine:
         sigma_orders: float = 0.005,
         holdout: float = 0.10,
         topup_value: float = 0.5,
-        variance: str = "customer",
+        variance: str = "model",
         adjust: str = "fixed",
         selection: str = "mean",
     ):
@@ -288,6 +421,16 @@ class Engine:
         # model error of a restaurant's average effect per eligible visit (set by `calibrate`):
         # profit as a share of its average order value; orders in absolute terms
         self.sigma_rel, self.sigma_orders = sigma_rel, sigma_orders
+        # model error by design type (rule / targeted) x weekly visit band, set by `calibrate`;
+        # empty means the global sizes above (audit WP-15)
+        self.sigma_table: dict = {}
+        self.visit_bands: tuple = ()
+        # effective noise of one visit's profit (relative to the average order), clustering included,
+        # learned from shadow-phase control groups; sets the smallest detectable effect (A04 M5)
+        self.visit_noise_rel = 0.0
+        # factor turning the model's expected visit variance into the real noise of an estimate
+        # (profit, orders), learned by split halves in the shadow phase; None = sample variance
+        self.noise_scale: tuple[float, float] | None = None
         self.model_version = ""
         self.fallbacks = 0  # serving decisions that fell back to the owner's rule (must stay 0)
 
@@ -347,6 +490,14 @@ class Engine:
             "basket1": np.where(has, use * b_take + (1 - use) * b_skip, b0),
         }
 
+    def sigma_for(self, d: Design, visits_per_week: float, aov: float) -> tuple[float, float]:
+        """Model error of an offer's average effect per visit (profit in Rs, orders), for its design
+        type and how many eligible visits it gets a week."""
+        kind = "targeted" if d.audience == "targeted" else "all"
+        band = int(np.searchsorted(self.visit_bands, visits_per_week)) if self.visit_bands else 0
+        rel, orders = self.sigma_table.get((kind, band), (self.sigma_rel, self.sigma_orders))
+        return rel * aov, orders
+
     def mix(self, baskets: np.ndarray, d: Design, aov: float) -> tuple:
         return offer_mix(baskets, d.discount, d.min_order, aov, self.topup_value)
 
@@ -396,7 +547,15 @@ class Engine:
         if d.discount <= 0 and d.reward <= 0:
             sd = 0.0  # "no offer" is exactly ₹0, with no range (audit TL-030)
         else:
-            sd = self.sigma_rel * aov * max(n_el * (1 - self.holdout), 1.0)
+            sd = self.sigma_for(d, n_el, aov)[0] * max(n_el * (1 - self.holdout), 1.0)
+        # smallest weekly profit effect four weeks of this offer's control group can tell from zero
+        # (80% power at the 80% range's level); None when nothing is shown
+        n_t4, n_c4 = 4 * n_el * (1 - self.holdout), 4 * n_el * self.holdout
+        if self.visit_noise_rel > 0 and n_t4 >= 1 and n_c4 >= 1:
+            mde_visit = (Z80 + Z_POWER) * self.visit_noise_rel * aov * math.sqrt(1 / n_t4 + 1 / n_c4)
+            mde = round(mde_visit * n_el * (1 - self.holdout))
+        else:
+            mde = None
         return {
             "design": asdict(d),
             "label": d.label(),
@@ -411,6 +570,7 @@ class Engine:
             "prob_profit_positive": round(
                 0.5 * (1 + math.erf(dprofit / (sd * math.sqrt(2)))) if sd > 0 else float(dprofit > 0), 3
             ),
+            "detectable_effect_4w": mde,
             "discount_spend": round(spend),
             "reward_spend": round(rw_cost),
             "discount_per_extra_order": round((spend + rw_cost) / extra) if extra > 0.5 else None,
@@ -586,42 +746,70 @@ class Engine:
         base_orders=None,
         variance: str | None = None,
         adjust: str | None = None,
+        prior_shift: tuple[float, float] = (0.0, 0.0),
+        sigma: tuple[float, float] | None = None,
+        planned_shown_visits: float | None = None,
     ) -> dict:
-        """Measured effect of an offer so far.
+        """Measured effect of an offer so far, with a verdict.
 
         rows: eligible visits, observed columns only: shown, holdout, chosen (ordered here), takes
-        (used the offer), profit (restaurant profit of that order), basket, discount.
-        prior_*: the model's average effect per eligible visit for the same visits.
+        (used the offer), profit (restaurant profit of that order), basket, discount; optionally
+        cust (customer id: noise is then computed per customer), share (the holdout share in force
+        for that visit: periods with different shares are compared separately).
+        prior_*: the model's average effect per eligible visit for the same visits; prior_shift is
+        added to it (a market-wide correction learned from all running offers' control groups).
         base_*: each visit's predicted outcome without the offer (from history only). Subtracting
         it before comparing shown and held-out visits keeps the comparison unbiased (assignment is
         random) and removes most of the noise from which customers happened to be held out
         (regression adjustment, as in CUPED).
+        sigma: model error of the average effect per visit (profit Rs, orders); default global.
+        planned_shown_visits: shown visits expected by the end of the consent period; fixes where
+        the always-valid pause boundary is tightest.
         """
         t, c = rows["shown"].to_numpy().astype(bool), rows["holdout"].to_numpy().astype(bool)
         n_t, n_c = int(t.sum()), int(c.sum())
         chosen = rows["chosen"].to_numpy().astype(bool)
         zero = np.zeros(len(rows))
         cust = rows["cust"].to_numpy() if "cust" in rows else None
-        by_customer = (variance or self.variance) == "customer"
+        stratum = rows["share"].to_numpy() if "share" in rows else np.zeros(len(rows))
+        by_customer = (variance or self.variance) in ("customer", "model")
         how = adjust or self.adjust
+        sig_profit, sig_orders = sigma if sigma is not None else (self.sigma_rel * aov, self.sigma_orders)
         out: dict[str, Any] = {"shown_visits": n_t, "control_visits": n_c}
-        for key, y, prior, sig, base in (
+        own_profit, se_profit = 0.0, math.inf
+        noise_profit = noise_orders = None
+        if base_profit is not None and base_orders is not None and len(rows):
+            p0 = np.clip(np.asarray(base_orders, float), 0.0, 1.0)
+            profit0 = np.divide(np.asarray(base_profit, float), p0, out=np.zeros(len(p0)), where=p0 > 0)
+            noise_orders = p0 * (1 - p0)
+            noise_profit = noise_orders * profit0**2
+        for key, y, prior, sig, base, shift, noise in (
             (
                 "profit",
                 chosen * rows["profit"].to_numpy(),
                 prior_profit,
-                self.sigma_rel * aov,
+                sig_profit,
                 zero if base_profit is None else np.asarray(base_profit),
+                prior_shift[0],
+                noise_profit,
             ),
             (
                 "orders",
                 chosen.astype(float),
                 prior_orders,
-                self.sigma_orders,
+                sig_orders,
                 zero if base_orders is None else np.asarray(base_orders),
+                prior_shift[1],
+                noise_orders,
             ),
         ):
-            own, se = effect_and_se(y, t, c, cust, base, by_customer, how)
+            scale = None
+            if (variance or self.variance) == "model" and self.noise_scale is not None:
+                scale = self.noise_scale[0] if key == "profit" else self.noise_scale[1]
+            own, se = stratified_effect(
+                y, t, c, cust, base, stratum, by_customer or scale is not None, how, noise, scale
+            )
+            prior = prior + shift
             if math.isinf(se) or se == 0:
                 post, psd, w = prior, sig, 0.0
             else:
@@ -634,20 +822,51 @@ class Engine:
                 "own_per_visit": own,
                 "own_se": None if math.isinf(se) else se,
                 "model_per_visit": prior,
+                "prior_shift": shift,
                 "weight_on_own_data": w,
                 "total": post * n_t,
                 "low": (post - Z80 * psd) * n_t,
                 "high": (post + Z80 * psd) * n_t,
+                "prob_positive": normal_cdf(post / psd) if psd > 0 else float(post > 0),
             }
-        took = rows["takes"].to_numpy() & chosen
+            if key == "profit":
+                own_profit, se_profit = own, se
+        took = rows["takes"].to_numpy().astype(bool) & chosen
         out["report_today"] = {  # what a redemption report shows today
             "orders_with_offer": int(took.sum()),
             "sales_from_offer": float(rows["basket"].to_numpy()[took].sum()),
             "discount_given": float(rows["discount"].to_numpy()[took].sum()),
         }
-        lo, hi = out["profit"]["low"], out["profit"]["high"]
-        out["verdict_code"] = "pause" if hi < 0 else "keep" if lo > 0 else "wait"
-        out["verdict"] = VERDICTS[out["verdict_code"]]
+        # always-valid boundary on the offer's own evidence, for the pause decision
+        planned = max(planned_shown_visits or n_t, n_t, 1)
+        if math.isfinite(se_profit) and n_t > 0:
+            rho = cs_rho(se_profit * math.sqrt(n_t / planned), planned)
+            upper = own_profit + cs_halfwidth(se_profit, n_t, rho)
+        else:
+            upper = math.inf
+        held_customers = len(np.unique(cust[c])) if cust is not None else n_c
+        if held_customers < PAUSE_MIN_CONTROL:
+            upper = math.inf
+        out["pause_check"] = {
+            "own_upper_always_valid": None if math.isinf(upper) else upper * n_t,
+            "alpha": PAUSE_ALPHA,
+            "control_customers": int(held_customers),
+            "min_control_customers": PAUSE_MIN_CONTROL,
+        }
+        out["sample_ratio"] = sample_ratio(rows, self.holdout)
+        p, lo = out["profit"], out["profit"]["low"]
+        if not out["sample_ratio"]["ok"]:
+            code = "check_failed"
+        elif upper < 0:
+            code = "pause"
+        elif lo > 0:
+            code = "keep"
+        elif 1 - p["prob_positive"] > PROBABLY_LOSING:
+            code = "probably_losing"
+        else:
+            code = "wait"
+        out["verdict_code"] = code
+        out["verdict"] = VERDICTS[code]
         return out
 
     def calibrate(self, offers: pd.DataFrame) -> tuple[float, float]:
@@ -658,24 +877,52 @@ class Engine:
         see that restaurant (cross-fitting). Empirical Bayes: model error variance = spread of
         (own - prior) minus the sampling noise of the own estimates.
         """
+        self.sigma_rel, self.sigma_orders = self._sizes(offers)
+        # the same estimate within design type x weekly visit band, shrunk towards the global value
+        # by how many offers each cell has (30 offers count as much as the global estimate)
+        if "visits" in offers and "subset" in offers and len(offers) >= 60:
+            self.visit_bands = tuple(float(q) for q in np.quantile(offers["visits"], (1 / 3, 2 / 3)))
+            band = np.searchsorted(self.visit_bands, offers["visits"].to_numpy())
+            self.sigma_table = {}
+            for kind in ("all", "targeted"):
+                for b in range(len(self.visit_bands) + 1):
+                    cell = offers.loc[(offers["subset"] == kind).to_numpy() & (band == b)]
+                    if len(cell) < 5:
+                        continue
+                    rel, orders = self._sizes(cell)
+                    k = 30.0
+                    rel = math.sqrt((len(cell) * rel**2 + k * self.sigma_rel**2) / (len(cell) + k))
+                    orders = math.sqrt((len(cell) * orders**2 + k * self.sigma_orders**2) / (len(cell) + k))
+                    self.sigma_table[(kind, b)] = (rel, orders)
+        if {"visits", "control_visits"} <= set(offers.columns):
+            noise = offers["se_profit"] / np.sqrt(1 / offers["visits"] + 1 / offers["control_visits"])
+            self.visit_noise_rel = float(np.median(noise / offers["aov"]))
+        return self.sigma_rel, self.sigma_orders
+
+    @staticmethod
+    def _sizes(offers: pd.DataFrame) -> tuple[float, float]:
         r = (offers["own_profit"] - offers["prior_profit"]) / offers["aov"]
         s = offers["se_profit"] / offers["aov"]
-        self.sigma_rel = math.sqrt(max(float((r**2).mean() - (s**2).mean()), 0.002**2))
+        rel = math.sqrt(max(float((r**2).mean() - (s**2).mean()), 0.002**2))
         ro = offers["own_orders"] - offers["prior_orders"]
         so = offers["se_orders"]
-        self.sigma_orders = math.sqrt(max(float((ro**2).mean() - (so**2).mean()), 0.0005**2))
-        return self.sigma_rel, self.sigma_orders
+        orders = math.sqrt(max(float((ro**2).mean() - (so**2).mean()), 0.0005**2))
+        return rel, orders
 
 
 VERDICTS = {
     "keep": "making money: keep",
     "pause": "losing money: auto-pause",
+    "probably_losing": "probably losing money: consider stopping",
     "wait": "too early to say: keep measuring",
+    "check_failed": "control group check failed: result withheld",
 }
 VERDICT_SENTENCES = {
     "keep": "This offer is making you money. Keep it.",
     "pause": "This offer is losing money, so it has been paused.",
+    "probably_losing": "This offer is probably losing you money. It keeps running until you stop it.",
     "wait": "Too early to say. Keep it running; the range narrows every week.",
+    "check_failed": "The control group did not split as planned this week, so no result is shown; we are checking.",
 }
 
 

@@ -32,6 +32,9 @@ Template:
   Monotone constraints adopted; competition feature tried, not adopted (A05 L8; numbers in model.py).
   Customer-level variance (TL-029); predicted gains calibrated on shadow-phase holdouts; TrueLift offers only
   with a >= 60% chance of making money (TL-018): losing offers 71 -> 18 at the same total profit (quick).
+  Weekly measurement checked by an A/A test (placebo offers): noise from the model's expected variance,
+  calibrated by split halves; pause only on always-valid own evidence; "probably losing" warning; false pauses
+  25% -> 1.7% per consent period (quick). New verdict codes reach the page (app.js).
 - Next / open: rest of M2 (numbers change once, at a single freeze), M3 UI restyle (tell Yash first).
 
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main

@@ -49,3 +49,29 @@ def test_chosen_version_usually_beats_the_owners_and_its_advantage_is_not_inflat
     s = quick_report["main"]["selection"]
     assert s["share_truly_better_than_owner"] >= 0.7
     assert 0.5 <= s["forecast_advantage_total"] / s["true_advantage_total"] <= 2.0
+
+
+@pytest.mark.slow
+def test_false_pause_rate_under_null(quick_report):
+    """TL-017: placebo offers (true effect zero) are almost never paused over a consent period,
+    and far less often than with the rule used before (pause when the 80% range is below zero)."""
+    aa = quick_report["main"]["aa_test"]
+    assert aa["lifetime_false_pause_4_looks"] <= 0.05
+    assert aa["lifetime_false_pause_12_looks"] < aa["lifetime_false_pause_12_looks_rule_before"]
+
+
+@pytest.mark.slow
+def test_weekly_ranges_cover_the_truth_near_the_stated_rate(quick_report):
+    """The 80% range covers the true effect close to 80% of the time by the end of the period."""
+    m = quick_report["main"]["measurement"]["after_4_weeks"]
+    assert 0.7 <= m["coverage_80"] <= 0.95
+    assert m["sample_ratio_flags"] <= 2
+
+
+@pytest.mark.slow
+def test_losing_blanket_offers_are_flagged(quick_report):
+    """TL-009: within the consent period a good share of truly losing blanket offers is paused or
+    flagged as probably losing, and no profitable one is paused by week 4."""
+    d = quick_report["main"]["detection"]["blanket_fixed_holdout"]["by_week"]["week_4"]
+    assert d["losing_paused_or_warned"] >= 0.2
+    assert d["profitable_paused"] <= 0.02

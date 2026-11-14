@@ -68,13 +68,17 @@ class Policy:
     zomato_share: np.ndarray  # fraction of the discount Zomato funds
     reward: np.ndarray  # Brand Pack ₹ per order for the restaurant's regulars (3+ orders in 4 weeks)
     audience: np.ndarray  # "all", "new_to_restaurant", "lapsed", "targeted"
-    holdout: float = 0.10  # random share of eligible customers who don't see the offer
+    # random share of eligible customers who don't see the offer: one number, or one per restaurant
+    holdout: float | np.ndarray = 0.10
     scorer: object = None  # for "targeted": callable(features, policy) -> bool array
     name: str = ""
     # When set (one id per restaurant), the holdout is the shared (customer, offer) assignment that
     # serving uses, so the simulated weeks hold out exactly the customers `serve` holds out.
     # Evaluation policies leave it unset and keep their own salts.
     offer_id: np.ndarray | None = None
+    # A/A test: offers are "shown" and "held out" as usual but change nothing (no saving, no
+    # discount), so their true effect is exactly zero (audit A04 M2)
+    placebo: bool = False
 
     @classmethod
     def none(cls, n: int, name: str = "no offer") -> Policy:
@@ -211,20 +215,23 @@ class Market:
             tg = aud == "targeted"
             rule[tg] = policy.scorer({**feats, "rest": rest, "slot": slot, "cust": c}, policy, tg)
         elig &= rule
+        share = policy.holdout[rest] if isinstance(policy.holdout, np.ndarray) else np.full(len(rest), policy.holdout)
         if policy.offer_id is not None:  # the same (customer, offer) assignment serving uses
-            hold = elig & in_control_group(c, policy.offer_id[rest], policy.holdout)
+            hold = elig & in_control_group(c, policy.offer_id[rest], share)
         else:
-            hold = elig & (stable_uniform(c, rest, salt + 1) < policy.holdout)
+            hold = elig & (stable_uniform(c, rest, salt + 1) < share)
         shown = elig & ~hold
 
         mov = policy.min_order[rest]
         topup = np.maximum(0.0, mov - basket0)
         eff = np.where(shown, policy.discount[rest] - (1 - cfg.topup_value) * topup, 0.0)
+        if policy.placebo:
+            eff = np.zeros_like(eff)
         takes = shown & (eff > 0)
         basket = np.where(takes, np.maximum(basket0, mov), basket0)
         disc = np.where(takes, policy.discount[rest], 0.0)
         regular = feats["cr_orders_4w"] >= 3
-        reward = np.where(regular, policy.reward[rest], 0.0)
+        reward = np.where(regular & (not policy.placebo), policy.reward[rest], 0.0)
         saving = np.where(takes, eff, 0.0) + reward
         # Zomato co-funds only customers new to Zomato (new accounts), as the engine and every
         # document say; it used to pay for every redemption (audit TL-003)
@@ -260,6 +267,7 @@ class Market:
             "eligible": elig,
             "holdout": hold,
             "shown": shown,
+            "share": share,
             "takes": takes,
             "regular": regular,
             "discount": disc,
