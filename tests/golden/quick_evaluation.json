@@ -1,10 +1,10 @@
 {
   "meta": {
-    "commit": "f2b52aa562b79f0a024332ea51dab1dad888a550",
+    "commit": "f50a056e60eb93b47031d98f07e786125fc1d00d",
     "uncommitted_changes": true,
-    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q7 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q7/model.pkl",
-    "started_utc": "2026-11-14T03:54:40Z",
-    "wall_seconds": 47,
+    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q8 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q8/model.pkl",
+    "started_utc": "2026-11-14T04:09:02Z",
+    "wall_seconds": 48,
     "python": "3.12.10",
     "libraries": {
       "python": "3.12.10",
@@ -164,179 +164,264 @@
       },
       "truelift": {
         "name": "TrueLift",
-        "orders_per_week": 8269,
-        "extra_orders_vs_no_offer": 1881,
-        "restaurant_profit": 1168994,
-        "restaurant_profit_change": 188325,
-        "zomato_commission": 996336,
-        "zomato_commission_change": 264493,
-        "zomato_contribution_change": 89928,
+        "orders_per_week": 8188,
+        "extra_orders_vs_no_offer": 1801,
+        "restaurant_profit": 1175112,
+        "restaurant_profit_change": 194443,
+        "zomato_commission": 996659,
+        "zomato_commission_change": 264816,
+        "zomato_contribution_change": 90038,
         "zomato_funded_discount": 0,
-        "customer_savings": 448907,
-        "savings_per_extra_order": 239,
-        "redemptions": 4941,
-        "anyway_share_of_redemptions": 0.455,
-        "order_value": 536,
-        "restaurants_with_offer": 300,
-        "own_offer_profit_effect": 318812,
-        "own_offer_extra_orders": 2694,
-        "offers_that_pay": 229,
-        "offers_that_lose": 71,
-        "platform_extra_orders": 1374,
-        "restaurants_better_off_vs_no_offers": 92,
-        "restaurants_worse_off_vs_no_offers": 207,
-        "swiggy_share_of_occasions": 0.1781,
-        "swiggy_share_loyal": 0.0868
+        "customer_savings": 433543,
+        "savings_per_extra_order": 241,
+        "redemptions": 4488,
+        "anyway_share_of_redemptions": 0.426,
+        "order_value": 540,
+        "restaurants_with_offer": 190,
+        "own_offer_profit_effect": 319848,
+        "own_offer_extra_orders": 2576,
+        "offers_that_pay": 172,
+        "offers_that_lose": 18,
+        "platform_extra_orders": 1325,
+        "restaurants_better_off_vs_no_offers": 89,
+        "restaurants_worse_off_vs_no_offers": 211,
+        "swiggy_share_of_occasions": 0.181,
+        "swiggy_share_loyal": 0.0873
       },
       "zomato_cofund_naive": {
         "name": "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured",
-        "orders_per_week": 8271,
-        "extra_orders_vs_no_offer": 1883,
-        "restaurant_profit": 1192912,
-        "restaurant_profit_change": 212243,
-        "zomato_commission": 996238,
-        "zomato_commission_change": 264395,
-        "zomato_contribution_change": 65594,
-        "zomato_funded_discount": 24300,
-        "customer_savings": 449584,
-        "savings_per_extra_order": 239,
-        "redemptions": 4964,
-        "anyway_share_of_redemptions": 0.457,
-        "order_value": 536,
-        "restaurants_with_offer": 300,
-        "own_offer_profit_effect": 342908,
-        "own_offer_extra_orders": 2697,
-        "offers_that_pay": 257,
-        "offers_that_lose": 43,
-        "platform_extra_orders": 1375,
-        "restaurants_better_off_vs_no_offers": 100,
-        "restaurants_worse_off_vs_no_offers": 199,
-        "swiggy_share_of_occasions": 0.178,
-        "swiggy_share_loyal": 0.0868
+        "orders_per_week": 8189,
+        "extra_orders_vs_no_offer": 1802,
+        "restaurant_profit": 1197917,
+        "restaurant_profit_change": 217247,
+        "zomato_commission": 996661,
+        "zomato_commission_change": 264818,
+        "zomato_contribution_change": 67139,
+        "zomato_funded_discount": 22899,
+        "customer_savings": 433806,
+        "savings_per_extra_order": 241,
+        "redemptions": 4495,
+        "anyway_share_of_redemptions": 0.427,
+        "order_value": 540,
+        "restaurants_with_offer": 190,
+        "own_offer_profit_effect": 342710,
+        "own_offer_extra_orders": 2577,
+        "offers_that_pay": 180,
+        "offers_that_lose": 10,
+        "platform_extra_orders": 1326,
+        "restaurants_better_off_vs_no_offers": 98,
+        "restaurants_worse_off_vs_no_offers": 201,
+        "swiggy_share_of_occasions": 0.181,
+        "swiggy_share_loyal": 0.0873
       }
+    },
+    "selection": {
+      "rule": "mean",
+      "restaurants_with_a_different_version": 190,
+      "share_truly_better_than_owner": 0.805,
+      "forecast_advantage_total": 12262,
+      "true_advantage_total": 10597,
+      "suggested_to_owner": 190,
+      "share_of_suggestions_truly_better": 0.805,
+      "no_offer_chosen": 110
     },
     "forecast": {
       "truelift_design_in_todays_market": {
-        "offers": 300,
-        "forecast_total": 365403,
-        "truth_total": 394385,
-        "ratio_forecast_to_truth": 0.927,
-        "mean_abs_error": 223,
+        "offers": 190,
+        "forecast_total": 349997,
+        "truth_total": 392764,
+        "ratio_forecast_to_truth": 0.891,
+        "mean_abs_error": 350,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.787,
-        "share_forecast_below_truth": 0.297,
-        "truth_from_new_accounts": 28673,
-        "ratio_to_truth_existing_customers": 0.999,
+        "sign_right": 0.921,
+        "share_forecast_below_truth": 0.495,
+        "truth_from_new_accounts": 29113,
+        "ratio_to_truth_existing_customers": 0.962,
         "coverage_80_existing_customers": 1.0
       },
       "owner_blanket_offer_in_todays_market": {
         "offers": 300,
-        "forecast_total": 291157,
+        "forecast_total": 340463,
         "truth_total": 371144,
-        "ratio_forecast_to_truth": 0.784,
-        "mean_abs_error": 343,
-        "coverage_80": 1.0,
+        "ratio_forecast_to_truth": 0.917,
+        "mean_abs_error": 371,
+        "coverage_80": 0.997,
         "misses_below_range": 0,
-        "misses_above_range": 0,
-        "sign_right": 0.85,
-        "share_forecast_below_truth": 0.493,
+        "misses_above_range": 1,
+        "sign_right": 0.603,
+        "share_forecast_below_truth": 0.197,
         "truth_from_new_accounts": 31337,
-        "ratio_to_truth_existing_customers": 0.857,
+        "ratio_to_truth_existing_customers": 1.002,
         "coverage_80_existing_customers": 1.0
       },
       "truelift_design_after_everyone_switches": {
-        "offers": 300,
-        "forecast_total": 365403,
-        "truth_total": 318812,
-        "ratio_forecast_to_truth": 1.146,
-        "mean_abs_error": 222,
+        "offers": 190,
+        "forecast_total": 349997,
+        "truth_total": 319848,
+        "ratio_forecast_to_truth": 1.094,
+        "mean_abs_error": 301,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.763,
-        "share_forecast_below_truth": 0.09,
-        "truth_from_new_accounts": 22432,
-        "ratio_to_truth_existing_customers": 1.233,
+        "sign_right": 0.905,
+        "share_forecast_below_truth": 0.153,
+        "truth_from_new_accounts": 23025,
+        "ratio_to_truth_existing_customers": 1.179,
         "coverage_80_existing_customers": 1.0
       },
       "owner_blanket_offer_after_everyone_switches": {
         "offers": 300,
-        "forecast_total": 291157,
+        "forecast_total": 340463,
         "truth_total": 279383,
-        "ratio_forecast_to_truth": 1.042,
-        "mean_abs_error": 202,
+        "ratio_forecast_to_truth": 1.219,
+        "mean_abs_error": 303,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
-        "sign_right": 0.863,
-        "share_forecast_below_truth": 0.31,
+        "sign_right": 0.557,
+        "share_forecast_below_truth": 0.057,
         "truth_from_new_accounts": 23294,
-        "ratio_to_truth_existing_customers": 1.137,
+        "ratio_to_truth_existing_customers": 1.329,
         "coverage_80_existing_customers": 1.0
       }
     },
     "truelift_designs": {
-      "no_discount": 0,
+      "no_discount": 110,
       "brand_pack": 2,
       "audience": {
-        "targeted": 300
+        "targeted": 190
       },
-      "with_min_order": 53,
+      "with_min_order": 21,
       "offpeak_only": 0,
-      "depth_share_of_aov": 0.146
+      "depth_share_of_aov": 0.147
     },
     "measurement": {
       "after_1_weeks": {
-        "offers": 300,
-        "coverage_80": 0.553,
-        "coverage_80_orders": 0.653,
-        "mae_combined": 529,
-        "mae_own_holdout_only": 1043,
-        "mae_model_only": 304,
-        "mean_weight_on_own_data": 0.571,
-        "verdict_right_sign": 0.743,
-        "said_keep": 165,
-        "said_keep_and_truly_positive": 127,
+        "offers": 190,
+        "coverage_80": 0.605,
+        "coverage_80_orders": 0.689,
+        "mae_combined": 697,
+        "mae_own_holdout_only": 1448,
+        "mae_model_only": 412,
+        "mean_weight_on_own_data": 0.517,
+        "verdict_right_sign": 0.884,
+        "said_keep": 102,
+        "said_keep_and_truly_positive": 97,
         "said_pause": 0,
         "said_pause_and_truly_negative": 0,
-        "said_wait": 135
+        "said_wait": 88
       },
       "after_2_weeks": {
-        "offers": 300,
-        "coverage_80": 0.657,
-        "coverage_80_orders": 0.697,
-        "mae_combined": 867,
-        "mae_own_holdout_only": 1403,
-        "mae_model_only": 598,
-        "mean_weight_on_own_data": 0.612,
-        "verdict_right_sign": 0.717,
-        "said_keep": 138,
-        "said_keep_and_truly_positive": 106,
-        "said_pause": 1,
-        "said_pause_and_truly_negative": 1,
-        "said_wait": 161
+        "offers": 190,
+        "coverage_80": 0.705,
+        "coverage_80_orders": 0.711,
+        "mae_combined": 1161,
+        "mae_own_holdout_only": 1927,
+        "mae_model_only": 798,
+        "mean_weight_on_own_data": 0.591,
+        "verdict_right_sign": 0.884,
+        "said_keep": 93,
+        "said_keep_and_truly_positive": 87,
+        "said_pause": 0,
+        "said_pause_and_truly_negative": 0,
+        "said_wait": 97
       },
       "after_4_weeks": {
-        "offers": 300,
-        "coverage_80": 0.757,
-        "coverage_80_orders": 0.753,
-        "mae_combined": 1454,
-        "mae_own_holdout_only": 2024,
-        "mae_model_only": 1232,
-        "mean_weight_on_own_data": 0.692,
-        "verdict_right_sign": 0.727,
-        "said_keep": 124,
-        "said_keep_and_truly_positive": 105,
-        "said_pause": 1,
-        "said_pause_and_truly_negative": 1,
-        "said_wait": 175
+        "offers": 190,
+        "coverage_80": 0.826,
+        "coverage_80_orders": 0.826,
+        "mae_combined": 1911,
+        "mae_own_holdout_only": 2766,
+        "mae_model_only": 1660,
+        "mean_weight_on_own_data": 0.668,
+        "verdict_right_sign": 0.832,
+        "said_keep": 87,
+        "said_keep_and_truly_positive": 84,
+        "said_pause": 0,
+        "said_pause_and_truly_negative": 0,
+        "said_wait": 103
       }
     },
+    "measurement_variants": {
+      "rule": "the variant whose 80% coverage is closest to 80% at weeks 1, 2 and 4, profit and orders (D7)",
+      "coverage": {
+        "customer+fixed": {
+          "after_1_weeks": {
+            "coverage_80_profit": 0.605,
+            "coverage_80_orders": 0.689,
+            "mean_width_profit": 2320
+          },
+          "after_2_weeks": {
+            "coverage_80_profit": 0.705,
+            "coverage_80_orders": 0.711,
+            "mean_width_profit": 4174
+          },
+          "after_4_weeks": {
+            "coverage_80_profit": 0.826,
+            "coverage_80_orders": 0.826,
+            "mean_width_profit": 7180
+          }
+        },
+        "customer+lin": {
+          "after_1_weeks": {
+            "coverage_80_profit": 0.568,
+            "coverage_80_orders": 0.653,
+            "mean_width_profit": 2239
+          },
+          "after_2_weeks": {
+            "coverage_80_profit": 0.663,
+            "coverage_80_orders": 0.658,
+            "mean_width_profit": 4088
+          },
+          "after_4_weeks": {
+            "coverage_80_profit": 0.763,
+            "coverage_80_orders": 0.747,
+            "mean_width_profit": 7017
+          }
+        },
+        "visit+fixed": {
+          "after_1_weeks": {
+            "coverage_80_profit": 0.605,
+            "coverage_80_orders": 0.679,
+            "mean_width_profit": 2308
+          },
+          "after_2_weeks": {
+            "coverage_80_profit": 0.689,
+            "coverage_80_orders": 0.705,
+            "mean_width_profit": 4081
+          },
+          "after_4_weeks": {
+            "coverage_80_profit": 0.821,
+            "coverage_80_orders": 0.805,
+            "mean_width_profit": 6852
+          }
+        },
+        "visit+lin": {
+          "after_1_weeks": {
+            "coverage_80_profit": 0.584,
+            "coverage_80_orders": 0.658,
+            "mean_width_profit": 2262
+          },
+          "after_2_weeks": {
+            "coverage_80_profit": 0.668,
+            "coverage_80_orders": 0.668,
+            "mean_width_profit": 4033
+          },
+          "after_4_weeks": {
+            "coverage_80_profit": 0.774,
+            "coverage_80_orders": 0.737,
+            "mean_width_profit": 6811
+          }
+        }
+      },
+      "closest_to_nominal": "customer+fixed",
+      "in_use": "customer+fixed"
+    },
     "uplift_quality": {
-      "qini_model": 0.271,
-      "corr_with_true_uplift": 0.633
+      "qini_model": 0.236,
+      "corr_with_true_uplift": 0.61
     },
     "demo_restaurant": {
       "restaurant_id": 57,
@@ -347,8 +432,14 @@
       "blanket_profit_change": -1605.0,
       "blanket_redemptions": 145.4,
       "blanket_extra_orders": 31.6,
-      "truelift_profit_change": 239.0,
-      "truelift_design": "\u20b960 off only for customers it brings in"
+      "truelift_profit_change": 378.0,
+      "truelift_design": "\u20b960 off only for customers it brings in",
+      "truelift_forecast": 1641,
+      "truelift_forecast_low": -2124,
+      "truelift_forecast_high": 5406,
+      "truelift_truth_todays_market": 1727.0,
+      "owner_forecast": 1358,
+      "owner_truth_todays_market": 601.0
     },
     "blanket_restaurants_losing": 247,
     "calibration": {
@@ -358,9 +449,9 @@
         0.55
       ],
       "topup_value_simulator_truth": 0.5,
-      "sigma_profit_share_of_aov": 0.0091,
-      "sigma_orders_per_visit": 0.03328,
-      "shadow_offers": 545
+      "sigma_profit_share_of_aov": 0.0087,
+      "sigma_orders_per_visit": 0.03191,
+      "shadow_offers": 759
     }
   }
 }

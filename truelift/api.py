@@ -345,7 +345,7 @@ def quote(q: QuoteIn, request: Request, sess: Session = Depends(session_of)):
     aov = float(s.market.aov[rid])
     check_design(d, aov)
     owner, best = s.engine.best_design(s.x_for(rid), d, aov, s.baskets[rid], weeks=2)
-    better = best if best["profit_change"] > owner["profit_change"] + 50 else None
+    better = best if s.engine.worth_suggesting(owner, best) else None
     log_call(sess, "quote", t0, restaurant=rid)
     return clean(
         {

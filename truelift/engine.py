@@ -30,6 +30,10 @@ from .economics import Terms, fmt_inr, split
 from .model import UpliftModel
 
 Z80 = 1.2816  # half-width of an 80% interval, in standard deviations
+# TrueLift recommends an offer only if its forecast gives it at least this chance of making money.
+# Chosen on the quick configuration against the truth (TL-018): at 60% TrueLift drops 48 of 70
+# truly losing offers and keeps the same total true profit; at 50% it keeps all 70.
+MIN_CHANCE_TO_OFFER = 0.6
 log = logging.getLogger("truelift.engine")
 
 
@@ -176,6 +180,66 @@ def _cached(cache: dict | None, key: tuple, fn: Callable[[], np.ndarray], n: int
     return value
 
 
+def arm_mean(y: np.ndarray, cust: np.ndarray | None, by_customer: bool = True) -> tuple[float, float]:
+    """Mean outcome per visit in one group (shown or held out) and the variance of that mean.
+
+    Customers, not visits, are assigned to the control group, and one customer's visits are alike
+    (same tastes, same history), so treating visits as independent understates the noise (audit
+    TL-029). by_customer=True sums each customer's visits and uses the delta method for the ratio
+    estimator: mean = sum(Y_i) / sum(N_i), variance = var(Y_i - mean * N_i) / (k * mean(N)^2) over
+    the k customers.
+    """
+    n = len(y)
+    if n == 0:
+        return 0.0, math.inf
+    if not by_customer or cust is None:
+        return float(y.mean()), float(y.var(ddof=1) / n) if n >= 2 else math.inf
+    _, idx = np.unique(np.asarray(cust), return_inverse=True)
+    totals, visits = np.bincount(idx, weights=y), np.bincount(idx).astype(float)
+    m = float(totals.sum() / visits.sum())
+    k = len(visits)
+    if k < 2:
+        return m, math.inf
+    resid = totals - m * visits
+    return m, float(resid.var(ddof=1) / (k * visits.mean() ** 2))
+
+
+def effect_and_se(
+    y: np.ndarray,
+    shown: np.ndarray,
+    held: np.ndarray,
+    cust: np.ndarray | None,
+    base: np.ndarray | None = None,
+    by_customer: bool = True,
+    adjust: str = "fixed",
+) -> tuple[float, float]:
+    """Difference in mean outcome per visit (shown minus held out) and its standard error.
+
+    base: each visit's predicted outcome without the offer, from history only. adjust="fixed"
+    subtracts it (coefficient 1, the regression adjustment used so far); adjust="lin" estimates the
+    coefficient in each group around the overall mean of the prediction (Lin 2013), which can only
+    reduce variance and keeps the comparison unbiased because assignment is random.
+    """
+    y = np.asarray(y, float)
+    if base is not None:
+        b = np.asarray(base, float)
+        if adjust == "lin":
+            adj = y.copy()
+            for g in (shown, held):
+                if g.sum() >= 3 and b[g].var() > 0:
+                    theta = float(np.cov(y[g], b[g])[0, 1] / b[g].var(ddof=1))
+                    adj[g] = y[g] - theta * (b[g] - b.mean())
+            y = adj
+        else:
+            y = y - b
+    c = None if cust is None else np.asarray(cust)
+    mt, vt = arm_mean(y[shown], None if c is None else c[shown], by_customer)
+    mc, vc = arm_mean(y[held], None if c is None else c[held], by_customer)
+    if math.isinf(vt) or math.isinf(vc) or shown.sum() < 2 or held.sum() < 2:
+        return 0.0, math.inf
+    return mt - mc, math.sqrt(vt + vc)
+
+
 @dataclass
 class DecisionTable:
     """Who sees an approved offer, decided once at approval (and on each refresh), not per request.
@@ -210,8 +274,17 @@ class Engine:
         sigma_orders: float = 0.005,
         holdout: float = 0.10,
         topup_value: float = 0.5,
+        variance: str = "customer",
+        adjust: str = "fixed",
+        selection: str = "mean",
     ):
         self.model, self.terms, self.holdout, self.topup_value = model, terms, holdout, topup_value
+        # how the weekly measurement computes its noise and its regression adjustment (audit D7)
+        self.variance, self.adjust = variance, adjust
+        self.selection = selection  # how the best of the versions is chosen (TL-018)
+        # scale of predicted gains above and below zero, learned from shadow-phase holdouts
+        # (training.gain_calibration); signs, and so targeting decisions, are unchanged
+        self.gain_scale = (1.0, 1.0)
         # model error of a restaurant's average effect per eligible visit (set by `calibrate`):
         # profit as a share of its average order value; orders in absolute terms
         self.sigma_rel, self.sigma_orders = sigma_rel, sigma_orders
@@ -258,6 +331,7 @@ class Engine:
         profit1 = np.where(has, mix1("restaurant_profit"), m0["restaurant_profit"])
         comm1 = np.where(has, mix1("commission"), m0["commission"])
         gain = p1 * profit1 - p0 * m0["restaurant_profit"]
+        gain = np.where(gain > 0, gain * self.gain_scale[0], gain * self.gain_scale[1])
         return {
             "p0": p0,
             "p1": p1,
@@ -334,6 +408,9 @@ class Engine:
             "profit_change": round(dprofit),
             "profit_low": round(dprofit - Z80 * sd),
             "profit_high": round(dprofit + Z80 * sd),
+            "prob_profit_positive": round(
+                0.5 * (1 + math.erf(dprofit / (sd * math.sqrt(2)))) if sd > 0 else float(dprofit > 0), 3
+            ),
             "discount_spend": round(spend),
             "reward_spend": round(rw_cost),
             "discount_per_extra_order": round((spend + rw_cost) / extra) if extra > 0.5 else None,
@@ -366,18 +443,43 @@ class Engine:
         return grid
 
     def best_design(
-        self, x: pd.DataFrame, owner: Design, aov: float, baskets: np.ndarray, weeks: float = 1.0
+        self, x: pd.DataFrame, owner: Design, aov: float, baskets: np.ndarray, weeks: float = 1.0, rule: str = ""
     ) -> tuple[dict, dict]:
-        """Quote for the owner's design and the best alternative (highest expected profit change).
+        """Quote for the owner's design and the best alternative.
 
+        rule "mean" picks the highest expected profit change; "lower" picks the highest lower end of
+        the 80% range, which favours versions whose gain is less likely to be noise (audit TL-018).
         The owner still sees the range for both before approving. Predictions are reused across the
         versions through a cache that lives only for this call.
         """
         cache: dict = {}
         quotes = [self.quote(x, d, aov, baskets, weeks, cache=cache) for d in self.design_grid(aov, owner)]
-        best = max(quotes[1:], key=lambda q: (q["profit_change"], q["profit_low"]))
+        if (rule or self.selection) == "lower":
+            best = max(quotes[1:], key=lambda q: (q["profit_low"], q["profit_change"]))
+        else:
+            best = max(quotes[1:], key=lambda q: (q["profit_change"], q["profit_low"]))
         best["designs_compared"] = len(quotes) - 1
+        if (best["design"]["discount"] > 0 or best["design"]["reward"] > 0) and (
+            self.prob_profit_positive(best) < MIN_CHANCE_TO_OFFER
+        ):
+            best = {**quotes[1], "designs_compared": len(quotes) - 1}  # "no offer": nothing is clearly positive
+        best["advantage"] = round(best["profit_change"] - quotes[0]["profit_change"])
         return quotes[0], best
+
+    @staticmethod
+    def worth_suggesting(owner_quote: dict, best: dict) -> bool:
+        """Suggest a different version when it is expected to beat the owner's version. Forecasts are
+        calibrated against shadow-phase holdouts on both sides of zero (training.gain_calibration),
+        which removes most of the flattery in the advantage (TL-018; replaces a flat Rs 50 margin)."""
+        return best["design"] != owner_quote["design"] and best.get("advantage", 0) > 0
+
+    @staticmethod
+    def prob_profit_positive(q: dict) -> float:
+        """Chance the offer makes money, from the forecast and its 80% range (normal)."""
+        sd = (q["profit_high"] - q["profit_low"]) / (2 * Z80)
+        if sd <= 0:
+            return 1.0 if q["profit_change"] > 0 else 0.0
+        return float(0.5 * (1 + math.erf(q["profit_change"] / (sd * math.sqrt(2)))))
 
     # ---------------- 2. serve ----------------
     def targeting_scorer(self, mixes: np.ndarray):
@@ -482,6 +584,8 @@ class Engine:
         prior_orders: float,
         base_profit=None,
         base_orders=None,
+        variance: str | None = None,
+        adjust: str | None = None,
     ) -> dict:
         """Measured effect of an offer so far.
 
@@ -493,10 +597,13 @@ class Engine:
         random) and removes most of the noise from which customers happened to be held out
         (regression adjustment, as in CUPED).
         """
-        t, c = rows["shown"].to_numpy(), rows["holdout"].to_numpy()
+        t, c = rows["shown"].to_numpy().astype(bool), rows["holdout"].to_numpy().astype(bool)
         n_t, n_c = int(t.sum()), int(c.sum())
-        chosen = rows["chosen"].to_numpy()
+        chosen = rows["chosen"].to_numpy().astype(bool)
         zero = np.zeros(len(rows))
+        cust = rows["cust"].to_numpy() if "cust" in rows else None
+        by_customer = (variance or self.variance) == "customer"
+        how = adjust or self.adjust
         out: dict[str, Any] = {"shown_visits": n_t, "control_visits": n_c}
         for key, y, prior, sig, base in (
             (
@@ -514,12 +621,7 @@ class Engine:
                 zero if base_orders is None else np.asarray(base_orders),
             ),
         ):
-            y = y - base
-            if n_t >= 2 and n_c >= 2:
-                own = float(y[t].mean() - y[c].mean())
-                se = math.sqrt(y[t].var(ddof=1) / n_t + y[c].var(ddof=1) / n_c)
-            else:
-                own, se = 0.0, math.inf
+            own, se = effect_and_se(y, t, c, cust, base, by_customer, how)
             if math.isinf(se) or se == 0:
                 post, psd, w = prior, sig, 0.0
             else:

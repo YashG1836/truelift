@@ -13,7 +13,7 @@ from dataclasses import dataclass
 import numpy as np
 import pandas as pd
 
-from .engine import Design, Engine, fit_topup_value
+from .engine import Design, Engine, effect_and_se, fit_topup_value
 from .model import UpliftModel
 from .sim import History, Market, build_history, restaurant_baskets
 
@@ -24,6 +24,7 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
     el = rows[rows["eligible"]]
     for (r, w), g in el.groupby(["rest", "week"]):
         t, c = g["shown"].to_numpy(), g["holdout"].to_numpy()
+        cust = g["cust"].to_numpy()
         if t.sum() < 20 or c.sum() < 5:
             continue
         d = Design(
@@ -36,31 +37,56 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
         v = engine.design_values(g, d, aov[r], baskets[r])
         yp = g["chosen"].to_numpy() * g["profit"].to_numpy()
         yo = g["chosen"].to_numpy().astype(float)
-        # the whole offer, and the subset a targeted version would show (selection is on features
-        # only, so shown vs held-out stays random inside it); targeted offers are where errors grow
-        for subset, keep in (("all", np.ones(len(g), bool)), ("targeted", v["gain"] > 0)):
+        # the whole offer, the visits a targeted version would show and those it would skip
+        # (selection is on features only, so shown vs held-out stays random inside each)
+        subsets = (("all", np.ones(len(g), bool)), ("targeted", v["gain"] > 0), ("excluded", v["gain"] <= 0))
+        for subset, keep in subsets:
             tt, cc = t & keep, c & keep
             if tt.sum() < 20 or cc.sum() < 5:
                 continue
 
-            def se(y, tt=tt, cc=cc):
-                return math.sqrt(y[tt].var(ddof=1) / tt.sum() + y[cc].var(ddof=1) / cc.sum())
-
+            # the same estimator and noise as the weekly measurement (customer-level, audit TL-029)
+            own_p, se_p = effect_and_se(yp, tt, cc, cust, by_customer=engine.variance == "customer")
+            own_o, se_o = effect_and_se(yo, tt, cc, cust, by_customer=engine.variance == "customer")
+            if not (math.isfinite(se_p) and math.isfinite(se_o)):
+                continue
             out.append(
                 {
                     "rest": r,
                     "week": w,
                     "aov": aov[r],
                     "subset": subset,
-                    "own_profit": yp[tt].mean() - yp[cc].mean(),
-                    "se_profit": se(yp),
+                    "visits": int(tt.sum()),
+                    "own_profit": own_p,
+                    "se_profit": se_p,
                     "prior_profit": float(v["gain"][keep].mean()),
-                    "own_orders": yo[tt].mean() - yo[cc].mean(),
-                    "se_orders": se(yo),
+                    "own_orders": own_o,
+                    "se_orders": se_o,
                     "prior_orders": float((v["p1"] - v["p0"])[keep].mean()),
                 }
             )
     return pd.DataFrame(out)
+
+
+def gain_calibration(offers: pd.DataFrame) -> tuple[float, float]:
+    """Scale factors for predicted gains above and below zero, learned from the shadow phase.
+
+    Each shadow offer's control group measures its true effect, separately for the visits the
+    model expects to gain (a targeted version shows those) and the visits it expects to lose
+    (skipped). Predictions come from a model that never saw that restaurant. The ratio of measured
+    to predicted, summed over offers, says how far each side of the predictions should be scaled.
+    Visits the model ranks most negative tend to lose less than predicted (regression to the
+    mean), which made blanket forecasts too low and overstated what targeting adds (audit TL-006,
+    TL-018). The sign of a prediction, and so every targeting decision, is unchanged.
+    """
+    out = []
+    for subset in ("targeted", "excluded"):
+        g = offers[offers["subset"] == subset]
+        prior = float((g["visits"] * g["prior_profit"]).sum())
+        own = float((g["visits"] * g["own_profit"]).sum())
+        ratio = own / prior if len(g) >= 20 and abs(prior) > 1e-9 else 1.0
+        out.append(float(np.clip(ratio, 0.2, 2.0)))
+    return out[0], out[1]
 
 
 def minimum_order_offers(train: pd.DataFrame, model: UpliftModel) -> pd.DataFrame:
@@ -121,6 +147,7 @@ class Trained:
             "sigma_rel": e.sigma_rel,
             "sigma_orders": e.sigma_orders,
             "topup_value": e.topup_value,
+            "gain_scale": list(e.gain_scale),
             "config": asdict(self.market.cfg),
             "terms": asdict(self.market.terms),
             "demo_restaurant": int(demo_restaurant),
@@ -150,13 +177,22 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     # cross-fitted calibration of model error: each restaurant's error is measured by a model
     # that never saw that restaurant
     fold = rows["rest"] % 2
-    priors = []
-    for f in (0, 1):
-        m_f = UpliftModel.fit(rows[fold != f], seed=f)
-        priors.append(shadow_offers(rows[fold == f], Engine(m_f, topup_value=topup), baskets, aov))
-    offers = pd.concat(priors, ignore_index=True)
+    fold_models = [UpliftModel.fit(rows[fold != f], seed=f) for f in (0, 1)]
+
+    def checks(scale: tuple[float, float]) -> pd.DataFrame:
+        parts = []
+        for f in (0, 1):
+            e = Engine(fold_models[f], topup_value=topup)
+            e.gain_scale = scale
+            parts.append(shadow_offers(rows[fold == f], e, baskets, aov))
+        return pd.concat(parts, ignore_index=True)
+
+    scale = gain_calibration(checks((1.0, 1.0)))
+    log(f"predicted gains scaled by {scale[0]:.2f} above zero and {scale[1]:.2f} below (shadow-phase holdouts)")
+    offers = checks(scale)  # the error left after that calibration sets the ranges
     engine = Engine(model, topup_value=topup)
-    sig = engine.calibrate(offers)
+    engine.gain_scale = scale
+    sig = engine.calibrate(offers[offers["subset"] != "excluded"])
     log(
         f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "
         f"({len(offers)} shadow-offer checks)"

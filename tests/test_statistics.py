@@ -40,3 +40,12 @@ def test_forecast_is_centred_on_the_truth_in_todays_market(quick_report):
 @pytest.mark.slow
 def test_no_training_serving_skew(quick_report):
     assert quick_report["main"]["skew_check"]["passed"]
+
+
+@pytest.mark.slow
+def test_chosen_version_usually_beats_the_owners_and_its_advantage_is_not_inflated(quick_report):
+    """TL-018: the version TrueLift picks truly beats the owner's offer most of the time, and the
+    advantage it states is not the flattering best-of-34 number (within a factor of two of the truth)."""
+    s = quick_report["main"]["selection"]
+    assert s["share_truly_better_than_owner"] >= 0.7
+    assert 0.5 <= s["forecast_advantage_total"] / s["true_advantage_total"] <= 2.0

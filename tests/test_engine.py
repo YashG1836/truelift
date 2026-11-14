@@ -315,3 +315,42 @@ def test_bigger_discount_never_lowers_the_predicted_chance(small_trained):
     assert (np.diff(preds, axis=1) >= -1e-12).all()
     rewards = np.column_stack([model.p0(x.assign(reward=r)) for r in (0, 10, 30)])
     assert (np.diff(rewards, axis=1) >= -1e-12).all()
+
+
+class _LosingModel(_FlatModel):
+    """Every offer adds almost nothing: each version loses money on discounts given away."""
+
+    def p1(self, x, discount, min_order):
+        return np.full(len(x), 0.101)
+
+
+def test_no_offer_is_chosen_when_every_version_loses():
+    """TL-018: when no version is likely to make money, TrueLift recommends no offer."""
+    eng = Engine(_LosingModel())
+    owner_q, best = eng.best_design(_x(400), Design(60), 400, np.full(50, 400.0))
+    assert best["design"]["discount"] == 0 and best["design"]["reward"] == 0
+    assert owner_q["profit_change"] < 0 and best["profit_change"] == 0
+
+
+def test_chance_of_making_money_matches_the_range():
+    q = {"profit_change": 0, "profit_low": -100, "profit_high": 100}
+    assert Engine.prob_profit_positive(q) == pytest.approx(0.5)
+    q = {"profit_change": 100, "profit_low": 0, "profit_high": 200}  # low end = 0 -> 90% chance
+    assert Engine.prob_profit_positive(q) == pytest.approx(0.9, abs=1e-3)
+    assert Engine.prob_profit_positive({"profit_change": 0, "profit_low": 0, "profit_high": 0}) == 0.0
+
+
+def test_gain_calibration_scales_each_side_and_keeps_signs():
+    from truelift.training import gain_calibration
+
+    rows = []
+    for _ in range(30):
+        rows.append({"subset": "targeted", "visits": 100, "own_profit": 1.8, "prior_profit": 2.0})
+        rows.append({"subset": "excluded", "visits": 100, "own_profit": -0.5, "prior_profit": -1.0})
+    pos, neg = gain_calibration(pd.DataFrame(rows))
+    assert pos == pytest.approx(0.9) and neg == pytest.approx(0.5)
+    eng = Engine(_FlatModel())
+    eng.gain_scale = (pos, neg)
+    v = eng.row_values(_x(4), 60.0, 0.0, 0.0, 0.0, (1.0, 400.0, 400.0, 400.0))
+    raw = Engine(_FlatModel()).row_values(_x(4), 60.0, 0.0, 0.0, 0.0, (1.0, 400.0, 400.0, 400.0))
+    assert np.array_equal(np.sign(v["gain"]), np.sign(raw["gain"]))

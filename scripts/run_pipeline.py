@@ -43,6 +43,7 @@ from truelift.sim import Config, Market, Policy, display_name, recent_visits, st
 from truelift.training import train as train_model  # noqa: E402
 
 EVAL_WEEKS = (1, 2, 3, 4)
+MEASUREMENT_VARIANTS = (("visit", "fixed"), ("customer", "fixed"), ("visit", "lin"), ("customer", "lin"))
 
 
 def log(msg: str) -> None:
@@ -345,6 +346,26 @@ def evaluate(
     truth_tl, adoption_worlds = own_effect_in_todays_market(market, hist, pols["truelift"])
     truth_bl, _ = own_effect_in_todays_market(market, hist, blanket)
     tl_quotes, bl_quotes = [q[1] for q in quotes["truelift"]], [q[0] for q in quotes["truelift"]]
+    # does the chosen version truly beat the owner's own offer? (TL-018: the best of 34 noisy
+    # forecasts flatters itself; this is measured against the truth in today's market)
+    sel = [
+        (r, q[0], q[1])
+        for r, q in enumerate(quotes["truelift"])
+        if q[0] is not None and q[1] is not None and q[1]["design"] != q[0]["design"]
+    ]
+    adv_f = np.array([b["profit_change"] - o["profit_change"] for _, o, b in sel])
+    adv_t = np.array([truth_tl["lift_profit"].iloc[r] - truth_bl["lift_profit"].iloc[r] for r, _, _ in sel])
+    suggest = np.array([engine.worth_suggesting(o, b) for _, o, b in sel])
+    results["selection"] = {
+        "rule": engine.selection,
+        "restaurants_with_a_different_version": len(sel),
+        "share_truly_better_than_owner": round(float((adv_t > 0).mean()), 3) if len(sel) else None,
+        "forecast_advantage_total": round(float(adv_f.sum())),
+        "true_advantage_total": round(float(adv_t.sum())),
+        "suggested_to_owner": int(suggest.sum()),
+        "share_of_suggestions_truly_better": round(float((adv_t[suggest] > 0).mean()), 3) if suggest.any() else None,
+        "no_offer_chosen": sum(d.discount <= 0 and d.reward <= 0 for d in designs["truelift"]),
+    }
     results["forecast"] = {
         "truelift_design_in_todays_market": forecast_check(tl_quotes, truth_tl),
         "owner_blanket_offer_in_todays_market": forecast_check(bl_quotes, truth_bl),
@@ -370,7 +391,7 @@ def evaluate(
 
     # measurement accuracy in the TrueLift world (cumulative after 1, 2 and 4 weeks)
     rows = worlds["truelift"]["rows"]
-    meas = []
+    meas, variants = [], []
     for r, g in rows.groupby("rest"):
         d = ds[r]
         if d.discount <= 0:
@@ -386,6 +407,27 @@ def evaluate(
             sh = gg["shown"].to_numpy()
             true_total = float((gg["p"] * gg["profit"] - gg["p_cf"] * gg["profit_cf"]).to_numpy()[sh].sum())
             true_orders = float((gg["p"] - gg["p_cf"]).to_numpy()[sh].sum())
+            # decision D7: which noise estimate and which regression adjustment cover the truth best
+            for var, adj in MEASUREMENT_VARIANTS:
+                mv = engine.measure(
+                    gg,
+                    aov[r],
+                    float(v["gain"].mean()),
+                    float((v["p1"] - v["p0"]).mean()),
+                    v["p0"] * v["profit0"],
+                    v["p0"],
+                    variance=var,
+                    adjust=adj,
+                )
+                variants.append(
+                    {
+                        "variant": f"{var}+{adj}",
+                        "weeks": upto,
+                        "profit_in": mv["profit"]["low"] <= true_total <= mv["profit"]["high"],
+                        "orders_in": mv["orders"]["low"] <= true_orders <= mv["orders"]["high"],
+                        "profit_width": mv["profit"]["high"] - mv["profit"]["low"],
+                    }
+                )
             p = m["profit"]
             meas.append(
                 {
@@ -427,6 +469,30 @@ def evaluate(
             "said_wait": int(((g["low"] <= 0) & (g["high"] >= 0)).sum()),
         }
     results["measurement"] = acc
+    vt = pd.DataFrame(variants)
+    cover = {
+        name: {
+            f"after_{w}_weeks": {
+                "coverage_80_profit": round(float(g2["profit_in"].mean()), 3),
+                "coverage_80_orders": round(float(g2["orders_in"].mean()), 3),
+                "mean_width_profit": round(float(g2["profit_width"].mean())),
+            }
+            for w, g2 in g.groupby("weeks")
+        }
+        for name, g in vt.groupby("variant")
+    }
+    gap = {
+        name: sum(
+            abs(c[k] - 0.8) for wk in by_w.values() for k, c in [("coverage_80_profit", wk), ("coverage_80_orders", wk)]
+        )
+        for name, by_w in cover.items()
+    }
+    results["measurement_variants"] = {
+        "rule": "the variant whose 80% coverage is closest to 80% at weeks 1, 2 and 4, profit and orders (D7)",
+        "coverage": cover,
+        "closest_to_nominal": min(gap, key=gap.get),
+        "in_use": f"{engine.variance}+{engine.adjust}",
+    }
 
     # uplift ranking quality on the evaluation weeks (sampled outcomes, random holdout)
     el = rows
@@ -461,6 +527,13 @@ def evaluate(
             "blanket_extra_orders": (pr["today_blanket"]["orders"] - pr["no_offer"]["orders"]).round(1),
             "truelift_profit_change": (pr["truelift"]["profit"] - pr["no_offer"]["profit"]).round(0),
             "truelift_design": [d.label() for d in ds],
+            # forecast shown before approval vs the truth when this restaurant switches in today's market
+            "truelift_forecast": [q[1]["profit_change"] if q[1] else 0 for q in quotes["truelift"]],
+            "truelift_forecast_low": [q[1]["profit_low"] if q[1] else 0 for q in quotes["truelift"]],
+            "truelift_forecast_high": [q[1]["profit_high"] if q[1] else 0 for q in quotes["truelift"]],
+            "truelift_truth_todays_market": truth_tl["lift_profit"].round(0).to_numpy(),
+            "owner_forecast": [q[0]["profit_change"] if q[0] else 0 for q in quotes["truelift"]],
+            "owner_truth_todays_market": truth_bl["lift_profit"].round(0).to_numpy(),
         }
     )
     out_dir.mkdir(parents=True, exist_ok=True)

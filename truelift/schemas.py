@@ -160,6 +160,7 @@ class Forecast(Schema):
                     "profit_change": 1731,
                     "profit_low": -552,
                     "profit_high": 4014,
+                    "prob_profit_positive": 0.82,
                     "discount_spend": 7278,
                     "reward_spend": 0,
                     "discount_per_extra_order": 140,
@@ -182,6 +183,10 @@ class Forecast(Schema):
     profit_change: int = Field(description="Expected change in the restaurant's profit a week, ₹")
     profit_low: int = Field(description="Low end of the 80% range, ₹")
     profit_high: int = Field(description="High end of the 80% range, ₹")
+    prob_profit_positive: float = Field(description="Chance the offer makes the restaurant money, from the forecast")
+    advantage: int | None = Field(
+        None, description="For a suggested version: expected extra profit a week over the owner's version, ₹"
+    )
     discount_spend: int
     reward_spend: int
     discount_per_extra_order: int | None
@@ -194,7 +199,10 @@ class Forecast(Schema):
 
 class QuoteResponse(Schema):
     owner: Forecast = Field(description="The owner's own design")
-    better: Forecast | None = Field(description="A better version at the same discount size, if one is clearly better")
+    better: Forecast | None = Field(
+        description="A better version at the same discount size, or no offer when no version is likely to make "
+        "money; null when the owner's version is already the best"
+    )
     designs_compared: int
     consent_weeks: int
     model_version: str

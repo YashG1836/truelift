@@ -30,6 +30,8 @@ Template:
   Forecast check (TL-006): quote/truth 0.59 -> 0.91 for TrueLift designs once the shadow phase explores
   the create screen's depths (10-25% of the order) at today's share of offers (40%).
   Monotone constraints adopted; competition feature tried, not adopted (A05 L8; numbers in model.py).
+  Customer-level variance (TL-029); predicted gains calibrated on shadow-phase holdouts; TrueLift offers only
+  with a >= 60% chance of making money (TL-018): losing offers 71 -> 18 at the same total profit (quick).
 - Next / open: rest of M2 (numbers change once, at a single freeze), M3 UI restyle (tell Yash first).
 
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main
