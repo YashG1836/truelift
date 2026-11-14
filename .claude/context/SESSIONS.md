@@ -13,6 +13,23 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (M2 market analyses)
+- Did: pipeline gains Zomato-weight frontier (lambda 0.5/1/2), OTP-consent attrition (blind and informed
+  declines, break-even share), Zomato's ledger (platform-incremental share of extra orders; unmeasured
+  co-funding flagged as a pure transfer; control group's cost), partial adoption 10%/30%, history that moves,
+  fairness by segment with loyalty gap and three priced mitigations, control-set option (TL-019); seeds 8-11
+  and a pre-discount-commission run in parallel (full run only). New: `scripts/sensitivity.py` (8 assumptions,
+  tornado data, boundaries in words), `scripts/benchmark_learners.py` (random/response/rule/S/T/X/DR/oracle),
+  `model.ALLOWED_FEATURES` + `tests/test_fairness.py`, `tests/test_market.py`, tasks `sensitivity`, `benchmark`.
+- Files: scripts/run_pipeline.py, scripts/sensitivity.py, scripts/benchmark_learners.py, truelift/engine.py
+  (quote has zomato_contribution_change; best_design zomato_weight), truelift/model.py, truelift/training.py
+  (engine uses the market's Terms), tests/*, tasks.py, pyproject.toml/uv.lock (threadpoolctl declared).
+- Checked: 121 fast tests; slow tests and golden (re-recorded); ruff, pyright. Not checked: full pipeline.
+- Numbers changed: quick golden only (new sections). Findings (quick): frontier flat (weighting Zomato buys it
+  nothing, restaurants lose); co-funding without a change in offers creates no order; Brand Pack for regulars
+  closes the loyalty gap at no own-offer cost; sweep boundaries incl. 5 menus per occasion (forecast 1.32x truth).
+- Next / open: Brand Pack control group (M2 step 14), guardrails/drift, real data, final run, then M3 UI.
+
 ## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish
 - Did: M1 of Kshitish's audit plan. Pinned `uv` environment; service v1 (typed `/api/v1` hooks, RFC 9457 errors,
   per-visitor sessions, OTP expiry and attempt limit, hash-chained consent ledger, exposure log, decision-table

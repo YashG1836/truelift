@@ -44,3 +44,8 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   numbers, fuzzing, browser tests (static and live) and the Docker check pass, and only for a commit marked
   `[deploy]` or a manual run. It refuses a site built without the committed model. Why: no untested or
   half-finished build reaches the public link. (Kshitish, 14 Nov.)
+- D16. (Kshitish, 14 Nov.) TrueLift picks each offer for the restaurant's profit only (Zomato weight 0). Why: the
+  frontier run (Zomato weight 0.5, 1, 2 on its contribution) gives Zomato no more commission or contribution
+  while restaurant profit falls and losing offers rise (quick: 10 -> 19), because both sides earn from the same
+  extra orders. The 60%-chance-of-profit floor applies at any weight. `Engine.best_design(zomato_weight=...)` stays
+  for the analysis.

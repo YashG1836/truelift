@@ -225,7 +225,7 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     def checks(scale: tuple[float, float], noise: tuple[float, float] | None) -> pd.DataFrame:
         parts = []
         for f in (0, 1):
-            e = Engine(fold_models[f], topup_value=topup)
+            e = Engine(fold_models[f], terms=market.terms, topup_value=topup)
             e.gain_scale, e.noise_scale = scale, noise
             parts.append(shadow_offers(rows[fold == f], e, baskets, aov))
         return pd.concat(parts, ignore_index=True)
@@ -235,7 +235,7 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     log(f"predicted gains scaled by {scale[0]:.2f} above zero and {scale[1]:.2f} below (shadow-phase holdouts)")
     log(f"real noise of an offer's estimate: {noise[0]:.2f} (profit) and {noise[1]:.2f} (orders) x the model's")
     offers = checks(scale, noise)  # the error left after that calibration sets the ranges
-    engine = Engine(model, topup_value=topup)
+    engine = Engine(model, terms=market.terms, topup_value=topup)
     engine.gain_scale, engine.noise_scale = scale, noise
     sig = engine.calibrate(offers[offers["subset"] != "excluded"])
     log(

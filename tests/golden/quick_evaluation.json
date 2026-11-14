@@ -1,10 +1,10 @@
 {
   "meta": {
-    "commit": "1c70241bf4c8f7085fa52d21c4cc98e14b0e4010",
+    "commit": "352057b0de6bb1f8c49d8de7502b1017b908bf09",
     "uncommitted_changes": true,
-    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q10 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q10/model.pkl",
-    "started_utc": "2026-11-14T11:40:57Z",
-    "wall_seconds": 62,
+    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q18 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q18/model.pkl",
+    "started_utc": "2026-11-14T12:09:02Z",
+    "wall_seconds": 137,
     "python": "3.12.10",
     "libraries": {
       "python": "3.12.10",
@@ -245,27 +245,27 @@
     "selection": {
       "rule": "mean",
       "restaurants_with_a_different_version": 174,
-      "share_truly_better_than_owner": 0.787,
+      "share_truly_better_than_owner": 0.782,
       "forecast_advantage_total": 11663,
-      "true_advantage_total": 8326,
+      "true_advantage_total": 6426,
       "suggested_to_owner": 174,
-      "share_of_suggestions_truly_better": 0.787,
+      "share_of_suggestions_truly_better": 0.782,
       "no_offer_chosen": 126
     },
     "forecast": {
       "truelift_design_in_todays_market": {
         "offers": 174,
         "forecast_total": 344765,
-        "truth_total": 392553,
-        "ratio_forecast_to_truth": 0.878,
-        "mean_abs_error": 391,
+        "truth_total": 390653,
+        "ratio_forecast_to_truth": 0.883,
+        "mean_abs_error": 384,
         "coverage_80": 1.0,
         "misses_below_range": 0,
         "misses_above_range": 0,
         "sign_right": 0.948,
-        "share_forecast_below_truth": 0.552,
-        "truth_from_new_accounts": 29106,
-        "ratio_to_truth_existing_customers": 0.949,
+        "share_forecast_below_truth": 0.54,
+        "truth_from_new_accounts": 28950,
+        "ratio_to_truth_existing_customers": 0.953,
         "coverage_80_existing_customers": 1.0
       },
       "owner_blanket_offer_in_todays_market": {
@@ -825,6 +825,751 @@
       "lifetime_false_pause_4_looks_rule_before": 0.247,
       "lifetime_false_pause_12_looks_rule_before": 0.356
     },
+    "zomato_weight_frontier": {
+      "points": [
+        {
+          "zomato_weight": 0.0,
+          "restaurant_profit_change": 195159,
+          "own_offer_profit_effect": 319997,
+          "zomato_commission_change": 264850,
+          "zomato_contribution_change": 90049,
+          "orders_per_week": 8181,
+          "offers_that_pay": 164,
+          "offers_that_lose": 10
+        },
+        {
+          "zomato_weight": 0.5,
+          "restaurant_profit_change": 194478,
+          "own_offer_profit_effect": 319824,
+          "zomato_commission_change": 264625,
+          "zomato_contribution_change": 89972,
+          "orders_per_week": 8186,
+          "offers_that_pay": 170,
+          "offers_that_lose": 19
+        },
+        {
+          "zomato_weight": 1.0,
+          "restaurant_profit_change": 193622,
+          "own_offer_profit_effect": 319334,
+          "zomato_commission_change": 264462,
+          "zomato_contribution_change": 89917,
+          "orders_per_week": 8188,
+          "offers_that_pay": 170,
+          "offers_that_lose": 19
+        },
+        {
+          "zomato_weight": 2.0,
+          "restaurant_profit_change": 188938,
+          "own_offer_profit_effect": 316479,
+          "zomato_commission_change": 264524,
+          "zomato_contribution_change": 89938,
+          "orders_per_week": 8202,
+          "offers_that_pay": 170,
+          "offers_that_lose": 19
+        }
+      ],
+      "reference": {
+        "today_blanket": {
+          "restaurant_profit_change": 99836,
+          "own_offer_profit_effect": 279383,
+          "zomato_commission_change": 261560,
+          "zomato_contribution_change": 88930,
+          "orders_per_week": 8723,
+          "offers_that_pay": 135,
+          "offers_that_lose": 165
+        },
+        "no_offer": {
+          "restaurant_profit_change": 0,
+          "own_offer_profit_effect": 0,
+          "zomato_commission_change": 0,
+          "zomato_contribution_change": 0,
+          "orders_per_week": 6387,
+          "offers_that_pay": 0,
+          "offers_that_lose": 0
+        },
+        "measure_only": {
+          "restaurant_profit_change": 119069,
+          "own_offer_profit_effect": 269871,
+          "zomato_commission_change": 249261,
+          "zomato_contribution_change": 84749,
+          "orders_per_week": 8400,
+          "offers_that_pay": 130,
+          "offers_that_lose": 107
+        }
+      }
+    },
+    "consent_attrition": {
+      "truelift_all_approve": {
+        "restaurant_profit_change": 195159,
+        "own_offer_profit_effect": 319997,
+        "zomato_commission_change": 264850,
+        "zomato_contribution_change": 90049,
+        "orders_per_week": 8181,
+        "offers_that_pay": 164,
+        "offers_that_lose": 10
+      },
+      "blanket_owners_decline_blind": {
+        "10%": {
+          "restaurant_profit_change": 95840,
+          "own_offer_profit_effect": 260565,
+          "zomato_commission_change": 245005,
+          "zomato_contribution_change": 83302,
+          "orders_per_week": 8568,
+          "offers_that_pay": 124,
+          "offers_that_lose": 146
+        },
+        "20%": {
+          "restaurant_profit_change": 107531,
+          "own_offer_profit_effect": 262131,
+          "zomato_commission_change": 244902,
+          "zomato_contribution_change": 83267,
+          "orders_per_week": 8464,
+          "offers_that_pay": 113,
+          "offers_that_lose": 127
+        },
+        "30%": {
+          "restaurant_profit_change": 117850,
+          "own_offer_profit_effect": 262406,
+          "zomato_commission_change": 243583,
+          "zomato_contribution_change": 82818,
+          "orders_per_week": 8346,
+          "offers_that_pay": 101,
+          "offers_that_lose": 109
+        },
+        "50%": {
+          "restaurant_profit_change": 76230,
+          "own_offer_profit_effect": 183678,
+          "zomato_commission_change": 170594,
+          "zomato_contribution_change": 58002,
+          "orders_per_week": 7858,
+          "offers_that_pay": 77,
+          "offers_that_lose": 73
+        }
+      },
+      "blanket_losing_owners_decline": {
+        "restaurant_profit_change": 161565,
+        "own_offer_profit_effect": 310728,
+        "zomato_commission_change": 280251,
+        "zomato_contribution_change": 95285,
+        "orders_per_week": 8373,
+        "offers_that_pay": 135,
+        "offers_that_lose": 0,
+        "owners": 165
+      },
+      "truelift_losing_owners_decline": {
+        "restaurant_profit_change": 196570,
+        "own_offer_profit_effect": 320647,
+        "zomato_commission_change": 265243,
+        "zomato_contribution_change": 90182,
+        "orders_per_week": 8169,
+        "offers_that_pay": 164,
+        "offers_that_lose": 0,
+        "owners": 10
+      },
+      "break_even_blind_decline_share": 0.0
+    },
+    "zomato_ledger": {
+      "platform_incremental_share_of_extra_orders": {
+        "today_blanket": 0.476,
+        "rule_new_customers": 0.502,
+        "truelift": 0.515,
+        "zomato_cofund_naive": 0.515
+      },
+      "cofunding": {
+        "extra_zomato_funded_discount": 22719,
+        "extra_platform_incremental_orders": 0,
+        "cost_per_extra_platform_incremental_order": null,
+        "contribution_change_vs_truelift": -22717,
+        "pure_transfer": true
+      },
+      "control_group_cost_truelift": {
+        "holdout_share": 0.1,
+        "profit_forgone_a_week": 35555,
+        "orders_forgone_a_week": 285
+      }
+    },
+    "partial_adoption": {
+      "base": "today's market (a share of restaurants with blanket offers, no holdout)",
+      "10%": {
+        "adopters": 30,
+        "adopters_profit_change_a_week": 38472,
+        "others_profit_change_a_week": -9115,
+        "zomato_commission_change_a_week": 30126,
+        "orders_change_a_week": 131
+      },
+      "30%": {
+        "adopters": 90,
+        "adopters_profit_change_a_week": 127572,
+        "others_profit_change_a_week": -25019,
+        "zomato_commission_change_a_week": 109580,
+        "orders_change_a_week": 514
+      }
+    },
+    "moving_history": {
+      "fixed_snapshot": {
+        "restaurant_profit_change": 195159,
+        "own_offer_profit_effect": 319997,
+        "zomato_commission_change": 264850,
+        "zomato_contribution_change": 90049,
+        "orders_per_week": 8181,
+        "offers_that_pay": 164,
+        "offers_that_lose": 10
+      },
+      "features_follow_each_week": {
+        "restaurant_profit_change": 196375,
+        "own_offer_profit_effect": 321162,
+        "zomato_commission_change": 265186,
+        "zomato_contribution_change": 90163,
+        "orders_per_week": 8182,
+        "offers_that_pay": 163,
+        "offers_that_lose": 11
+      }
+    },
+    "fairness": {
+      "today_blanket": {
+        "by_segment": {
+          "customer_type": {
+            "casual": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 5.99,
+              "orders_per_100_visits": 7.53
+            },
+            "deal_seeker": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.25,
+              "orders_per_100_visits": 6.21
+            },
+            "infrequent": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.0,
+              "orders_per_100_visits": 7.0
+            },
+            "loyal": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.31,
+              "orders_per_100_visits": 9.1
+            }
+          },
+          "locality": {
+            "BTM": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 2.97,
+              "orders_per_100_visits": 6.48
+            },
+            "HSR": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 4.73,
+              "orders_per_100_visits": 7.53
+            },
+            "Indiranagar": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 8.52,
+              "orders_per_100_visits": 8.78
+            },
+            "Jayanagar": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.06,
+              "orders_per_100_visits": 8.08
+            },
+            "Koramangala 5th Block": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 7.6,
+              "orders_per_100_visits": 8.69
+            },
+            "Whitefield": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 7.33,
+              "orders_per_100_visits": 8.23
+            }
+          },
+          "new_account": {
+            "existing": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.18,
+              "orders_per_100_visits": 7.95
+            },
+            "new to Zomato": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 6.19,
+              "orders_per_100_visits": 7.96
+            }
+          },
+          "price_band": {
+            "Rs 300-499": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 4.03,
+              "orders_per_100_visits": 6.92
+            },
+            "Rs 500+": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 13.93,
+              "orders_per_100_visits": 11.85
+            },
+            "under Rs 300": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 1.95,
+              "orders_per_100_visits": 5.78
+            }
+          },
+          "regular": {
+            "not a regular": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 5.18,
+              "orders_per_100_visits": 6.5
+            },
+            "regular here": {
+              "share_of_visits_offered_a_saving": 1.0,
+              "saving_received_per_visit": 37.89,
+              "orders_per_100_visits": 54.31
+            }
+          }
+        },
+        "loyalty_gap": 0.0
+      },
+      "truelift": {
+        "by_segment": {
+          "customer_type": {
+            "casual": {
+              "share_of_visits_offered_a_saving": 0.571,
+              "saving_received_per_visit": 4.97,
+              "orders_per_100_visits": 7.01
+            },
+            "deal_seeker": {
+              "share_of_visits_offered_a_saving": 0.602,
+              "saving_received_per_visit": 5.67,
+              "orders_per_100_visits": 5.61
+            },
+            "infrequent": {
+              "share_of_visits_offered_a_saving": 0.609,
+              "saving_received_per_visit": 5.27,
+              "orders_per_100_visits": 6.48
+            },
+            "loyal": {
+              "share_of_visits_offered_a_saving": 0.368,
+              "saving_received_per_visit": 2.31,
+              "orders_per_100_visits": 8.67
+            }
+          },
+          "locality": {
+            "BTM": {
+              "share_of_visits_offered_a_saving": 0.272,
+              "saving_received_per_visit": 1.03,
+              "orders_per_100_visits": 5.85
+            },
+            "HSR": {
+              "share_of_visits_offered_a_saving": 0.423,
+              "saving_received_per_visit": 2.62,
+              "orders_per_100_visits": 7.02
+            },
+            "Indiranagar": {
+              "share_of_visits_offered_a_saving": 0.616,
+              "saving_received_per_visit": 6.25,
+              "orders_per_100_visits": 8.38
+            },
+            "Jayanagar": {
+              "share_of_visits_offered_a_saving": 0.515,
+              "saving_received_per_visit": 3.81,
+              "orders_per_100_visits": 7.58
+            },
+            "Koramangala 5th Block": {
+              "share_of_visits_offered_a_saving": 0.539,
+              "saving_received_per_visit": 5.01,
+              "orders_per_100_visits": 8.23
+            },
+            "Whitefield": {
+              "share_of_visits_offered_a_saving": 0.574,
+              "saving_received_per_visit": 5.03,
+              "orders_per_100_visits": 7.78
+            }
+          },
+          "new_account": {
+            "existing": {
+              "share_of_visits_offered_a_saving": 0.479,
+              "saving_received_per_visit": 3.83,
+              "orders_per_100_visits": 7.45
+            },
+            "new to Zomato": {
+              "share_of_visits_offered_a_saving": 0.598,
+              "saving_received_per_visit": 5.16,
+              "orders_per_100_visits": 7.6
+            }
+          },
+          "price_band": {
+            "Rs 300-499": {
+              "share_of_visits_offered_a_saving": 0.584,
+              "saving_received_per_visit": 2.02,
+              "orders_per_100_visits": 6.53
+            },
+            "Rs 500+": {
+              "share_of_visits_offered_a_saving": 0.812,
+              "saving_received_per_visit": 10.82,
+              "orders_per_100_visits": 11.42
+            },
+            "under Rs 300": {
+              "share_of_visits_offered_a_saving": 0.107,
+              "saving_received_per_visit": 0.18,
+              "orders_per_100_visits": 5.12
+            }
+          },
+          "regular": {
+            "not a regular": {
+              "share_of_visits_offered_a_saving": 0.502,
+              "saving_received_per_visit": 3.97,
+              "orders_per_100_visits": 6.13
+            },
+            "regular here": {
+              "share_of_visits_offered_a_saving": 0.077,
+              "saving_received_per_visit": 2.78,
+              "orders_per_100_visits": 49.85
+            }
+          }
+        },
+        "loyalty_gap": 0.425
+      },
+      "brand_pack_for_regulars": {
+        "by_segment": {
+          "customer_type": {
+            "casual": {
+              "share_of_visits_offered_a_saving": 0.571,
+              "saving_received_per_visit": 4.97,
+              "orders_per_100_visits": 7.01
+            },
+            "deal_seeker": {
+              "share_of_visits_offered_a_saving": 0.602,
+              "saving_received_per_visit": 5.67,
+              "orders_per_100_visits": 5.61
+            },
+            "infrequent": {
+              "share_of_visits_offered_a_saving": 0.609,
+              "saving_received_per_visit": 5.27,
+              "orders_per_100_visits": 6.48
+            },
+            "loyal": {
+              "share_of_visits_offered_a_saving": 0.412,
+              "saving_received_per_visit": 2.87,
+              "orders_per_100_visits": 8.72
+            }
+          },
+          "locality": {
+            "BTM": {
+              "share_of_visits_offered_a_saving": 0.284,
+              "saving_received_per_visit": 1.15,
+              "orders_per_100_visits": 5.87
+            },
+            "HSR": {
+              "share_of_visits_offered_a_saving": 0.442,
+              "saving_received_per_visit": 2.83,
+              "orders_per_100_visits": 7.04
+            },
+            "Indiranagar": {
+              "share_of_visits_offered_a_saving": 0.636,
+              "saving_received_per_visit": 6.51,
+              "orders_per_100_visits": 8.4
+            },
+            "Jayanagar": {
+              "share_of_visits_offered_a_saving": 0.535,
+              "saving_received_per_visit": 4.08,
+              "orders_per_100_visits": 7.61
+            },
+            "Koramangala 5th Block": {
+              "share_of_visits_offered_a_saving": 0.566,
+              "saving_received_per_visit": 5.33,
+              "orders_per_100_visits": 8.25
+            },
+            "Whitefield": {
+              "share_of_visits_offered_a_saving": 0.598,
+              "saving_received_per_visit": 5.34,
+              "orders_per_100_visits": 7.81
+            }
+          },
+          "new_account": {
+            "existing": {
+              "share_of_visits_offered_a_saving": 0.501,
+              "saving_received_per_visit": 4.1,
+              "orders_per_100_visits": 7.47
+            },
+            "new to Zomato": {
+              "share_of_visits_offered_a_saving": 0.598,
+              "saving_received_per_visit": 5.16,
+              "orders_per_100_visits": 7.6
+            }
+          },
+          "price_band": {
+            "Rs 300-499": {
+              "share_of_visits_offered_a_saving": 0.61,
+              "saving_received_per_visit": 2.29,
+              "orders_per_100_visits": 6.56
+            },
+            "Rs 500+": {
+              "share_of_visits_offered_a_saving": 0.841,
+              "saving_received_per_visit": 11.28,
+              "orders_per_100_visits": 11.47
+            },
+            "under Rs 300": {
+              "share_of_visits_offered_a_saving": 0.113,
+              "saving_received_per_visit": 0.23,
+              "orders_per_100_visits": 5.11
+            }
+          },
+          "regular": {
+            "not a regular": {
+              "share_of_visits_offered_a_saving": 0.502,
+              "saving_received_per_visit": 3.96,
+              "orders_per_100_visits": 6.11
+            },
+            "regular here": {
+              "share_of_visits_offered_a_saving": 0.733,
+              "saving_received_per_visit": 11.2,
+              "orders_per_100_visits": 51.29
+            }
+          }
+        },
+        "loyalty_gap": -0.231
+      },
+      "regulars_always_eligible": {
+        "by_segment": {
+          "customer_type": {
+            "casual": {
+              "share_of_visits_offered_a_saving": 0.571,
+              "saving_received_per_visit": 4.98,
+              "orders_per_100_visits": 7.01
+            },
+            "deal_seeker": {
+              "share_of_visits_offered_a_saving": 0.602,
+              "saving_received_per_visit": 5.67,
+              "orders_per_100_visits": 5.61
+            },
+            "infrequent": {
+              "share_of_visits_offered_a_saving": 0.609,
+              "saving_received_per_visit": 5.27,
+              "orders_per_100_visits": 6.48
+            },
+            "loyal": {
+              "share_of_visits_offered_a_saving": 0.408,
+              "saving_received_per_visit": 4.17,
+              "orders_per_100_visits": 8.82
+            }
+          },
+          "locality": {
+            "BTM": {
+              "share_of_visits_offered_a_saving": 0.283,
+              "saving_received_per_visit": 1.33,
+              "orders_per_100_visits": 5.89
+            },
+            "HSR": {
+              "share_of_visits_offered_a_saving": 0.441,
+              "saving_received_per_visit": 3.33,
+              "orders_per_100_visits": 7.08
+            },
+            "Indiranagar": {
+              "share_of_visits_offered_a_saving": 0.634,
+              "saving_received_per_visit": 7.23,
+              "orders_per_100_visits": 8.46
+            },
+            "Jayanagar": {
+              "share_of_visits_offered_a_saving": 0.532,
+              "saving_received_per_visit": 4.53,
+              "orders_per_100_visits": 7.64
+            },
+            "Koramangala 5th Block": {
+              "share_of_visits_offered_a_saving": 0.563,
+              "saving_received_per_visit": 6.21,
+              "orders_per_100_visits": 8.31
+            },
+            "Whitefield": {
+              "share_of_visits_offered_a_saving": 0.596,
+              "saving_received_per_visit": 6.09,
+              "orders_per_100_visits": 7.87
+            }
+          },
+          "new_account": {
+            "existing": {
+              "share_of_visits_offered_a_saving": 0.499,
+              "saving_received_per_visit": 4.73,
+              "orders_per_100_visits": 7.52
+            },
+            "new to Zomato": {
+              "share_of_visits_offered_a_saving": 0.598,
+              "saving_received_per_visit": 5.16,
+              "orders_per_100_visits": 7.6
+            }
+          },
+          "price_band": {
+            "Rs 300-499": {
+              "share_of_visits_offered_a_saving": 0.607,
+              "saving_received_per_visit": 2.78,
+              "orders_per_100_visits": 6.6
+            },
+            "Rs 500+": {
+              "share_of_visits_offered_a_saving": 0.838,
+              "saving_received_per_visit": 12.61,
+              "orders_per_100_visits": 11.6
+            },
+            "under Rs 300": {
+              "share_of_visits_offered_a_saving": 0.112,
+              "saving_received_per_visit": 0.26,
+              "orders_per_100_visits": 5.08
+            }
+          },
+          "regular": {
+            "not a regular": {
+              "share_of_visits_offered_a_saving": 0.502,
+              "saving_received_per_visit": 3.94,
+              "orders_per_100_visits": 6.06
+            },
+            "regular here": {
+              "share_of_visits_offered_a_saving": 0.667,
+              "saving_received_per_visit": 30.9,
+              "orders_per_100_visits": 54.24
+            }
+          }
+        },
+        "loyalty_gap": -0.165
+      },
+      "random_20pct_also_shown": {
+        "by_segment": {
+          "customer_type": {
+            "casual": {
+              "share_of_visits_offered_a_saving": 0.58,
+              "saving_received_per_visit": 5.01,
+              "orders_per_100_visits": 7.03
+            },
+            "deal_seeker": {
+              "share_of_visits_offered_a_saving": 0.606,
+              "saving_received_per_visit": 5.67,
+              "orders_per_100_visits": 5.62
+            },
+            "infrequent": {
+              "share_of_visits_offered_a_saving": 0.611,
+              "saving_received_per_visit": 5.27,
+              "orders_per_100_visits": 6.48
+            },
+            "loyal": {
+              "share_of_visits_offered_a_saving": 0.417,
+              "saving_received_per_visit": 2.85,
+              "orders_per_100_visits": 8.72
+            }
+          },
+          "locality": {
+            "BTM": {
+              "share_of_visits_offered_a_saving": 0.291,
+              "saving_received_per_visit": 1.15,
+              "orders_per_100_visits": 5.88
+            },
+            "HSR": {
+              "share_of_visits_offered_a_saving": 0.451,
+              "saving_received_per_visit": 2.87,
+              "orders_per_100_visits": 7.05
+            },
+            "Indiranagar": {
+              "share_of_visits_offered_a_saving": 0.639,
+              "saving_received_per_visit": 6.5,
+              "orders_per_100_visits": 8.41
+            },
+            "Jayanagar": {
+              "share_of_visits_offered_a_saving": 0.549,
+              "saving_received_per_visit": 4.12,
+              "orders_per_100_visits": 7.62
+            },
+            "Koramangala 5th Block": {
+              "share_of_visits_offered_a_saving": 0.572,
+              "saving_received_per_visit": 5.32,
+              "orders_per_100_visits": 8.26
+            },
+            "Whitefield": {
+              "share_of_visits_offered_a_saving": 0.594,
+              "saving_received_per_visit": 5.32,
+              "orders_per_100_visits": 7.81
+            }
+          },
+          "new_account": {
+            "existing": {
+              "share_of_visits_offered_a_saving": 0.507,
+              "saving_received_per_visit": 4.11,
+              "orders_per_100_visits": 7.48
+            },
+            "new to Zomato": {
+              "share_of_visits_offered_a_saving": 0.601,
+              "saving_received_per_visit": 5.16,
+              "orders_per_100_visits": 7.6
+            }
+          },
+          "price_band": {
+            "Rs 300-499": {
+              "share_of_visits_offered_a_saving": 0.622,
+              "saving_received_per_visit": 2.3,
+              "orders_per_100_visits": 6.58
+            },
+            "Rs 500+": {
+              "share_of_visits_offered_a_saving": 0.83,
+              "saving_received_per_visit": 11.29,
+              "orders_per_100_visits": 11.47
+            },
+            "under Rs 300": {
+              "share_of_visits_offered_a_saving": 0.125,
+              "saving_received_per_visit": 0.23,
+              "orders_per_100_visits": 5.1
+            }
+          },
+          "regular": {
+            "not a regular": {
+              "share_of_visits_offered_a_saving": 0.524,
+              "saving_received_per_visit": 4.06,
+              "orders_per_100_visits": 6.14
+            },
+            "regular here": {
+              "share_of_visits_offered_a_saving": 0.198,
+              "saving_received_per_visit": 8.43,
+              "orders_per_100_visits": 50.62
+            }
+          }
+        },
+        "loyalty_gap": 0.326
+      },
+      "mitigations": {
+        "brand_pack_for_regulars": {
+          "restaurant_profit_change": 181812,
+          "own_offer_profit_effect": 320345,
+          "zomato_commission_change": 262356,
+          "zomato_contribution_change": 89201,
+          "orders_per_week": 8206,
+          "offers_that_pay": 164,
+          "offers_that_lose": 10,
+          "own_offer_profit_change_vs_truelift": 348
+        },
+        "regulars_always_eligible": {
+          "restaurant_profit_change": 150763,
+          "own_offer_profit_effect": 285186,
+          "zomato_commission_change": 256710,
+          "zomato_contribution_change": 87282,
+          "orders_per_week": 8257,
+          "offers_that_pay": 145,
+          "offers_that_lose": 29,
+          "own_offer_profit_change_vs_truelift": -34811
+        },
+        "random_20pct_also_shown": {
+          "restaurant_profit_change": 182210,
+          "own_offer_profit_effect": 311899,
+          "zomato_commission_change": 262874,
+          "zomato_contribution_change": 89377,
+          "orders_per_week": 8215,
+          "offers_that_pay": 162,
+          "offers_that_lose": 12,
+          "own_offer_profit_change_vs_truelift": -8098
+        }
+      }
+    },
+    "control_set": {
+      "assumption": "all unshown visits are a valid control set only because the shadow phase randomises offer, audience and time slot; on observational logs use holdouts only or weight by the known assignment probabilities",
+      "holdout_only": {
+        "qini": 0.209,
+        "corr_with_true_uplift": 0.582,
+        "control_rows": 8997
+      },
+      "all_unshown_in_use": {
+        "control_rows": 320882
+      }
+    },
     "uplift_quality": {
       "qini_model": 0.224,
       "corr_with_true_uplift": 0.606
@@ -843,7 +1588,7 @@
       "truelift_forecast": 1622,
       "truelift_forecast_low": -2692,
       "truelift_forecast_high": 5935,
-      "truelift_truth_todays_market": 1727.0,
+      "truelift_truth_todays_market": 1711.0,
       "owner_forecast": 1339,
       "owner_truth_todays_market": 601.0
     },

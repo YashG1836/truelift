@@ -205,7 +205,9 @@ sortedcontainers==2.4.0
 starlette==1.10.0
     # via fastapi
 threadpoolctl==3.8.0
-    # via scikit-learn
+    # via
+    #   scikit-learn
+    #   truelift
 typing-extensions==4.16.0
     # via
     #   anyio

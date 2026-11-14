@@ -473,6 +473,7 @@ class Engine:
         mix1 = lambda k: use * mt[k] + (1 - use) * ms[k]  # noqa: E731
         profit1 = np.where(has, mix1("restaurant_profit"), m0["restaurant_profit"])
         comm1 = np.where(has, mix1("commission"), m0["commission"])
+        contrib1 = np.where(has, mix1("zomato_contribution"), m0["zomato_contribution"])
         gain = p1 * profit1 - p0 * m0["restaurant_profit"]
         gain = np.where(gain > 0, gain * self.gain_scale[0], gain * self.gain_scale[1])
         return {
@@ -486,6 +487,8 @@ class Engine:
             "profit1": profit1,
             "comm0": m0["commission"],
             "comm1": comm1,
+            "contrib0": m0["zomato_contribution"],
+            "contrib1": contrib1,
             "zfund1": use * mt["zomato_funded"],
             "basket1": np.where(has, use * b_take + (1 - use) * b_skip, b0),
         }
@@ -530,6 +533,7 @@ class Engine:
         extra_disc = float((show * (v["p1"] - v["p0"])).sum() / weeks)
         dprofit = float((show * v["gain"]).sum() / weeks)
         dcomm = float((show * (v["p1"] * v["comm1"] - v["p0"] * v["comm0"])).sum() / weeks)
+        dcontrib = float((show * (v["p1"] * v["contrib1"] - v["p0"] * v["contrib0"])).sum() / weeks)
         zfund = float((show * v["p1"] * v["zfund1"]).sum() / weeks)
         extra_rw = rw_cost = 0.0
         if d.reward > 0:  # Brand Pack effect on regulars who don't get the discount
@@ -539,6 +543,7 @@ class Engine:
             dprofit += float(((v["p0"] * v["profit0"] - base["p0"] * base["profit0"]) * reg).sum() / weeks)
             extra_rw = float(((v["p0"] - base["p0"]) * reg).sum() / weeks)
             dcomm += float(((v["p0"] * v["comm0"] - base["p0"] * base["comm0"]) * reg).sum() / weeks)
+            dcontrib += float(((v["p0"] * v["contrib0"] - base["p0"] * base["contrib0"]) * reg).sum() / weeks)
             rw_cost = float((v["p0"] * v["reward"] * reg).sum() / weeks)
         spend = redemptions * d.discount
         extra = extra_disc + extra_rw
@@ -575,6 +580,7 @@ class Engine:
             "reward_spend": round(rw_cost),
             "discount_per_extra_order": round((spend + rw_cost) / extra) if extra > 0.5 else None,
             "zomato_commission_change": round(dcomm),
+            "zomato_contribution_change": round(dcontrib),
             "zomato_funded": round(zfund),
             "offer_use_rate": round(float(v["mix"][0]), 3),
             "order_value_with_offer": round(order_value),
@@ -603,12 +609,22 @@ class Engine:
         return grid
 
     def best_design(
-        self, x: pd.DataFrame, owner: Design, aov: float, baskets: np.ndarray, weeks: float = 1.0, rule: str = ""
+        self,
+        x: pd.DataFrame,
+        owner: Design,
+        aov: float,
+        baskets: np.ndarray,
+        weeks: float = 1.0,
+        rule: str = "",
+        zomato_weight: float = 0.0,
     ) -> tuple[dict, dict]:
         """Quote for the owner's design and the best alternative.
 
         rule "mean" picks the highest expected profit change; "lower" picks the highest lower end of
         the 80% range, which favours versions whose gain is less likely to be noise (audit TL-018).
+        zomato_weight (lambda) adds that many rupees of weight per rupee of Zomato's contribution to
+        the restaurant's profit when ranking versions (0 = the owner's profit only; WP-36). The
+        owner's protection does not change: no version below a 60% chance of making them money.
         The owner still sees the range for both before approving. Predictions are reused across the
         versions through a cache that lives only for this call.
         """
@@ -616,6 +632,21 @@ class Engine:
         quotes = [self.quote(x, d, aov, baskets, weeks, cache=cache) for d in self.design_grid(aov, owner)]
         if (rule or self.selection) == "lower":
             best = max(quotes[1:], key=lambda q: (q["profit_low"], q["profit_change"]))
+        elif zomato_weight:
+            ok = [
+                q
+                for q in quotes[1:]
+                if q["design"]["discount"] <= 0
+                and q["design"]["reward"] <= 0
+                or self.prob_profit_positive(q) >= MIN_CHANCE_TO_OFFER
+            ]
+            best = max(
+                ok,
+                key=lambda q: (
+                    q["profit_change"] + zomato_weight * q["zomato_contribution_change"],
+                    q["profit_change"],
+                ),
+            )
         else:
             best = max(quotes[1:], key=lambda q: (q["profit_change"], q["profit_low"]))
         best["designs_compared"] = len(quotes) - 1

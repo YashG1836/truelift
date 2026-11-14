@@ -41,6 +41,52 @@ BASE_FEATURES = [
     "reward",
 ]
 DESIGN_FEATURES = ["offer_discount", "disc_pct", "mov_ratio"]
+# The only inputs the model may use (audit A13 F3), each with what it is. They describe the
+# customer's own ordering and browsing on Zomato, the restaurant's public listing, the time of the
+# visit and the offer. None names or stands in for a protected trait (gender, age, religion, caste,
+# language) or for where a customer lives; the account's age stays out too (it decides co-funding
+# only, features.FUNDING_FEATURES). A new input needs a line here and a review: tests/test_fairness.py
+# fails until it has one.
+ALLOWED_FEATURES = {
+    "c_orders_pw": "orders a week on Zomato, last 4 weeks",
+    "c_disc_share": "share of those orders that used a discount",
+    "c_weeks_since": "weeks since the customer's last order on Zomato",
+    "c_sessions_pw": "ordering sessions a week on Zomato, last 4 weeks",
+    "c_no_order_8w": "no order on Zomato in the last 8 weeks (new or dormant)",
+    "cr_orders_4w": "orders from this restaurant, last 4 weeks",
+    "cr_orders_all": "orders from this restaurant, last 8 weeks",
+    "cr_visits_4w": "visits to this restaurant's menu, last 4 weeks",
+    "cr_weeks_since": "weeks since the last order from this restaurant",
+    "r_rating": "the restaurant's public rating",
+    "r_aov": "the restaurant's average order value",
+    "r_logvotes": "log of the restaurant's public vote count",
+    "slot": "time of the visit: lunch, 3-6 pm or dinner",
+    "reward": "Brand Pack reward the customer gets at this restaurant (0 if none)",
+    "offer_discount": "the discount, in rupees",
+    "disc_pct": "the discount as a share of the restaurant's average order",
+    "mov_ratio": "the minimum order as a multiple of the average order (0 if none)",
+}
+# Words that must never appear in an input's name (checked by the same test)
+PROTECTED_WORDS = frozenset(
+    [
+        "gender",
+        "sex",
+        "age",
+        "religion",
+        "caste",
+        "language",
+        "locality",
+        "loc",
+        "pincode",
+        "pin",
+        "lat",
+        "lon",
+        "address",
+        "type",
+        "income",
+        "account",
+    ]
+)
 # Tried and not adopted (A05 L8, 14 Nov): "c_offer_share_4w", the share of recently opened menus that
 # showed the customer an offer. It moved the forecast slightly closer to the truth (0.908 -> 0.927 in
 # today's market, quick configuration) but lowered uplift quality (Qini 0.284 -> 0.276, correlation
@@ -86,10 +132,18 @@ class UpliftModel:
     m1: HistGradientBoostingClassifier
 
     @classmethod
-    def fit(cls, rows: pd.DataFrame, seed: int = 0, monotone: bool = MONOTONE_DEFAULT) -> UpliftModel:
+    def fit(
+        cls, rows: pd.DataFrame, seed: int = 0, monotone: bool = MONOTONE_DEFAULT, control: str = "all_unshown"
+    ) -> UpliftModel:
         """rows: exposures from a period with random holdouts. Needs columns BASE_FEATURES,
-        offer_discount, min_order, shown, chosen."""
-        ctrl = rows[~rows["shown"]]
+        offer_discount, min_order, shown, chosen (and holdout for control="holdout_only").
+
+        control: which visits teach the no-offer model. "all_unshown" (default) uses every visit that
+        did not see an offer; that is a valid comparison only because the shadow phase assigns
+        offers, audiences and time slots at random, so being shown is random given the features.
+        On observational logs use "holdout_only" (the random control groups) or weight by the known
+        assignment probabilities (audit TL-019)."""
+        ctrl = rows[rows["holdout"]] if control == "holdout_only" else rows[~rows["shown"]]
         trt = rows[rows["shown"]]
         m0 = _gbm(seed, BASE_FEATURES, monotone).fit(ctrl[BASE_FEATURES], ctrl["chosen"])
         x1 = pd.concat([trt[BASE_FEATURES], design_columns(trt)], axis=1)

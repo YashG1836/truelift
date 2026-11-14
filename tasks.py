@@ -3,7 +3,9 @@
     python tasks.py setup              install the pinned environment (+ the browser for UI tests)
     python tasks.py test [--all]       fast tests (about 20 s); --all adds golden and slow checks
     python tasks.py lint               ruff check, ruff format --check, pyright
-    python tasks.py pipeline [--quick] simulate, train, evaluate -> reports/ and the model (~6 min)
+    python tasks.py pipeline [--quick] simulate, train, evaluate -> reports/ and the model (~10 min)
+    python tasks.py sensitivity        eight assumptions low and high -> reports/sensitivity.json (~5 min)
+    python tasks.py benchmark          uplift learners against the truth -> reports/learner_benchmark.json
     python tasks.py serve              live service and page at http://localhost:8000
     python tasks.py export [ids...]    static demo -> site/ (default: the demo restaurants)
     python tasks.py reproduce [--quick]  re-run the pipeline in a temp folder, compare with the
@@ -86,6 +88,14 @@ def export(a) -> int:
     return run([*py(), "scripts/export_static.py", *(a.ids or DEMO_RESTAURANTS)])
 
 
+def sensitivity(a) -> int:
+    return run([*py(), "scripts/sensitivity.py", "--workers", str(a.workers)])
+
+
+def benchmark(a) -> int:
+    return run([*py(), "scripts/benchmark_learners.py", "--workers", str(a.workers)])
+
+
 def reproduce(a) -> int:
     with tempfile.TemporaryDirectory(prefix="truelift-reproduce-") as tmp:
         out = Path(tmp)
@@ -131,6 +141,10 @@ def main(argv: list[str] | None = None) -> int:
     p = sub.add_parser("pipeline")
     p.add_argument("--quick", action="store_true")
     p.set_defaults(fn=pipeline)
+    for name, fn in (("sensitivity", sensitivity), ("benchmark", benchmark)):
+        p = sub.add_parser(name)
+        p.add_argument("--workers", type=int, default=3, help="runs at a time (each needs 1-2 GB)")
+        p.set_defaults(fn=fn)
     p = sub.add_parser("serve")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)

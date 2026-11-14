@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 14 Nov 2026 by Kshitish (Claude). Overwrite lines that become wrong; do not append history here
+Last updated: 14 Nov 2026 by Kshitish (Claude), M2 market batch. Overwrite lines that become wrong; do not append history here
 (history goes in SESSIONS.md).
 
 ## Status
@@ -55,7 +55,9 @@ Last updated: 14 Nov 2026 by Kshitish (Claude). Overwrite lines that become wron
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle after the UI iteration and this shared-context setup (13 Nov).
-- Kshitish: branch `kshitish`, implementing his audit plan. M1 done (service, tests, CI). Next: M2 science
-  fixes (all number changes land at one freeze), then M3 restyle of `truelift/static/` (Yash's last area:
-  tell Yash first), then M4 docs and pitch. Files: `truelift/*`, `scripts/*`, `tests/*`, `.github/*`.
+- Kshitish: branch `kshitish`, implementing his audit plan. M1 done (service, tests, CI). M2 science under way:
+  measurement, selection, market analyses, sensitivity sweep and learner benchmark done; left: Brand Pack
+  control group, guardrails/drift, real data, final run and freeze (all number changes land at one freeze).
+  Then M3 restyle of `truelift/static/` (Yash's last area: tell Yash first), M4 docs and pitch.
+  Files: `truelift/*`, `scripts/*`, `tests/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.
