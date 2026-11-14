@@ -100,6 +100,19 @@ class History:
     cust_orders: list = field(default_factory=list)  # per week: (customers,)
     cust_disc_orders: list = field(default_factory=list)
     cust_sessions: list = field(default_factory=list)
+    weeks: list = field(default_factory=list)  # week number of each entry, in order
+
+    def before(self, week: int) -> History:
+        """The history as it stood when `week` began: only the weeks before it (no look-ahead)."""
+        k = sum(1 for w in self.weeks if w < week)
+        return History(
+            self.pair_orders[:k],
+            self.pair_visits[:k],
+            self.cust_orders[:k],
+            self.cust_disc_orders[:k],
+            self.cust_sessions[:k],
+            self.weeks[:k],
+        )
 
 
 class Market:
@@ -307,6 +320,7 @@ class Market:
         hist.cust_orders.append(co)
         hist.cust_disc_orders.append(cd)
         hist.cust_sessions.append(cs)
+        hist.weeks.append(int(res["week"][0]) if len(res["week"]) else (hist.weeks[-1] + 1 if hist.weeks else 0))
 
     def flat_features(self, hist: History, occ: dict) -> dict:
         k = occ["rest"].shape[1]
@@ -341,9 +355,13 @@ def status_quo_policy(
     return Policy(discount, mov, offpeak, np.zeros(n), reward, aud, holdout, None, name)
 
 
-def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4, light: bool = False):
+def build_history(market: Market, weeks_quo: int = 8, weeks_explore: int = 4, light: bool = False):
     """Simulate history: `weeks_quo` weeks of today's market, then `weeks_explore` weeks of
     TrueLift's shadow phase (random designs, 10% random holdout). Returns (history, training rows).
+
+    Every week's features come from the history before that week (rolling), and the eight
+    status-quo weeks give the first shadow week a full look-back, so training rows have exactly the
+    windows that quoting, serving and evaluation use (audit TL-007).
 
     light=True is for the service: the same history, but instead of the million-row training
     table it keeps only the orders `restaurant_baskets` needs (a fraction of the memory).
@@ -356,18 +374,12 @@ def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4, li
         pol = status_quo_policy(market, rng, name="status quo")
         res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=1, truth=False)
         market.record(hist, res)
-    snapshot = History(
-        *(
-            list(x)
-            for x in (hist.pair_orders, hist.pair_visits, hist.cust_orders, hist.cust_disc_orders, hist.cust_sessions)
-        )
-    )
     train = []
     for w in range(start + weeks_quo, 0):
         occ = market.occasions(w)
         pol = status_quo_policy(market, rng, holdout=0.10, share_active=0.6, explore=True, name="shadow")
         # holdout salt is fixed for the whole phase: a held-out customer stays held out
-        res = market.run_week(occ, pol, market.flat_features(snapshot, occ), salt=2, truth=not light)
+        res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=2, truth=not light)
         if light:
             keep = res["chosen"] & ~res["shown"] & (res["reward"] == 0)
             train.append(
@@ -403,16 +415,19 @@ def restaurant_baskets(train: pd.DataFrame, n: int) -> list[np.ndarray]:
 
 
 def recent_visits(market: Market, hist, weeks=(-2, -1)) -> pd.DataFrame:
-    """Each restaurant's menu visits in the last two weeks, with today's features (quote input)."""
+    """Each restaurant's menu visits in the last two weeks (the quote's input), each with the
+    features it had when it happened: the history before that week, never the visit's own outcome
+    (audit TL-006)."""
     parts = []
     for w in weeks:
         occ = market.occasions(w)
         k = occ["rest"].shape[1]
-        f = market.flat_features(hist, occ)
+        f = market.flat_features(hist.before(w), occ)
         f.update(
             rest=occ["rest"].ravel(),
             slot=np.repeat(occ["slot"], k),
             cust=np.repeat(occ["cust"], k),
+            week=np.full(len(f["r_aov"]), w),
             reward=np.zeros(len(f["r_aov"])),
         )
         parts.append(pd.DataFrame(f))

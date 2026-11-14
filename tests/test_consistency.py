@@ -117,11 +117,17 @@ def test_engine_does_not_import_the_simulator():
 
 
 def test_quote_input_and_serving_rows_have_the_same_features(state):
-    """The quote's visit table and the serving lookup compute a customer's features the same way."""
+    """The quote's visit table and the serving lookup compute a customer's features the same way:
+    a visit in week w carries the features of the history before w (no look-ahead, TL-006)."""
+    from truelift.features import HistoryFeatures
+
     rid = 233
-    v = state.visits[rid].iloc[:20]
+    v = state.visits[rid]
+    v = v[v["week"] == -1].iloc[:20]
+    then = HistoryFeatures(state.market, state.hist.before(-1))
+    local = int(state.market.R.loc[rid, "local"])
     for _, r in v.iterrows():
-        row = state.customer_row(int(r["cust"]), rid, int(r["slot"]))
+        row = then.for_pair(int(r["cust"]), local, rid, int(r["slot"]))
         for col in ("c_orders_pw", "cr_orders_4w", "cr_orders_all", "cr_weeks_since", "c_no_order_8w"):
             assert row[col].iloc[0] == pytest.approx(float(r[col]))
     assert np.isfinite(v.select_dtypes("number").to_numpy()).all()

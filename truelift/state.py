@@ -91,6 +91,7 @@ def _save_serving(path: Path, hist: History, baskets: list) -> None:
         "cust_orders": np.stack(hist.cust_orders),
         "cust_disc_orders": np.stack(hist.cust_disc_orders),
         "cust_sessions": np.stack(hist.cust_sessions),
+        "weeks": np.asarray(hist.weeks, dtype=np.int64),
         "basket_lengths": lengths,
         "baskets": flat,
     }
@@ -110,6 +111,7 @@ def _load_serving(path: Path) -> tuple[History, list]:
             [a for a in z["cust_orders"]],
             [a for a in z["cust_disc_orders"]],
             [a for a in z["cust_sessions"]],
+            [int(w) for w in z["weeks"]],
         )
         ends = np.cumsum(z["basket_lengths"])
         flat = z["baskets"]
@@ -201,7 +203,7 @@ class State:
 
     def x_for(self, rid: int) -> pd.DataFrame:
         """The restaurant's recent menu visits (the quote's input), features only."""
-        return self.visits[rid].drop(columns=["rest", "cust"])
+        return self.visits[rid].drop(columns=["rest", "cust", "week"])
 
     def locality_frame(self, rid: int) -> pd.DataFrame:
         """One row per (customer, slot) for every customer who can open this restaurant's menu."""

@@ -162,3 +162,56 @@ def test_new_to_zomato_matches_first_order(market):
     k = market.cfg.menus_per_occasion
     cust = np.repeat(market.occasions(1)["cust"], k)
     assert np.array_equal(feats["c_new_account"] == 1, market.c_joiner[cust])
+
+
+@pytest.fixture(scope="module")
+def history(market):
+    return build_history(market)
+
+
+def test_features_depend_only_on_lookback(market, history):
+    """TL-007: weeks older than the look-back never change a feature."""
+    from truelift.features import EVER_WEEKS, HistoryFeatures
+
+    hist, _ = history
+    occ = market.occasions(1)
+    k = occ["rest"].shape[1]
+    args = (np.repeat(occ["cust"], k), occ["local"].ravel(), occ["rest"].ravel())
+    full = HistoryFeatures(market, hist).for_exposures(*args)
+    last = History(*(getattr(hist, f)[-EVER_WEEKS:] for f in History.__dataclass_fields__))
+    cut = HistoryFeatures(market, last).for_exposures(*args)
+    for name in full:
+        assert np.array_equal(full[name], cut[name]), name
+
+
+def test_feature_support_matches_training(market, history):
+    """TL-007: every value a discrete feature takes when serving was seen in training."""
+    from truelift.features import DISCRETE
+
+    hist, rows = history
+    serving = market.flat_features(hist, market.occasions(1))
+    for f in DISCRETE:
+        assert set(np.unique(serving[f])) <= set(np.unique(rows[f])), f
+
+
+def test_quote_population_has_no_lookahead(market, history):
+    """TL-006: a visit's features do not change when that week's own outcomes change."""
+    from truelift.sim import recent_visits
+
+    hist, _ = history
+    before = recent_visits(market, hist, weeks=(-1,))
+    altered = History(*(list(getattr(hist, f)) for f in History.__dataclass_fields__))
+    altered.pair_orders[-1] = altered.pair_orders[-1] + 5  # week -1's own orders
+    altered.cust_orders[-1] = altered.cust_orders[-1] + 5
+    after = recent_visits(market, altered, weeks=(-1,))
+    pd.testing.assert_frame_equal(before, after)
+
+
+def test_skew_report_flags_unseen_values():
+    from truelift.features import skew_report
+
+    train = pd.DataFrame({"cr_weeks_since": [1.0, 2.0, 9.0], "r_aov": [200.0, 300.0, 400.0]})
+    ok = skew_report(train, {"serve": pd.DataFrame({"cr_weeks_since": [1.0, 9.0], "r_aov": [250.0, 390.0]})})
+    assert ok["passed"] and ok["worst_share"] == 0
+    bad = skew_report(train, {"serve": pd.DataFrame({"cr_weeks_since": [7.0, 9.0], "r_aov": [250.0, 900.0]})})
+    assert not bad["passed"] and bad["features"]["cr_weeks_since"]["serve"]["share_outside"] == 0.5

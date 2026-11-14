@@ -37,6 +37,7 @@ sys.path.insert(0, str(ROOT))
 
 from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine  # noqa: E402
+from truelift.features import skew_report  # noqa: E402
 from truelift.model import file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
 from truelift.sim import Config, Market, Policy, display_name, recent_visits  # noqa: E402
 from truelift.training import train as train_model  # noqa: E402
@@ -216,10 +217,25 @@ def evaluate(
         None,
         "today: blanket",
     )
+    results: dict = {}
     rule = replace(blanket, audience=np.array(["new_to_restaurant"] * n, dtype=object), name="rule: new customers")
     visits = recent_visits(market, hist)
     by_rest = dict(tuple(visits.groupby("rest")))
-    results, designs = {}, {}
+
+    # training-serving skew: the quote's input and the evaluation weeks against the training rows
+    evaluation_feats = pd.DataFrame(market.flat_features(hist, market.occasions(EVAL_WEEKS[0])))
+    skew = skew_report(trained.train, {"quote_input": visits, "evaluation": evaluation_feats})
+    if with_details:
+        out_dir.mkdir(parents=True, exist_ok=True)
+        (out_dir / "skew_check.json").write_text(json.dumps(skew, indent=1), encoding="utf-8")
+    results["skew_check"] = {
+        "passed": skew["passed"],
+        "worst_share_outside_training": round(skew["worst_share"], 5),
+        "limit": skew["limit"],
+    }
+    if not skew["passed"]:
+        raise SystemExit(f"training-serving skew above {skew['limit']:.1%}: see skew_check.json")
+    designs = {}
     for key, zshare in (("truelift", 0.0), ("truelift_cofund", 0.5)):
         chosen = []
         for r in range(n):
