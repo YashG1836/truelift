@@ -118,21 +118,44 @@ def offer_mix(
     return float(uses.mean()), take, skip, b0
 
 
-def fit_topup_value(offers: pd.DataFrame, baskets: list) -> float:
-    """Learn topup_value from past minimum-order offers: the value that best reproduces the share
-    of their orders that actually used the offer. offers: rest, discount, min_order, use_rate, orders."""
-    grid = np.linspace(0.0, 1.0, 41)
-    err = []
-    for g in grid:
-        pred = np.array(
-            [
-                offer_mix(baskets[int(r)], d, m, 0.0, g)[0] if len(baskets[int(r)]) else np.nan
-                for r, d, m in offers[["rest", "discount", "min_order"]].to_numpy()
-            ]
-        )
-        ok = ~np.isnan(pred)
-        err.append(float(np.sum(offers["orders"].to_numpy()[ok] * (pred[ok] - offers["use_rate"].to_numpy()[ok]) ** 2)))
-    return float(grid[int(np.argmin(err))])
+TOPUP_GRID = np.linspace(0.0, 1.0, 41)
+
+
+def _topup_errors(offers: pd.DataFrame, baskets: list) -> np.ndarray:
+    """Squared error of each candidate top-up value, for each past offer (rows: offers, columns: grid)."""
+    out = np.full((len(offers), len(TOPUP_GRID)), np.nan)
+    for i, (r, d, m, skips, expected) in enumerate(
+        offers[["rest", "discount", "min_order", "skip_orders", "expected_orders"]].to_numpy()
+    ):
+        if not len(baskets[int(r)]) or expected <= 0:
+            continue
+        use = np.array([offer_mix(baskets[int(r)], d, m, 0.0, g)[0] for g in TOPUP_GRID])
+        out[i] = (skips - (1 - use) * expected) ** 2 / max(expected, 1.0)
+    return out
+
+
+def fit_topup_value(offers: pd.DataFrame, baskets: list, n_boot: int = 200, seed: int = 0) -> tuple[float, tuple]:
+    """Learn topup_value from past minimum-order offers, at the level of menu visits (audit TL-020).
+
+    A shown customer whose usual basket is too small to use the offer orders as if there were no
+    offer, so the orders that skipped the offer should equal (1 - use share) x the orders those
+    visits would have made without it (the no-offer model's prediction). The use share for a
+    candidate value comes from the restaurant's basket distribution (`offer_mix`). Fitting the
+    share of *orders* that used the offer instead is biased upward: an offer someone can use makes
+    them likelier to order, so orders over-represent users.
+
+    offers: rest, discount, min_order, skip_orders, expected_orders (one row per offer).
+    Returns the value and an 80% bootstrap interval (offers resampled).
+    """
+    err = _topup_errors(offers, baskets)
+    ok = ~np.isnan(err).all(1)
+    err = err[ok]
+    if not len(err):
+        return 0.5, (0.5, 0.5)
+    best = float(TOPUP_GRID[int(np.argmin(err.sum(0)))])
+    rng = np.random.default_rng(seed)
+    boots = [float(TOPUP_GRID[int(np.argmin(err[rng.integers(0, len(err), len(err))].sum(0)))]) for _ in range(n_boot)]
+    return best, (float(np.quantile(boots, 0.1)), float(np.quantile(boots, 0.9)))
 
 
 def _cached(cache: dict | None, key: tuple, fn: Callable[[], np.ndarray], n: int) -> np.ndarray:

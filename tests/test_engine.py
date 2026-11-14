@@ -280,3 +280,28 @@ def test_empty_visit_tables_are_handled():
         0.0,
     )
     assert m["verdict_code"] == "wait" and m["profit"]["total"] == 0
+
+
+def test_topup_fit_recovers_a_known_value_from_visit_counts():
+    """TL-020: with skip-orders generated from a known top-up value, the visit-level fit finds it."""
+    from truelift.engine import fit_topup_value
+
+    rng = np.random.default_rng(3)
+    baskets = [rng.lognormal(np.log(400), 0.3, 300) for _ in range(30)]
+    rows = []
+    for r in range(30):
+        mov, disc = 449.0, 60.0
+        use = offer_mix(baskets[r], disc, mov, 0.0, 0.3)[0]
+        expected = 40.0
+        rows.append(
+            {
+                "rest": r,
+                "discount": disc,
+                "min_order": mov,
+                "skip_orders": (1 - use) * expected,
+                "expected_orders": expected,
+            }
+        )
+    value, (lo, hi) = fit_topup_value(pd.DataFrame(rows), baskets)
+    assert value == pytest.approx(0.3, abs=0.03)
+    assert lo <= value <= hi

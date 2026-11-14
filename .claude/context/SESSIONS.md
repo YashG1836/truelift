@@ -25,7 +25,8 @@ Template:
   on `site/` (12 restaurants) and the live service. Not checked: Docker build (no Docker locally; CI builds it).
 - Numbers changed: M1 none. M2 under way on `kshitish` (committed `reports/` stay as on main until the
   final run): co-funding fix (TL-003) changes only the co-funding scenario; one feature window
-  definition (4 and 8 weeks), 8 status-quo weeks, rolling shadow features, point-in-time quote input (TL-007).
+  definition (4 and 8 weeks), 8 status-quo weeks, rolling shadow features, point-in-time quote input (TL-007);
+  top-up value fitted on menu visits (TL-020: 0.50, the simulator truth; was 0.55-0.60).
 - Next / open: rest of M2 (numbers change once, at a single freeze), M3 UI restyle (tell Yash first).
 
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main

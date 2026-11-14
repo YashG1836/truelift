@@ -63,20 +63,27 @@ def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFr
     return pd.DataFrame(out)
 
 
-def minimum_order_offers(train: pd.DataFrame) -> pd.DataFrame:
-    """Past minimum-order offers: how many of their orders actually used the offer."""
-    sh = train[train["shown"] & train["chosen"] & (train["min_order"] > 0)]
+def minimum_order_offers(train: pd.DataFrame, model: UpliftModel) -> pd.DataFrame:
+    """Past minimum-order offers, one row per restaurant-week: shown visits, the orders among them
+    that did not use the offer, and the orders those visits would have made with no offer (from
+    the no-offer model, which never saw shown visits)."""
+    sh = train[train["shown"] & (train["min_order"] > 0) & (train["offer_reward"] == 0)]
+    if not len(sh):
+        cols = ["rest", "week", "discount", "min_order", "visits", "skip_orders", "expected_orders"]
+        return pd.DataFrame(columns=cols)
+    sh = sh.assign(skip=sh["chosen"] & ~sh["takes"], p0=model.p0(sh))
     g = (
         sh.groupby(["rest", "week"])
         .agg(
             discount=("offer_discount", "first"),
             min_order=("min_order", "first"),
-            use_rate=("takes", "mean"),
-            orders=("takes", "size"),
+            visits=("skip", "size"),
+            skip_orders=("skip", "sum"),
+            expected_orders=("p0", "sum"),
         )
         .reset_index()
     )
-    return g[g["orders"] >= 5]
+    return g[g["visits"] >= 20]
 
 
 @dataclass
@@ -90,6 +97,7 @@ class Trained:
     model: UpliftModel
     engine: Engine
     offers: pd.DataFrame  # cross-fitted shadow-offer checks used for calibration
+    topup_range: tuple = (0.5, 0.5)  # 80% bootstrap interval of the learned top-up value
 
     def bundle(
         self,
@@ -135,8 +143,10 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
     hist, rows = build_history(market)
     log(f"history: {len(rows):,} shadow-phase visits, {int(rows['chosen'].sum()):,} orders")
     baskets = restaurant_baskets(rows, n)
-    topup = fit_topup_value(minimum_order_offers(rows), baskets)
-    log(f"learned top-up value from past minimum-order offers: {topup:.3f}")
+    model = UpliftModel.fit(rows, seed=7)
+    topup, topup_range = fit_topup_value(minimum_order_offers(rows, model), baskets)
+    lo, hi = topup_range
+    log(f"learned top-up value from past minimum-order offers: {topup:.3f} (80% interval {lo:.3f}-{hi:.3f})")
     # cross-fitted calibration of model error: each restaurant's error is measured by a model
     # that never saw that restaurant
     fold = rows["rest"] % 2
@@ -145,11 +155,10 @@ def train(market: Market, log: Callable[[str], None] = lambda m: None) -> Traine
         m_f = UpliftModel.fit(rows[fold != f], seed=f)
         priors.append(shadow_offers(rows[fold == f], Engine(m_f, topup_value=topup), baskets, aov))
     offers = pd.concat(priors, ignore_index=True)
-    model = UpliftModel.fit(rows, seed=7)
     engine = Engine(model, topup_value=topup)
     sig = engine.calibrate(offers)
     log(
         f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "
         f"({len(offers)} shadow-offer checks)"
     )
-    return Trained(market, hist, rows, baskets, model, engine, offers)
+    return Trained(market, hist, rows, baskets, model, engine, offers, topup_range)

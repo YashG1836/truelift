@@ -397,6 +397,8 @@ def evaluate(
     results["blanket_restaurants_losing"] = int((tab["blanket_profit_change"] < 0).sum())
     results["calibration"] = {
         "topup_value": round(engine.topup_value, 3),
+        "topup_value_80": [round(v, 3) for v in trained.topup_range],
+        "topup_value_simulator_truth": cfg.topup_value,
         "sigma_profit_share_of_aov": round(engine.sigma_rel, 4),
         "sigma_orders_per_visit": round(engine.sigma_orders, 5),
         "shadow_offers": len(offers),

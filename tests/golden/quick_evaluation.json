@@ -1,9 +1,9 @@
 {
   "meta": {
-    "commit": "5d17f2763f0577e0b43b042121bc82054d974b0b",
+    "commit": "0cd13f28f57c4fabb1251d6d384f83424ccd2290",
     "uncommitted_changes": true,
-    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q3 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q3/model.pkl",
-    "started_utc": "2026-11-14T03:32:38Z",
+    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q4 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q4/model.pkl",
+    "started_utc": "2026-11-14T03:35:35Z",
     "wall_seconds": 38,
     "python": "3.12.10",
     "libraries": {
@@ -166,11 +166,11 @@
         "name": "TrueLift",
         "orders_per_week": 8223,
         "extra_orders_vs_no_offer": 1836,
-        "restaurant_profit": 1167960,
+        "restaurant_profit": 1167961,
         "restaurant_profit_change": 187291,
         "zomato_commission": 991600,
         "zomato_commission_change": 259757,
-        "zomato_contribution_change": 88317,
+        "zomato_contribution_change": 88318,
         "zomato_funded_discount": 0,
         "customer_savings": 434550,
         "savings_per_extra_order": 237,
@@ -192,7 +192,7 @@
         "name": "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured",
         "orders_per_week": 8228,
         "extra_orders_vs_no_offer": 1841,
-        "restaurant_profit": 1190919,
+        "restaurant_profit": 1190920,
         "restaurant_profit_change": 210250,
         "zomato_commission": 991263,
         "zomato_commission_change": 259421,
@@ -234,7 +234,7 @@
         "mae_own_holdout_only": 1018,
         "mae_model_only": 515,
         "mean_weight_on_own_data": 0.581,
-        "verdict_right_sign": 0.747,
+        "verdict_right_sign": 0.743,
         "said_keep": 157,
         "said_keep_and_truly_positive": 124,
         "said_pause": 2,
@@ -245,7 +245,7 @@
         "offers": 300,
         "coverage_80": 0.677,
         "coverage_80_orders": 0.713,
-        "mae_combined": 909,
+        "mae_combined": 908,
         "mae_own_holdout_only": 1434,
         "mae_model_only": 1018,
         "mean_weight_on_own_data": 0.624,
@@ -267,9 +267,9 @@
         "verdict_right_sign": 0.713,
         "said_keep": 112,
         "said_keep_and_truly_positive": 96,
-        "said_pause": 0,
-        "said_pause_and_truly_negative": 0,
-        "said_wait": 188
+        "said_pause": 1,
+        "said_pause_and_truly_negative": 1,
+        "said_wait": 187
       }
     },
     "uplift_quality": {
@@ -290,7 +290,12 @@
     },
     "blanket_restaurants_losing": 247,
     "calibration": {
-      "topup_value": 0.55,
+      "topup_value": 0.5,
+      "topup_value_80": [
+        0.5,
+        0.55
+      ],
+      "topup_value_simulator_truth": 0.5,
       "sigma_profit_share_of_aov": 0.009,
       "sigma_orders_per_visit": 0.02781,
       "shadow_offers": 836
