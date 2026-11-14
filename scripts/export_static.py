@@ -31,12 +31,22 @@ AUDIENCES = ("all", "new_to_restaurant", "lapsed", "targeted")
 
 
 def designs_for(opts: dict) -> list[dict]:
-    """Every design the create screen can produce, from the card's design options."""
+    """Every design the create screen can produce, from the card's design options: flat offers at
+    each depth and percentage offers at each (percentage, cap) pair."""
     out = [
-        {"discount": 0, "min_order": 0, "audience": "all", "offpeak_only": False, "reward": r, "zomato_share": 0}
+        {
+            "discount": 0,
+            "min_order": 0,
+            "audience": "all",
+            "offpeak_only": False,
+            "reward": r,
+            "zomato_share": 0,
+            "pct": 0,
+        }
         for r in (0, opts["reward"])
     ]
-    for d in opts["depths"]:
+    amounts = [(d, 0.0) for d in opts["depths"]] + [(p["cap"], p["pct"]) for p in opts.get("pct_offers", [])]
+    for d, pct in amounts:
         for m in (0, opts["min_order"]):
             for a in AUDIENCES:
                 for o in (False, True):
@@ -49,6 +59,7 @@ def designs_for(opts: dict) -> list[dict]:
                                 "offpeak_only": o,
                                 "reward": r,
                                 "zomato_share": 0,
+                                "pct": pct,
                             }
                         )
     return out
@@ -58,8 +69,9 @@ def key(d: dict) -> str:
     """File name of a design's answers; identical to dkey() in app.js."""
     if not d["discount"] > 0:
         return f"0-0-all-0-{round(d['reward'])}"
+    amount = f"{round(d['discount'])}" + (f"p{round(d['pct'] * 100)}" if d.get("pct", 0) > 0 else "")
     parts = (
-        round(d["discount"]),
+        amount,
         round(d["min_order"]),
         d["audience"],
         int(bool(d["offpeak_only"])),

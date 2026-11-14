@@ -160,7 +160,32 @@ def weekly_example(
             {"discount": d, "share_of_basket": d / basket, "extra_share_needed": break_even_share(basket, d, terms)}
             for d in (0.10 * basket, 0.15 * basket, 0.20 * basket, 0.25 * basket)
         ],
+        # the same question for a percentage offer, whose rupees off depend on the order (A19 4.1):
+        # the create screen pairs a cap of 20% of the usual order with 40% off
+        "pct_example": {
+            "pct": 0.4,
+            "cap": 0.2 * basket,
+            "rows": pct_offer_rows(0.4, 0.2 * basket, [basket * k for k in (0.375, 0.5, 1.0, 1.5)], terms),
+        },
     }
+
+
+def pct_offer_rows(pct: float, cap: float, baskets, terms: Terms = Terms()) -> list[dict]:
+    """A percentage offer at several order sizes: rupees off (pct x order, at most `cap`), the share
+    of the order that really is, and the break-even share of extra orders. The headline percentage
+    is paid only on orders below cap / pct; above it the offer is a flat `cap` off."""
+    rows = []
+    for b in baskets:
+        off = min(pct * b, cap)
+        rows.append(
+            {
+                "basket": float(b),
+                "discount": float(off),
+                "share_of_basket": off / b,
+                "extra_share_needed": break_even_share(b, off, terms),
+            }
+        )
+    return rows
 
 
 def break_even_share(basket: float, discount: float, terms: Terms = Terms()) -> float:

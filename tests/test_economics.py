@@ -103,3 +103,17 @@ def test_break_even_share_formula(basket, frac, base):
         return  # an offer that loses money on every order never breaks even
     f = 1 - disc / full
     assert f * disc - (1 - f) * (full - disc) == pytest.approx(0.0, abs=1e-6)
+
+
+def test_percentage_offer_rows_follow_the_cap():
+    """A19 4.1: "40% off up to Rs 80" takes 40% of small orders and Rs 80 from the rest, so the
+    share of extra orders it needs falls as orders grow past Rs 200."""
+    from truelift.economics import break_even_share, pct_offer_rows
+
+    rows = pct_offer_rows(0.4, 80.0, [150.0, 200.0, 400.0, 600.0])
+    assert [r["discount"] for r in rows] == [60.0, 80.0, 80.0, 80.0]
+    assert [round(r["share_of_basket"], 3) for r in rows] == [0.4, 0.4, 0.2, 0.133]
+    need = [r["extra_share_needed"] for r in rows]
+    assert need[0] == pytest.approx(need[1])  # the same 40% of the order below the cap
+    assert need[1] > need[2] > need[3]
+    assert need[2] == pytest.approx(break_even_share(400.0, 80.0))

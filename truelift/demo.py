@@ -17,6 +17,7 @@ import pandas as pd
 
 from .economics import Terms
 from .engine import measure_reward, weekly_message
+from .i18n import DRAFTS
 from .observability import FORECAST_RATIO, HOLDOUT_SHARE
 from .sim import display_name
 
@@ -52,15 +53,17 @@ def week_rows(state, offer, w: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Simulate week `w` of an offer (deterministic). Returns (all of this restaurant's visits,
     the eligible ones with the model's predictions), without logging anything."""
     m, engine = state.market, state.engine
-    occ, feats = state.week_inputs(w)
+    occ, feats = state.week_inputs(w + offer.week_offset)  # a renewal runs the weeks after the last period
     rid, d = offer.restaurant_id, offer.design
     pol = copy.deepcopy(state.background)
-    for attr in ("discount", "min_order", "offpeak_only", "zomato_share", "reward", "audience"):
+    if pol.pct is None:  # competitors run flat offers; this restaurant's may be a percentage
+        pol.pct = np.zeros(m.n_rest)
+    for attr in ("discount", "min_order", "offpeak_only", "zomato_share", "reward", "audience", "pct"):
         getattr(pol, attr)[rid] = getattr(d, attr)
     pol.holdout = engine.holdout
     pol.reward_holdout = engine.holdout  # the reward's own control group, same share (TL-016)
     pol.offer_id = BACKGROUND_OFFER_BASE + np.arange(m.n_rest)
-    pol.offer_id[rid] = offer.id
+    pol.offer_id[rid] = offer.holdout_key
     table = offer.table
 
     def from_table(fe: dict, policy, mask: np.ndarray) -> np.ndarray:
@@ -127,6 +130,10 @@ def simulate_week(state, offer) -> dict:
     if d.reward > 0:
         week["brand_pack"] = measure_reward(state.store.reward_rows(offer.id))
     week["whatsapp"] = weekly_message(name, w, meas, d, engine.holdout, week.get("brand_pack"))
+    # draft translations, shown only when switched on (decision D4; truelift/i18n.py)
+    week["whatsapp_i18n"] = {
+        lang: weekly_message(name, w, meas, d, engine.holdout, week.get("brand_pack"), lang) for lang in DRAFTS
+    }
 
     eligible = experiment["shown_visits"] + experiment["control_visits"]
     if eligible:

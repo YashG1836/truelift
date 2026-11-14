@@ -245,3 +245,22 @@ def test_brand_pack_has_its_own_control_group(market):
     assert np.array_equal(held[offered], expected)
     assert not held[~offered].any()
     assert np.all(res["reward"][held] == 0) and np.all(res["reward"][offered & ~held] == 20.0)
+
+
+def test_percentage_offer_takes_its_share_of_each_bill_up_to_the_cap(market):
+    """A19 4.1: "30% off up to Rs 60" takes 30% of a small bill and Rs 60 off a large one; with no
+    percentage the world is exactly the flat one."""
+    n = market.n_rest
+    cap = np.full(n, 60.0)
+    flat = Policy(
+        cap, np.zeros(n), np.zeros(n, bool), np.zeros(n), np.zeros(n), np.array(["all"] * n, dtype=object), 0.10
+    )
+    a = _week(market, flat)
+    b = _week(market, Policy(**{**flat.__dict__, "pct": np.zeros(n)}))
+    assert np.array_equal(a["p"], b["p"]) and np.array_equal(a["discount"], b["discount"])
+    res = _week(market, Policy(**{**flat.__dict__, "pct": np.full(n, 0.3)}))
+    took = res["takes"]
+    assert took.any()
+    assert np.allclose(res["discount"][took], np.minimum(0.3 * res["basket"][took], 60.0))
+    assert (res["discount"][took] < 60.0).any() or (0.3 * res["basket"][took] >= 60.0).all()
+    assert (res["discount"] <= 60.0 + 1e-9).all()

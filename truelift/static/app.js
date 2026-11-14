@@ -35,8 +35,18 @@ const STATIC = window.TRUELIFT_STATIC || null;
 const LINK = (() => {
   const h = (location.hash || "").replace(/^#/, "");
   const q = new URLSearchParams(h.includes("=") ? h : h ? `tab=${h}` : "");
-  return { tab: q.get("tab"), r: q.get("r") === null ? null : +q.get("r"), generic: q.get("names") === "generic" };
+  return { tab: q.get("tab"), r: q.get("r") === null ? null : +q.get("r"), generic: q.get("names") === "generic", lang: q.get("lang") };
 })();
+// Owner texts in Hindi, Kannada and Gujarati are drafts: the switch appears only when the service
+// enables them (TRUELIFT_LANGUAGES=1, after a native speaker's review: decision D4) or when a
+// reviewer opens the page with #lang=hi, #lang=kn or #lang=gu. The words come from the service
+// (config.i18n, the WhatsApp text and the offer's label), so page and service never disagree.
+const LANG = { code: "en" };
+const langOn = () => CFG.i18n && (CFG.languages_enabled || (LINK.lang && LINK.lang in CFG.i18n));
+const T = (key, vars = {}) => {
+  const src = (CFG.i18n?.[LANG.code] || CFG.i18n?.en)?.otp?.[key];
+  return src === undefined ? null : src.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
+};
 const TABS = ["demo", "how", "evidence", "money", "ops"];
 // The service's constants, read once at start (GET /api/v1/config; data/config.json when static)
 const CFG = { holdout_share: 0.1, consent_weeks: 4 };
@@ -46,8 +56,9 @@ const shownName = (r) => (LINK.generic ? `${String(r.cuisines || r.name).split("
 const LOCAL = { offers: {}, next: 1 };
 // One file per design. With no discount, minimum order, audience and time make no difference, so
 // those designs share one key (the export writes exactly these keys; scripts/export_static.py key()).
+// A percentage offer's key starts with its cap and percentage, e.g. "60p30-0-all-0-0".
 const dkey = (d) => (d.discount > 0
-  ? `${Math.round(d.discount)}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`
+  ? `${Math.round(d.discount)}${d.pct > 0 ? `p${Math.round(d.pct * 100)}` : ""}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`
   : `0-0-all-0-${Math.round(d.reward)}`);
 
 // Offline bundle opened from disk (file://): browsers refuse fetch() there, so each data file is
@@ -83,8 +94,18 @@ function localView(id) {
   const o = LOCAL.offers[id];
   if (!o) throw new Error("There is no such offer in this demo session.");
   // the consent record carries the moment this visitor approved, not the moment the demo was built (TL-022)
-  const consent = o.status === "awaiting_otp" ? null : { ...o.full.consent, approved_at: o.approvedAt };
-  return { ...o.full, offer_id: +id, status: o.status, consent, weeks: o.full.weeks.slice(0, o.shown) };
+  const renewal = o.renewal_of ? { renewal_of: o.renewal_of, evidence_shown: o.evidence } : {};
+  const consent = o.status === "awaiting_otp" ? null : { ...o.full.consent, approved_at: o.approvedAt, ...renewal };
+  return { ...o.full, offer_id: +id, status: o.status, consent, weeks: o.full.weeks.slice(0, o.shown),
+    renewal_of: o.renewal_of || null, renewed_by: o.renewed_by || null, evidence: o.evidence || null };
+}
+
+// What an approval period measured (the same fields as the service's evidence_of in api.py)
+function evidenceOf(view) {
+  const w = view.weeks[view.weeks.length - 1], m = w.measurement;
+  return { offer_id: view.offer_id, weeks: w.week, extra_orders: m.orders.total, extra_orders_low: m.orders.low, extra_orders_high: m.orders.high,
+    extra_profit: m.profit.total, extra_profit_low: m.profit.low, extra_profit_high: m.profit.high, chance_making_money: m.profit.prob_positive,
+    verdict_code: m.verdict_code, verdict: m.verdict, forecast_at_approval: view.quote.profit_change * w.week };
 }
 
 async function staticApi(path, body) {
@@ -101,6 +122,15 @@ async function staticApi(path, body) {
     return { offer_id: id, demo_otp: LOCAL.offers[id].otp };
   }
   if ((m = path.match(/^\/api\/v1\/offers\/(\d+)$/))) return localView(m[1]);
+  if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/renew$/))) {
+    const o = LOCAL.offers[m[1]];
+    if (!o || o.status !== "consent_expired") throw new Error("Only an offer whose approval period ended can be renewed.");
+    if (o.renewed_by) throw new Error(`This offer was already renewed as offer ${o.renewed_by}.`);
+    const id = LOCAL.next++;
+    LOCAL.offers[id] = { full: o.full, otp: String(1000 + Math.floor(Math.random() * 9000)), shown: 0, status: "awaiting_otp", attempts: 0,
+      renewal_of: +m[1], evidence: evidenceOf(localView(m[1])) };
+    return { offer_id: id, demo_otp: LOCAL.offers[id].otp, renewal_of: +m[1], evidence: LOCAL.offers[id].evidence };
+  }
   if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/approve$/))) {
     const o = LOCAL.offers[m[1]];
     if (o.status !== "awaiting_otp") throw new Error("This offer can't be approved again.");
@@ -113,6 +143,7 @@ async function staticApi(path, body) {
     }
     o.status = "active";
     o.approvedAt = new Date().toISOString();
+    if (o.renewal_of && LOCAL.offers[o.renewal_of]) LOCAL.offers[o.renewal_of].renewed_by = +m[1];
     return localView(m[1]);
   }
   if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/run_week$/))) {
@@ -164,7 +195,8 @@ const cache = {};
 const once = (key, fn) => (cache[key] ??= fn().catch((e) => { delete cache[key]; throw e; }));
 
 // ---------------- state ----------------
-const S = { rid: null, card: null, design: null, quote: null, offer: null, otp: null, screen: "home", busy: false, err: "" };
+const S = { rid: null, card: null, design: null, quote: null, offer: null, otp: null, screen: "home", busy: false, err: "",
+  original: null, alt: {}, whatIf: {} };
 const AUDIENCES = [["all", "Everyone"], ["new_to_restaurant", "New to you"], ["lapsed", "Stopped ordering"], ["targeted", "Let TrueLift choose"]];
 const STATUS = {
   awaiting_otp: ["Waiting for your OTP", ""], active: ["Running", "good"], paused: ["Paused: it was losing money", "bad"],
@@ -174,11 +206,19 @@ const STATUS = {
 // The create screen offers exactly the options the server lists on the restaurant's card, so the
 // page can never ask for a design the static export did not write (audit TL-002).
 function defaultDesign(card) {
-  return { discount: card.design_options.default_depth, min_order: 0, audience: "all", offpeak_only: false, reward: 0, zomato_share: 0 };
+  return { discount: card.design_options.default_depth, min_order: 0, audience: "all", offpeak_only: false, reward: 0, zomato_share: 0, pct: 0 };
 }
 function designOptions(card) {
   const o = card.design_options;
-  return { depths: o.depths, mov: o.min_order, reward: o.reward };
+  return { depths: o.depths, mov: o.min_order, reward: o.reward, pcts: o.pct_offers || [] };
+}
+// Switching between "₹ off" and "% off up to ₹" keeps the amount: the cap of a percentage offer is
+// the flat amount it replaces, and each cap has one percentage (engine.pct_for).
+function withFormat(d, card, format) {
+  const pcts = designOptions(card).pcts;
+  if (format === "flat") return { ...d, pct: 0 };
+  const p = pcts.find((x) => x.cap === d.discount) || pcts.find((x) => x.cap === card.design_options.default_depth) || pcts[0];
+  return p ? { ...d, discount: p.cap, pct: p.pct } : d;
 }
 
 // ---------------- boot and navigation ----------------
@@ -239,7 +279,7 @@ function showTab(t) {
 
 async function openRestaurant(rid) {
   await api("/api/v1/reset", {});
-  Object.assign(S, { rid, offer: null, quote: null, err: "" });
+  Object.assign(S, { rid, offer: null, quote: null, err: "", original: null, alt: {}, whatIf: {} });
   S.card = await api(`/api/v1/restaurants/${rid}`);
   S.design = defaultDesign(S.card);
   $("#rest").value = rid;
@@ -252,7 +292,10 @@ function go(screen) { S.screen = screen; render(); }
 function render() {
   const c = S.card;
   $("#phead").innerHTML = `<div class="row1"><h1>${esc(shownName(c))}</h1><span class="online">Online</span></div>
-    <div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · <span class="rating">${c.rating} ★</span> · <span class="tag sim">simulated data</span></div>`;
+    <div class="sub">${esc(c.locality)} · ${esc(c.cuisines)} · <span class="rating">${c.rating} ★</span> · <span class="tag sim">simulated data</span></div>
+    ${langOn() ? `<div class="langs" role="group" aria-label="Language">${Object.entries(CFG.i18n).map(([k, v]) => `<button class="chip ${LANG.code === k ? "on" : ""}" data-lang="${k}" aria-pressed="${LANG.code === k}">${esc(v._meta.language)}</button>`).join("")}
+      ${LANG.code !== "en" ? `<span class="tag" title="${esc(CFG.i18n[LANG.code]._meta.status)}">draft translation</span>` : ""}</div>` : ""}`;
+  document.querySelectorAll("#phead [data-lang]").forEach((b) => b.addEventListener("click", () => { LANG.code = b.dataset.lang; render(); }));
   const el = $("#screen");
   el.innerHTML = { home: homeHTML, create: createHTML, otp: otpHTML, live: liveHTML }[S.screen]();
   el.scrollTop = 0;
@@ -284,8 +327,14 @@ function homeHTML() {
 function createHTML() {
   const d = S.design, o = designOptions(S.card);
   const chip = (field, val, label) => `<button class="chip ${d[field] === val ? "on" : ""}" data-set="${field}" data-val='${JSON.stringify(val)}'>${label}</button>`;
+  const isPct = (d.pct || 0) > 0;
+  const fmt = (val, label, on) => `<button class="chip ${on ? "on" : ""}" data-format="${val}" aria-pressed="${on}">${label}</button>`;
+  const amounts = isPct
+    ? o.pcts.map((p) => `<button class="chip ${d.discount === p.cap && d.pct === p.pct ? "on" : ""}" data-pct='${JSON.stringify(p)}'>${Math.round(p.pct * 100)}% off up to ₹${p.cap}</button>`).join("")
+    : o.depths.map((v) => chip("discount", v, "₹" + v + " off")).join("");
   return `<button class="back" data-go="home">← Back</button>
-  <div class="field"><span class="lab">Discount</span><div class="chips">${o.depths.map((v) => chip("discount", v, "₹" + v + " off")).join("")}</div></div>
+  ${o.pcts.length ? `<div class="field"><span class="lab">Offer type</span><div class="chips" role="group" aria-label="Offer type">${fmt("flat", "Flat ₹ off", !isPct)}${fmt("pct", "% off up to ₹", isPct)}</div></div>` : ""}
+  <div class="field"><span class="lab">Discount</span><div class="chips">${amounts}</div>${isPct ? `<p class="note">The percentage applies to small orders only: from ₹${Math.round(d.discount / d.pct)} up, every order gets ₹${d.discount} off.</p>` : ""}</div>
   <div class="field"><span class="lab">Minimum order</span><div class="chips">${chip("min_order", 0, "None")}${chip("min_order", o.mov, "Above ₹" + o.mov)}</div></div>
   <div class="field"><span class="lab">Who sees it</span><div class="chips">${AUDIENCES.map(([v, l]) => chip("audience", v, l)).join("")}</div></div>
   <div class="field"><span class="lab">When</span><div class="chips">${chip("offpeak_only", false, "All day")}${chip("offpeak_only", true, "3–6 pm only")}</div></div>
@@ -341,8 +390,39 @@ function forecastHTML(q) {
       : `<div class="card"><p class="note">This is already the best of the ${q.designs_compared} versions compared (who sees it, minimum order, time, Brand Pack). The discount size is yours to choose.</p></div>`}`;
 }
 
+function evidenceHTML(ev) {
+  return `<div class="card" id="evidenceCard"><div class="eyebrow">Renew on what was measured</div><h4>What this offer did in its ${ev.weeks} weeks</h4>
+    <div class="row"><span class="k">Extra orders it created</span><span class="v">${n0(Math.max(ev.extra_orders, 0))} (likely ${n0(Math.max(ev.extra_orders_low, 0))}–${n0(Math.max(ev.extra_orders_high, 0))})</span></div>
+    <div class="row"><span class="k">Extra profit</span><span class="v ${cls(ev.extra_profit)}">${inr(ev.extra_profit, true)}</span></div>
+    <div class="row"><span class="k">Likely range</span><span class="v">${inr(ev.extra_profit_low, true)} to ${inr(ev.extra_profit_high, true)}</span></div>
+    <div class="row"><span class="k">Chance it made you money</span><span class="v">${pct(ev.chance_making_money)}</span></div>
+    <div class="row"><span class="k">Forecast when you approved it</span><span class="v">${inr(ev.forecast_at_approval, true)}</span></div>
+    <p class="note">${esc(cap(ev.verdict))}. Measured with your own control group and the model learned from all restaurants, not a forecast. The same customers stay in the control group, so the measurement carries on.</p></div>`;
+}
+
 function otpHTML() {
-  const off = S.offer, q = off.quote;
+  const off = S.offer, q = off.quote, ev = off.evidence;
+  if (ev) {
+    return `<button class="back" data-go="live">← Back</button>
+  ${evidenceHTML(ev)}
+  <div class="card"><div class="eyebrow">Renew this offer</div><h4>${esc(off.label)}</h4>
+    <div class="row"><span class="k">Runs for</span><span class="v">${CFG.consent_weeks} more weeks, then needs a new OTP</span></div>
+    <p class="note">${esc(off.who_pays)}</p>
+    <p class="note">Your approval record will store the result above, so you can always see what you renewed on.</p></div>
+  ${otpBoxesHTML("Renew with OTP")}`;
+  }
+  if (LANG.code !== "en" && T("approve_title")) {
+    const share = off.design.zomato_share > 0 ? Math.round(off.design.zomato_share * 100) : 0;
+    return `<button class="back" data-go="create">← Change offer</button>
+  <div class="card" lang="${LANG.code}"><div class="eyebrow">${esc(T("approve_title"))}</div><h4>${esc(off.label_i18n?.[LANG.code] || off.label)}</h4>
+    <div class="row"><span class="k">${esc(T("extra_orders"))}</span><span class="v">${n0(q.extra_orders)}</span></div>
+    <div class="row"><span class="k">${esc(T("extra_profit"))}</span><span class="v ${cls(q.profit_change)}">${inr(q.profit_change, true)}</span></div>
+    <div class="row"><span class="k">${esc(T("range"))}</span><span class="v">${inr(q.profit_low, true)} – ${inr(q.profit_high, true)}</span></div>
+    <div class="row"><span class="k">${esc(T("runs_for"))}</span><span class="v">${esc(T("runs_weeks", { weeks: CFG.consent_weeks }))}</span></div>
+    <p class="note">${esc(share ? T("who_pays_shared", { share }) : T("who_pays"))}</p>
+    <p class="note">${esc(T("weekly"))}</p></div>
+  ${otpBoxesHTML(T("button"), T("enter"))}`;
+  }
   return `<button class="back" data-go="create">← Change offer</button>
   <div class="card"><div class="eyebrow">Approve this offer</div><h4>${esc(off.label)}</h4>
     <div class="row"><span class="k">Expected extra orders a week</span><span class="v">${n0(q.extra_orders)}</span></div>
@@ -351,11 +431,15 @@ function otpHTML() {
     <div class="row"><span class="k">Runs for</span><span class="v">${CFG.consent_weeks} weeks, then needs a new OTP</span></div>
     <p class="note">${esc(off.who_pays)}</p>
     <p class="note">A weekly summary comes on WhatsApp. If the offer is clearly losing money it pauses by itself.</p></div>
-  <div class="card" id="otpCard"><div class="note" style="text-align:center">Enter the OTP sent to your registered phone</div>
+  ${otpBoxesHTML("Approve with OTP")}`;
+}
+
+function otpBoxesHTML(label, prompt = "Enter the OTP sent to your registered phone") {
+  return `<div class="card" id="otpCard"><div class="note" style="text-align:center">${esc(prompt)}</div>
     <div class="otp-boxes">${[0, 1, 2, 3].map((i) => `<input inputmode="numeric" maxlength="1" aria-label="OTP digit ${i + 1}" data-otp="${i}">`).join("")}</div>
     <div class="note" style="text-align:center">Demo OTP: <b>${esc(S.otp)}</b></div>
     <div id="otperr" class="neg note" style="text-align:center;min-height:18px">${esc(S.err)}</div>
-    <button class="btn" data-act="approve">Approve with OTP</button></div>`;
+    <button class="btn" data-act="approve">${label}</button></div>`;
 }
 
 function liveHTML() {
@@ -372,8 +456,55 @@ function liveHTML() {
   ${w ? weekHTML(w, off) : `<div class="card empty">No results yet. Simulate a week to see what the offer really adds.</div>`}
   ${off.weeks.length > 1 ? `<div class="card weeks-list"><h4>Week by week</h4>${off.weeks.map((x) => `<div class="wk"><span>Week ${x.week}</span>
      <span>${inr(x.measurement.profit.total, true)} so far</span><span class="tag ${verdictTag(x)}">${shortVerdict(x)}</span></div>`).join("")}</div>` : ""}
+  ${off.renewal_of ? `<p class="note">Renewal of offer ${off.renewal_of}, approved on its measured result.${STATIC ? " In this static demo the renewed weeks replay the first period's simulated customers; the live service runs new weeks." : ""}</p>` : ""}
+  ${off.status === "consent_expired" && !off.renewed_by ? `<button class="btn" data-act="renew">Renew for ${CFG.consent_weeks} weeks</button>` : ""}
+  ${off.status !== "active" && off.weeks.length && S.alt[off.offer_id] ? `<div id="whatIf">${S.whatIf[off.offer_id] ? whatIfHTML(off, S.alt[off.offer_id], S.whatIf[off.offer_id]) : `<div class="card empty">Running the other version on the same customers…</div>`}</div>` : ""}
   ${off.status !== "active" && off.status !== "stopped" ? `<button class="btn ghost" data-go="create">Change and re-approve</button>` : ""}
   ${off.weeks.length && canRun ? `<button class="btn ghost" data-act="stop">Stop offer</button>` : ""}`;
+}
+
+// What if the owner had run the other version: their original one (when they took TrueLift's
+// suggestion) or TrueLift's suggestion (when they kept theirs), on the same simulated customers
+// for the same weeks (A09 D4). The static demo has both versions' weeks in its files; the live
+// service runs the other version in a separate session so this visitor's offers are untouched.
+async function whatIfWeeks(design, n) {
+  if (!(design.discount > 0)) return [];
+  if (STATIC) {
+    const f = await sget(`${S.rid}/${dkey(design)}.json`);
+    return f.offer ? f.offer.weeks.slice(0, n) : [];
+  }
+  const h = { "X-Session": `${SESSION}-whatif`, "Content-Type": "application/json" };
+  const post = async (p, b) => {
+    const r = await fetch(p, { method: "POST", headers: h, body: JSON.stringify(b || {}) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(typeof j.detail === "string" ? j.detail : `The service answered ${r.status}.`);
+    return j;
+  };
+  const c = await post("/api/v1/offers", { restaurant_id: S.rid, design });
+  let v = await post(`/api/v1/offers/${c.offer_id}/approve`, { otp: c.demo_otp });
+  for (let w = 1; w <= n && v.status === "active"; w++) v = await post(`/api/v1/offers/${c.offer_id}/run_week?week=${w}`, {});
+  return v.weeks;
+}
+
+async function loadWhatIf() {
+  const off = S.offer, alt = off && S.alt[off.offer_id];
+  if (!alt || off.status === "active" || !off.weeks.length || S.whatIf[off.offer_id]) return;
+  try { S.whatIf[off.offer_id] = { weeks: await whatIfWeeks(alt.design, off.weeks.length) }; }
+  catch (e) { S.whatIf[off.offer_id] = { error: e.message }; }
+  if (S.screen === "live" && S.offer?.offer_id === off.offer_id) $("#whatIf").innerHTML = whatIfHTML(off, alt, S.whatIf[off.offer_id]);
+}
+
+function whatIfHTML(off, alt, r) {
+  if (r.error) return `<div class="card"><p class="note">The comparison could not run: ${esc(r.error)}</p></div>`;
+  const n = off.weeks.length, mine = off.weeks[n - 1];
+  const other = r.weeks.length ? r.weeks[Math.min(n, r.weeks.length) - 1] : null;
+  const row = (label, w, none) => `<tr><td>${esc(label)}</td><td>${w ? inr(w.measurement.profit.total, true) : none}</td><td>${w ? inr(w.simulator_truth.extra_profit, true) : none}</td></tr>`;
+  const better = other ? other.simulator_truth.extra_profit - mine.simulator_truth.extra_profit : -mine.simulator_truth.extra_profit;
+  return `<div class="card" id="whatIfCard"><div class="eyebrow">What if</div><h4>What if you had run ${esc(alt.name)}?</h4>
+    <div class="tablewrap"><table class="t"><tr><th>Version, ${n} week${n === 1 ? "" : "s"}</th><th>Measured extra profit</th><th>True extra profit</th></tr>
+      ${row(`What you ran: ${off.label}`, mine)}${row(`${cap(alt.name)}: ${alt.label}`, other, "₹0, no offer")}
+      ${other && r.weeks.length < n ? `<tr><td colspan="3" class="note">The other version paused after ${r.weeks.length} week${r.weeks.length === 1 ? "" : "s"}.</td></tr>` : ""}</table></div>
+    <p class="note">Same simulated customers, same weeks. ${better > 0 ? `${cap(alt.name)} would truly have made ${inr(better)} more.` : `What you ran truly made ${inr(-better)} more.`} The true figures are known only because this is a simulation; in real life the measured column is all anyone sees.</p></div>`;
 }
 
 const verdictTag = (w) => ({ keep: "good", pause: "bad", probably_losing: "warn" }[w.measurement.verdict_code] || "");
@@ -410,8 +541,8 @@ function weekHTML(w, off) {
       <div class="row"><span class="k">Saw the offer</span><span class="v">${n0(e.shown_orders)} orders from ${n0(e.shown_visits)} visits (${rate(e.shown_orders, e.shown_visits)})</span></div>
       <div class="row"><span class="k">Held out (control group)</span><span class="v">${n0(e.control_orders)} orders from ${n0(e.control_visits)} visits (${rate(e.control_orders, e.control_visits)})</span></div>
       <p class="note">With few held-out visits the comparison is noisy, so the estimate also leans on the model learned from all restaurants (${pct(p.weight_on_own_data)} of the weight is on your own control group now).</p></details>
-    <details><summary>WhatsApp summary sent to the owner</summary><div class="wa">${esc(w.whatsapp)}</div>
-      <a class="btn small ghost" href="https://wa.me/?text=${encodeURIComponent(w.whatsapp)}" target="_blank" rel="noopener noreferrer">Send to my WhatsApp</a></details>
+    ${(() => { const wa = (LANG.code !== "en" && w.whatsapp_i18n?.[LANG.code]) || w.whatsapp; return `<details><summary>WhatsApp summary sent to the owner${wa !== w.whatsapp ? " (draft translation)" : ""}</summary><div class="wa" lang="${wa !== w.whatsapp ? LANG.code : "en"}">${esc(wa)}</div>
+      <a class="btn small ghost" href="https://wa.me/?text=${encodeURIComponent(wa)}" target="_blank" rel="noopener noreferrer">Send to my WhatsApp</a></details>`; })()}
     <details><summary>Itemised payout for week ${n}</summary>
       <div class="row"><span class="k">Orders</span><span class="v">${pay.orders}</span></div>
       <div class="row"><span class="k">Food sales</span><span class="v">${inr(pay.gross_sales)}</span></div>
@@ -428,6 +559,15 @@ function bind() {
   document.querySelectorAll("#screen [data-go]").forEach((b) => b.addEventListener("click", () => { S.err = ""; go(b.dataset.go); }));
   document.querySelectorAll("#screen [data-set]").forEach((b) => b.addEventListener("click", () => {
     S.design = { ...S.design, [b.dataset.set]: JSON.parse(b.dataset.val) };
+    render();
+  }));
+  document.querySelectorAll("#screen [data-format]").forEach((b) => b.addEventListener("click", () => {
+    S.design = withFormat(S.design, S.card, b.dataset.format);
+    render();
+  }));
+  document.querySelectorAll("#screen [data-pct]").forEach((b) => b.addEventListener("click", () => {
+    const p = JSON.parse(b.dataset.pct);
+    S.design = { ...S.design, discount: p.cap, pct: p.pct };
     render();
   }));
   document.querySelectorAll("#screen [data-act]").forEach((b) => b.addEventListener("click", () => ACT[b.dataset.act]()));
@@ -458,10 +598,27 @@ function requestQuote() {
 }
 
 const ACT = {
-  useBetter() { if (S.quote?.better) { S.design = { ...S.quote.better.design }; S.quote = null; render(); } },
+  useBetter() {
+    if (S.quote?.better) {
+      S.original = { design: { ...S.quote.owner.design }, label: S.quote.owner.label };
+      S.design = { ...S.quote.better.design }; S.quote = null; render();
+    }
+  },
   async toOtp() {
     const r = await api("/api/v1/offers", { restaurant_id: S.rid, design: S.design });
     S.otp = r.demo_otp; S.err = "";
+    S.offer = await api(`/api/v1/offers/${r.offer_id}`);
+    // the version to compare with once this offer ends (A09 D4)
+    const q = S.quote && sameDesign(S.quote.owner.design, S.design) ? S.quote : null;
+    if (S.original && !sameDesign(S.original.design, S.design)) S.alt[r.offer_id] = { name: "your original version", ...S.original };
+    else if (q?.better && !sameDesign(q.better.design, S.design)) S.alt[r.offer_id] = { name: "TrueLift's suggestion", design: { ...q.better.design }, label: q.better.label };
+    go("otp");
+  },
+  async renew() {
+    const old = S.offer;
+    const r = await api(`/api/v1/offers/${old.offer_id}/renew`, {});
+    S.otp = r.demo_otp; S.err = "";
+    if (S.alt[old.offer_id]) S.alt[r.offer_id] = S.alt[old.offer_id];
     S.offer = await api(`/api/v1/offers/${r.offer_id}`);
     go("otp");
   },
@@ -476,9 +633,9 @@ const ACT = {
     if (S.busy) return;
     S.busy = true; render();
     try { S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/run_week`, {}); }
-    finally { S.busy = false; render(); refreshInside(); }
+    finally { S.busy = false; render(); refreshInside(); loadWhatIf(); }
   },
-  async stop() { S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/decision`, { action: "stop" }); render(); refreshInside(); },
+  async stop() { S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/decision`, { action: "stop" }); render(); refreshInside(); loadWhatIf(); },
 };
 
 // ---------------- inside Zomato ----------------
@@ -663,9 +820,9 @@ function tourSteps() {
     { title: "Across 300 restaurants", spot: "#evTiles",
       run: async () => { showTab("evidence"); await wait(400); },
       text: () => { const P = Tour.ev?.main?.policies; if (!P) return "See the Evidence tab."; const t = P.truelift, bl = P.today_blanket;
-        const v = Tour.ev.real_data_criteo?.results?.find((r) => r.label === "visit");
+        const v = realTop30(Tour.ev.real_data_criteo, "visit", "t_learner");
         const less = 1 - t.customer_savings / bl.customer_savings, dz = t.zomato_commission_change - bl.zomato_commission_change;
-        return `In the simulated market, <b>${t.offers_that_pay} of ${t.restaurants_with_offer}</b> TrueLift offers pay for themselves, against ${bl.offers_that_pay} of ${bl.restaurants_with_offer} blanket ones. Restaurants make ${lakh(t.restaurant_profit_change)} instead of ${lakh(bl.restaurant_profit_change)} extra profit a week with ${pct(less)} less discount, and Zomato's commission changes by ${inr(dz, true)} a week.${v ? ` On real randomised data (Criteo), the model's top 30% picks hold <b>${pct(v.top30_share_of_total_lift)}</b> of all the extra visits.` : ""}`; } },
+        return `In the simulated market, <b>${t.offers_that_pay} of ${t.restaurants_with_offer}</b> TrueLift offers pay for themselves, against ${bl.offers_that_pay} of ${bl.restaurants_with_offer} blanket ones. Restaurants make ${lakh(t.restaurant_profit_change)} instead of ${lakh(bl.restaurant_profit_change)} extra profit a week with ${pct(less)} less discount, and Zomato's commission changes by ${inr(dz, true)} a week.${v ? ` On real randomised data (Criteo), the model's top 30% picks hold <b>${pct(v.value)}</b> of all the extra visits.` : ""}`; } },
     { title: "Try it yourself", spot: null,
       run: async () => { showTab("demo"); go("home"); },
       text: () => `Pick any restaurant at the top, create any offer, and run the weeks. <b>How it works</b> explains every step in plain words; <b>Money maths</b> shows every rupee.` },
@@ -678,7 +835,7 @@ async function renderHow() {
   if (el.dataset.done) return;
   let E = null;
   try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { /* page still works without numbers */ }
-  const P = E?.main?.policies, v = E?.real_data_criteo?.results?.find((r) => r.label === "visit");
+  const P = E?.main?.policies, v = realTop30(E?.real_data_criteo, "visit", "t_learner");
   const L = E?.latency, F = E?.main?.fairness;
   const serveMs = L ? `${L.serve_sequential.server_side.p50_ms} ms` : "about a millisecond";
   const quoteMs = L ? `${Math.round(L.quote_sequential.p50_ms)} ms` : "a fraction of a second";
@@ -710,7 +867,7 @@ async function renderHow() {
     <div class="tile"><div class="v">${quoteMs}</div><div class="l">median time per forecast over HTTP, comparing about 34 versions of an offer</div></div>
     <div class="tile"><div class="v">Weekly</div><div class="l">batch measurement per offer; no change to how customers order</div></div>
   </div>
-  ${P ? `<h2>Does it work?</h2><p>In a simulated market of 300 real Bengaluru listings, <b>${P.truelift.offers_that_pay} of 300</b> TrueLift offers pay for themselves against <b>${P.today_blanket.offers_that_pay}</b> blanket offers, and restaurants make ${lakh(P.truelift.restaurant_profit_change)} vs ${lakh(P.today_blanket.restaurant_profit_change)} extra profit a week.${v ? ` On real randomised data (Criteo's ad holdouts), the model's top 30% picks hold ${pct(v.top30_share_of_total_lift)} of all the extra visits.` : ""} Details on the Evidence tab.</p>` : ""}
+  ${P ? `<h2>Does it work?</h2><p>In a simulated market of 300 real Bengaluru listings, <b>${P.truelift.offers_that_pay} of 300</b> TrueLift offers pay for themselves against <b>${P.today_blanket.offers_that_pay}</b> blanket offers, and restaurants make ${lakh(P.truelift.restaurant_profit_change)} vs ${lakh(P.today_blanket.restaurant_profit_change)} extra profit a week.${v ? ` On real randomised data (Criteo's ad holdouts), the model's top 30% picks hold ${pct(v.value)} of all the extra visits.` : ""} Details on the Evidence tab.</p>` : ""}
   <h2>Words used on this site</h2>
   <div class="gloss">
     <div><b>Extra orders</b>Orders that happened only because of the offer.</div>
@@ -823,7 +980,7 @@ async function renderEvidence() {
   ${adoptionHTML(M)}
   ${fairnessHTML(M)}
   ${benchmarkHTML(E.learner_benchmark)}
-  ${realDataHTML(E.real_data_criteo)}
+  ${realDataHTML(E.real_data_criteo, E.real_data_hillstrom)}
   ${experimentsHTML(E.experiments)}
   ${frontierHTML(M)}
   ${speedHTML(E.latency)}
@@ -990,22 +1147,57 @@ function benchmarkHTML(B) {
     Object.entries(B.summary).map(([k, m]) => tr([nm[k] || k, ms(m.normalised_qini), ms(m.corr_with_true_uplift), ms(m.profit_top_30pct_vs_best_possible)], k === "t_learner")))}`;
 }
 
-function realDataHTML(R) {
-  if (!R) return "";
-  const v = R.results.find((r) => r.label === "visit"), c = R.results.find((r) => r.label === "conversion");
-  return `<h2>On real data: Criteo's randomised ad holdouts</h2>
-  <p>The same model, trained on ${(R.train_rows / 1e6).toFixed(0)} million users of Criteo's open incrementality tests (a random 15% of people were held out of advertising, like TrueLift's control group), ranked ${(v.test_rows / 1e6).toFixed(1)} million users it had never seen. Advertising, not food discounts: this tests the method, not Zomato's numbers.</p>
+// Real randomised data (scripts/validate_uplift.py): one result per dataset, arm and outcome, each
+// with five rankings. realTop30 reads one ranking's share of the extra outcomes in its top 30%.
+const RANKINGS = [["random", "Random"], ["response", "Likely to act anyway"], ["s_learner", "S-learner"], ["t_learner", "TrueLift's method"], ["x_learner", "X-learner"]];
+function realTop30(R, label, ranking, arm) {
+  const r = R?.results?.find((x) => x.label === label && (!arm || x.arm === arm));
+  return r?.rankings?.[ranking]?.top30_share_of_total_lift || null;
+}
+function realDataHTML(Rc, Rh) {
+  const sets = [Rc, Rh].filter((R) => R?.results?.[0]?.rankings);
+  if (!sets.length) return "";
+  const outcome = { visit: "visits", conversion: "purchases", spend: "spend in dollars" };
+  const arm = { ads: "ads", womens_email: "women's e-mail", mens_email: "men's e-mail" };
+  const cell = (m) => (m && m.value !== null ? `${pct(m.value)}${m.interval_90 ? `<br><small>${pct(m.interval_90[0])} to ${pct(m.interval_90[1])}</small>` : ""}` : "–");
+  const rows = sets.flatMap((R) => R.results.map((r) => tr([`${R.dataset === "criteo" ? "Criteo" : "Hillstrom"}, ${arm[r.arm] || r.arm}: ${outcome[r.label] || r.label}`,
+    ...RANKINGS.map(([k]) => cell(r.rankings[k]?.top30_share_of_total_lift))])));
+  const find = (R, label, arm) => R?.results?.find((r) => r.label === label && (!arm || r.arm === arm));
+  const top = (r, k) => r?.rankings?.[k]?.top30_share_of_total_lift;
+  const cv = find(Rc, "visit"), cc = find(Rc, "conversion"), hw = find(Rh, "visit", "womens_email");
+  const tl = cv?.rankings.t_learner, rs = cv?.rankings.response;
+  const says = [];
+  if (cv) {
+    const vals = RANKINGS.filter(([k]) => k !== "random").map(([k]) => top(cv, k).value);
+    says.push(`On Criteo's visits every model puts ${pct(Math.min(...vals))} to ${pct(Math.max(...vals))} of the extra visits in its top 30%, the shortcut of ranking people by how likely they are to visit anyway included (TrueLift's method ${pct(top(cv, "t_learner").value)}, shortcut ${pct(top(cv, "response").value)}). In this advertising data, the people the ads move are mostly people already likely to visit.`);
+  }
+  if (cc) {
+    const best = RANKINGS.filter(([k]) => k !== "random").reduce((m, [k, n]) => (top(cc, k).value > top(cc, m[0]).value ? [k, n] : m), ["t_learner", "TrueLift's method"]);
+    says.push(`On Criteo's purchases (about ${Math.round(cc.mean_treated * 1000)} in 1,000 users shown ads buy), ${best[1].toLowerCase() === "likely to act anyway" ? "the shortcut" : `the ${best[1]}`} does best (${pct(top(cc, best[0]).value)}); TrueLift's method finds ${pct(top(cc, "t_learner").value)} and the X-learner ${pct(top(cc, "x_learner").value)}. With so few buyers among the ${pct(1 - cc.share_treated)} held out, a model fitted on the held-out group alone is noisy, which is the weakness the X-learner is built to avoid.`);
+  }
+  if (hw) {
+    const t = top(hw, "t_learner"), r = top(hw, "response");
+    const wins = t.splits && r.splits ? t.splits.filter((v, i) => v > r.splits[i]).length : null;
+    says.push(`On Hillstrom's women's e-mail the uplift models find more: TrueLift's method's top 30% holds ${pct(t.splits_mean ?? t.value)} of the extra visits against ${pct(r.splits_mean ?? r.value)} for the shortcut${wins !== null ? `, higher in ${wins} of ${t.splits.length} random splits` : ""}. Here the customers likely to visit anyway are not the ones the e-mail moves, which is the situation of a restaurant's regulars.`);
+  }
+  const spend = Rh?.results?.filter((r) => r.label === "spend") || [];
+  if (spend.length) {
+    const clear = spend.flatMap((r) => RANKINGS.filter(([k]) => k !== "random" && top(r, k)?.interval_90?.[0] > 0.3).map(([, n]) => n));
+    says.push(`On dollars spent, ${clear.length ? `only ${[...new Set(clear)].join(" and ")} stayed above random targeting across the resamples` : "no ranking is clearly better than random targeting"} with about ${n0(spend[0].test_rows)} test customers per e-mail: a few large orders decide dollar totals. This is why TrueLift models the chance of an order and computes the money from each order's economics, instead of learning rupees directly.`);
+  }
+  says.push("So which ranking works depends on the setting, and the shortcut is a real competitor. Zomato would settle it on its own offers the same way: the shadow phase's random holdout scores every candidate ranking before any of them is used.");
+  if (tl?.qini_auc_score?.value != null) says.push(`Qini score as scikit-uplift defines it (a perfect ranking scores 1): ${tl.qini_auc_score.value.toFixed(3)} for TrueLift's method on Criteo's visits and ${rs.qini_auc_score.value.toFixed(3)} for the shortcut. This project's own measure, which divides by the campaign's total gain instead, gives ${tl.qini_ours.value.toFixed(3)}.`);
+  return `<h2>On real data: two public randomised experiments</h2>
+  <p>The same method, refitted on each dataset, ranks customers it never saw. <b>Criteo</b>: ${Rc ? `${(Rc.rows / 1e6).toFixed(0)} million` : "14 million"} users of Criteo's advertising tests, a random 15% held out of ads like TrueLift's control group. <b>Hillstrom</b>: ${Rh ? n0(Rh.rows) : "64,000"} customers of a US retailer, e-mailed at random with men's or women's merchandise or nothing, with what they spent. Neither is about food discounts: they test the method, not Zomato's numbers. Each ranking is compared with the shortcut practitioners use: rank people by how likely they are to act at all.</p>
+  ${tableHTML(["Share of the extra outcomes in the top 30% of each ranking", ...RANKINGS.map(([, n]) => n)], rows,
+    "Random targeting finds about 30%. Below each figure, its 90% range from 200 resamples of the test customers.")}
   <div class="charts">
-    <div class="chart"><h3>Extra visits found, by share of people targeted</h3><div class="s">Share of all the extra visits the full campaign created</div>
-      ${qiniChart(v.curve)}
-      <div class="legend"><span><i class="line" style="background:var(--series)"></i>TrueLift's model</span><span><i class="line" style="background:var(--series-mute)"></i>Random targeting</span></div></div>
+    ${cv ? `<div class="chart"><h3>Criteo: extra visits found, by share of people targeted</h3><div class="s">Share of all the extra visits the full campaign created</div>
+      ${qiniChart({ share_targeted: cv.curve.share_targeted, model: cv.curve.t_learner, random: cv.curve.random, response: cv.curve.response })}
+      <div class="legend"><span><i class="line" style="background:var(--series)"></i>TrueLift's method</span><span><i class="line dash" style="background:var(--series)"></i>Likely to act anyway</span><span><i class="line" style="background:var(--series-mute)"></i>Random targeting</span></div></div>` : ""}
     <div class="chart"><h3>What it means</h3>
-      <div class="row"><span class="k">Visits: held out against shown ads</span><span class="v">${(v.rate_control * 100).toFixed(2)}% → ${(v.rate_treated * 100).toFixed(2)}%</span></div>
-      <div class="row"><span class="k">Qini score, model against random (visits)</span><span class="v">${v.qini_t_learner} vs ${v.qini_random}</span></div>
-      <div class="row"><span class="k">Extra visits in the top 30% the model picks</span><span class="v">${pct(v.top30_share_of_total_lift)}</span></div>
-      <div class="row"><span class="k">Qini score, model against random (purchases, rare)</span><span class="v">${c.qini_t_learner} vs ${c.qini_random}</span></div>
-      <div class="row"><span class="k">Extra purchases in the top 30%</span><span class="v">${pct(c.top30_share_of_total_lift)}</span></div>
-      <p class="note">If a campaign could reach only 30% of people, the model's choice would capture ${pct(v.top30_share_of_total_lift)} of all the extra visits the full campaign creates; random choice captures about 30%.</p></div>
+      ${says.map((x) => `<p class="p">${x}</p>`).join("")}
+      <p class="note">Every model is the same kind of gradient-boosted tree. Five random 70/30 splits of each dataset give the spread in <code>reports/uplift_validation_*.json</code>.</p></div>
   </div>`;
 }
 
@@ -1079,7 +1271,7 @@ function speedHTML(L) {
 
 function qiniChart(cu) {
   const W = 460, H = 236, L = 44, Rm = 20, T = 16, B = 46;
-  const xs = cu.share_targeted, ys = [...cu.model, ...cu.random];
+  const xs = cu.share_targeted, ys = [...cu.model, ...cu.random, ...(cu.response || [])];
   const ymax = Math.max(1, ...ys), ymin = Math.min(0, ...ys);
   const x = (v) => L + v * (W - L - Rm), y = (v) => T + (1 - (v - ymin) / (ymax - ymin)) * (H - T - B);
   const path = (arr) => arr.map((v, i) => `${i ? "L" : "M"}${x(xs[i]).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
@@ -1087,10 +1279,11 @@ function qiniChart(cu) {
   const xt = [0, 0.25, 0.5, 0.75, 1].map((g) => `<text x="${x(g)}" y="${H - B + 16}" text-anchor="middle">${Math.round(g * 100)}%</text>`).join("");
   const n = xs.length - 1;
   const hits = xs.map((f, i) => `<rect x="${x(f) - (W - L - Rm) / n / 2}" y="${T}" width="${(W - L - Rm) / n}" height="${H - T - B}" fill="transparent"
-     data-tip="Target ${Math.round(f * 100)}% of people: the model finds ${Math.round(cu.model[i] * 100)}% of the extra visits, random ${Math.round(cu.random[i] * 100)}%"></rect>`).join("");
+     data-tip="Target ${Math.round(f * 100)}% of people: the model finds ${Math.round(cu.model[i] * 100)}% of the extra visits${cu.response ? `, the shortcut ${Math.round(cu.response[i] * 100)}%` : ""}, random ${Math.round(cu.random[i] * 100)}%"></rect>`).join("");
   return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Qini curve: model versus random">
     ${grid}${xt}<text x="${(L + W - Rm) / 2}" y="${H - 4}" text-anchor="middle">share of people targeted (highest predicted uplift first)</text>
     <path d="${path(cu.random)}" fill="none" stroke="var(--series-mute)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
+    ${cu.response ? `<path d="${path(cu.response)}" fill="none" stroke="var(--series)" stroke-width="2" stroke-dasharray="5 4" stroke-linejoin="round" stroke-linecap="round"></path>` : ""}
     <path d="${path(cu.model)}" fill="none" stroke="var(--series)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"></path>
     <text class="lbl" x="${x(xs[Math.round(n * 0.3)]) + 6}" y="${y(cu.model[Math.round(n * 0.3)]) - 10}">Model</text>
     <text x="${x(xs[Math.round(n * 0.7)]) + 8}" y="${y(cu.random[Math.round(n * 0.7)]) + 16}">Random</text>
@@ -1166,6 +1359,9 @@ async function renderMoney() {
   <div class="calc"><h4>When does ${inr(e.discount)} off pay for itself?</h4>
     <p class="note">Of the orders using the offer, let <i>f</i> be the share that would not have happened without it. The restaurant gains ${inr2(d.restaurant_profit)} on those and loses ${inr2(f.restaurant_profit)} − ${inr2(d.restaurant_profit)} = ${inr2(f.restaurant_profit - d.restaurant_profit)} on every other one. It breaks even when f × ${inr2(d.restaurant_profit)} = (1 − f) × ${inr2(f.restaurant_profit - d.restaurant_profit)}, so <b>f = 1 − ${inr2(d.restaurant_profit)} / ${inr2(f.restaurant_profit)} = ${pc(be.extra_share_needed)}</b>.</p>
     ${e.break_even.map((x) => line(`${Math.round(x.share_of_basket * 100)}% off (${inr(x.discount)})`, `pays only if ≥ ${Math.round(x.extra_share_needed * 100)}% of its orders are extra`)).join("")}</div>
+  ${e.pct_example ? `<div class="calc"><h4>A percentage offer: ${pct(e.pct_example.pct)} off up to ${inr(e.pct_example.cap)}</h4>
+    <p class="note">Most offers on Zomato are written this way. The rupees off depend on the order: ${pct(e.pct_example.pct)} of it, but never more than ${inr(e.pct_example.cap)}. Above ${inr(e.pct_example.cap / e.pct_example.pct)} the offer is simply ${inr(e.pct_example.cap)} off, so the headline percentage is paid only on small orders, where the restaurant keeps least.</p>
+    ${e.pct_example.rows.map((x) => line(`${inr(x.basket)} order: ${inr2(x.discount)} off (${Math.round(x.share_of_basket * 100)}% of it)`, `pays only if ≥ ${Math.round(x.extra_share_needed * 100)}% of its orders are extra`)).join("")}</div>` : ""}
   <div class="calc"><h4>One week</h4>
     ${line(`No offer: ${e.regulars} × ${inr2(f.restaurant_profit)}`, inr2(n.restaurant_profit))}
     ${line(`Today, ${inr(e.discount)} off for everyone: ${e.regulars + e.new_orders} × ${inr2(d.restaurant_profit)}`, inr2(b.restaurant_profit))}

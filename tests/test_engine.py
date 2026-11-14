@@ -506,3 +506,47 @@ def test_brand_pack_line_recovers_a_known_effect():
     assert bp["control_visits"] == int(held.sum()) and bp["verdict_code"] in {"pays", "costs", "unclear"}
     assert measure_reward(rows.iloc[:30])["verdict_code"] == "too_early"
     assert measure_reward(rows.iloc[:0]) is None
+
+
+# ---------------------------------------------------------------- percentage offers (A19 4.1)
+def test_percentage_offer_label_and_create_screen_pairs():
+    assert Design(80, pct=0.4).label() == "40% off up to ₹80 for everyone"
+    assert Design(80, 399, "lapsed", pct=0.4).label().startswith("40% off up to ₹80 above ₹399")
+    o = design_options(400)
+    assert [p["cap"] for p in o["pct_offers"]] == o["depths"]
+    assert [p["pct"] for p in o["pct_offers"]] == [0.2, 0.3, 0.4, 0.5]  # twice the cap's share of the order
+    for aov in (150, 180, 660, 1000):  # every pair is a percentage the create screen can show
+        assert all(0.1 <= p["pct"] <= 0.6 for p in design_options(aov)["pct_offers"])
+
+
+def test_percentage_offer_discount_per_use_follows_each_basket():
+    from truelift.engine import discount_per_use
+
+    b = np.array([100.0, 200.0, 400.0, 600.0])
+    # 40% up to Rs 80: Rs 40, 80, 80, 80 on these baskets
+    assert discount_per_use(b, 80, 0, 300, 0.5, pct=0.4) == pytest.approx(70.0)
+    assert discount_per_use(b, 80, 0, 300, 0.5) == 80.0  # a flat offer: the amount itself
+    assert discount_per_use(b, 0, 0, 300, 0.5, pct=0.4) == 0.0
+    # a minimum order of Rs 399: the bill is topped up first; who tops up depends on their discount
+    use, take, _, _ = offer_mix(b, 80, 399, 300, 0.5, pct=0.4)
+    off = discount_per_use(b, 80, 399, 300, 0.5, pct=0.4)
+    assert take >= 399 and off == pytest.approx(80.0)
+    # with no cap reached the offer is proportional: a smaller basket gets a smaller discount
+    assert discount_per_use(np.array([100.0]), 80, 0, 300, 0.5, pct=0.2) == pytest.approx(20.0)
+
+
+def test_flat_offers_are_unchanged_by_the_percentage_format():
+    b = np.array([150.0, 250.0, 380.0, 520.0])
+    for disc, mov in ((60, 0), (60, 399), (100, 449)):
+        assert offer_mix(b, disc, mov, 300, 0.5) == offer_mix(b, disc, mov, 300, 0.5, pct=0.0)
+
+
+def test_percentage_quote_spends_the_average_discount_and_keeps_the_format_in_every_version():
+    eng = Engine(_FlatModel(), holdout=0.10)
+    baskets = np.array([100.0, 200.0, 400.0, 600.0])
+    q = eng.quote(_x(1000), Design(80, pct=0.4), aov=325, baskets=baskets)
+    assert q["discount_per_use"] == 70
+    assert q["discount_spend"] == pytest.approx(q["redemptions"] * 70, rel=1e-6, abs=1)
+    grid = eng.design_grid(325, Design(80, pct=0.4))
+    assert all(d.pct == 0.4 and d.discount == 80 for d in grid[3:])
+    assert grid[1] == Design(0.0)  # "no offer" stays the same whatever the format

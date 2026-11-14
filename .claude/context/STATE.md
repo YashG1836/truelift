@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 14 Nov 2026 by Kshitish (Claude), M2 market batch. Overwrite lines that become wrong; do not append history here
+Last updated: 14 Nov 2026 by Kshitish (Claude), M3 features batch (freeze pending). Overwrite lines that become wrong; do not append history here
 (history goes in SESSIONS.md).
 
 ## Status
@@ -48,16 +48,18 @@ Last updated: 14 Nov 2026 by Kshitish (Claude), M2 market batch. Overwrite lines
 5. [open] Control group for Zomato's own (platform-funded) discounts, see DEVLOG step 8.
 
 ## Known limits (say these if asked)
-- All outcomes are simulated; only the Criteo check uses real randomised data (ads, not restaurant offers).
+- All outcomes are simulated; only the real-data checks (Criteo ads, Hillstrom e-mails) use real randomised
+  data, and neither is about restaurant offers. On Criteo, ranking by "likely to act anyway" does as well as
+  uplift models on visits and better on purchases; on Hillstrom women's e-mail the uplift models do better.
 - Brand Pack is rarely chosen (2 of 300): in the simulator loyal customers are not very price sensitive.
 - Small restaurants: a 10% holdout alone gives ±5.4 points in a week on a 3-point effect, so the estimate
   leans on the model early and on the restaurant's own holdout later.
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle after the UI iteration and this shared-context setup (13 Nov).
-- Kshitish: branch `kshitish`, implementing his audit plan. M1 done (service, tests, CI). M2 science under way:
-  measurement, selection, market analyses, sensitivity sweep and learner benchmark done; left: Brand Pack
-  control group, guardrails/drift, real data, final run and freeze (all number changes land at one freeze).
-  Then M3 restyle of `truelift/static/` (Yash's last area: tell Yash first), M4 docs and pitch.
+- Kshitish: branch `kshitish`, implementing his audit plan. M1 and M2 science done; final freeze run in progress
+  (14 Nov night; the headline numbers above are main's until the freeze commit). M3 done in code: Zomato restyle of
+  `truelift/static/` (Yash's last area: Yash to be told), percentage offers, renewal with evidence, what-if card,
+  language drafts (off, D4). Left: export 32 restaurants, browser tests, deploy, M4 docs and pitch, M5.
   Files: `truelift/*`, `scripts/*`, `tests/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

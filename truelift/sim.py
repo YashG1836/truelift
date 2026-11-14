@@ -85,6 +85,9 @@ class Policy:
     # depth test (A19 4.2): a second discount size per restaurant (0 = none); half the customers who
     # are shown the offer get it, by the depth test's own hash (scripts/experiments.py depth-test)
     depth_b: np.ndarray | None = None
+    # percentage offers (A19 4.1): per restaurant, the share of the bill off (0 = flat); `discount`
+    # is then the most it takes off, so each order's discount is min(pct x bill, discount)
+    pct: np.ndarray | None = None
 
     @classmethod
     def none(cls, n: int, name: str = "no offer") -> Policy:
@@ -238,6 +241,9 @@ class Market:
             arm_b = shown & (policy.depth_b[rest] > 0) & (u < 0.5)
             depth = np.where(arm_b, policy.depth_b[rest], depth)
         mov = policy.min_order[rest]
+        if policy.pct is not None:  # percentage off the bill (after any top-up), up to the cap
+            pc = policy.pct[rest]
+            depth = np.where(pc > 0, np.minimum(pc * np.maximum(basket0, mov), depth), depth)
         topup = np.maximum(0.0, mov - basket0)
         eff = np.where(shown, depth - (1 - cfg.topup_value) * topup, 0.0)
         if policy.placebo:

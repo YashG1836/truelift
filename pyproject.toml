@@ -37,6 +37,9 @@ media = [
   "pillow>=10",
   "python-pptx>=1.0",
 ]
+validation = [
+    "scikit-uplift>=0.5.1",
+]
 
 [tool.uv]
 package = false

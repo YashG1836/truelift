@@ -61,6 +61,14 @@ def test_api_end_to_end(client, session_headers):
         ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "colour": "red"}}, None, 422, "invalid-input"),
         ("/api/v1/quote", {"restaurant_id": 99999, "design": DESIGN}, None, 404, "unknown-restaurant"),
         ("/api/v1/offers", {"restaurant_id": 233, "design": {**DESIGN, "discount": 0}}, None, 422, "invalid-design"),
+        ("/api/v1/quote", {"restaurant_id": 233, "design": {**DESIGN, "pct": 0.8}}, None, 422, "invalid-input"),
+        (
+            "/api/v1/quote",
+            {"restaurant_id": 233, "design": {**DESIGN, "discount": 0, "pct": 0.3}},
+            None,
+            422,
+            "invalid-design",
+        ),
         ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 10_000_000}, 404, "unknown-customer"),
         ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": -1}, 422, "invalid-input"),
         ("/api/v1/serve", None, {"restaurant_id": 233, "customer_id": 1, "slot": 99}, 422, "invalid-input"),
@@ -241,7 +249,7 @@ def test_restaurants_endpoint_is_fast_and_carries_design_options(client):
     r = client.get("/api/v1/restaurants")
     assert (time.perf_counter() - t0) < 0.25  # was over a second (TL-013)
     card = r.json()["restaurants"][0]
-    assert set(card["design_options"]) == {"depths", "default_depth", "min_order", "reward"}
+    assert set(card["design_options"]) == {"depths", "default_depth", "min_order", "reward", "pct_offers"}
 
 
 def test_config_shares_the_constants_the_page_needs(client):
@@ -503,3 +511,39 @@ def test_model_trained_on_other_inputs_is_refused_at_load(model_dir, tmp_path):
     save_bundle(art, tmp_path / "model.pkl")
     with pytest.raises(BundleError, match="Rebuild it"):
         load_bundle(tmp_path / "model.pkl")
+
+
+def test_percentage_offer_runs_end_to_end(client, session_headers):
+    """A19 4.1: "% off up to Rs X" from the card's options: quote, versions in the same format,
+    approval, a simulated week whose discounts never exceed the cap."""
+    h = session_headers
+    rid = client.get("/api/v1/restaurants").json()["demo_restaurant"]
+    card = client.get(f"/api/v1/restaurants/{rid}").json()
+    opt = card["design_options"]["pct_offers"][1]
+    design = {**DESIGN, "audience": "all", "discount": opt["cap"], "pct": opt["pct"]}
+    q = client.post("/api/v1/quote", json={"restaurant_id": rid, "design": design}, headers=h).json()
+    own = q["owner"]
+    assert own["label"].startswith(f"{round(opt['pct'] * 100)}% off up to ₹{opt['cap']}")
+    assert own["design"]["pct"] == opt["pct"] and 0 < own["discount_per_use"] <= opt["cap"]
+    if q["better"] and q["better"]["design"]["discount"] > 0:
+        assert q["better"]["design"]["pct"] == opt["pct"] and q["better"]["design"]["discount"] == opt["cap"]
+    off = approved_offer(client, h, rid, design)
+    wk = client.post(f"/api/v1/offers/{off['offer_id']}/run_week", headers=h).json()
+    assert wk["design"]["pct"] == opt["pct"] and "% off up to" in wk["label"]
+    assert wk["weeks"][-1]["payout"]["discount_paid_by_you"] >= 0
+
+
+def test_static_export_keys_match_the_page(client):
+    """The export writes one file per design the page can request; percentage offers have their own
+    keys and flat keys are unchanged (scripts/export_static.key and dkey in app.js)."""
+    from scripts.export_static import designs_for, key
+
+    card = client.get("/api/v1/restaurants/233").json()
+    ds = designs_for(card["design_options"])
+    keys = [key(d) for d in ds]
+    assert len(keys) == len(set(keys))
+    flat = [d for d in ds if d["discount"] > 0 and not d["pct"]]
+    pct = [d for d in ds if d["pct"] > 0]
+    assert len(flat) == len(pct) == 32 * len(card["design_options"]["depths"])
+    assert key({**DESIGN, "discount": 60}) == "60-0-targeted-0-0"
+    assert key({**DESIGN, "discount": 60, "pct": 0.3}) == "60p30-0-targeted-0-0"

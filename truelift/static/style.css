@@ -186,6 +186,7 @@ details summary { cursor: pointer; font-size: 13px; color: var(--ink-2); padding
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--ink-2); margin-top: 4px; }
 .legend i { display: inline-block; width: 11px; height: 11px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
 .legend i.line { height: 3px; width: 16px; border-radius: 2px; vertical-align: 3px; }
+.legend i.line.dash { background: repeating-linear-gradient(90deg, var(--series) 0 5px, transparent 5px 9px) !important; }
 .cust-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(255px, 1fr)); gap: 10px; }
 .cust { border: 1px solid var(--line); border-radius: var(--r); padding: 10px 12px; display: grid; grid-template-columns: 36px 1fr; gap: 10px; align-items: start; }
 .avatar { width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 12px; color: var(--ink-2); background: var(--bg); }
@@ -299,3 +300,6 @@ table.t caption { text-align: left; font-size: 13px; color: var(--muted); paddin
 @media (max-width: 640px) { .hint { left: 0; right: auto; width: auto; } }
 a.btn { text-decoration: none; text-align: center; }
 a.btn.small { display: inline-flex; align-items: center; justify-content: center; }
+/* language drafts (shown only when enabled or opened with #lang=): decision D4 */
+.langs { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.langs .chip { margin: 0; }

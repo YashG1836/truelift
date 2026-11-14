@@ -131,3 +131,48 @@ def test_quote_input_and_serving_rows_have_the_same_features(state):
         for col in ("c_orders_pw", "cr_orders_4w", "cr_orders_all", "cr_weeks_since", "c_no_order_8w"):
             assert row[col].iloc[0] == pytest.approx(float(r[col]))
     assert np.isfinite(v.select_dtypes("number").to_numpy()).all()
+
+
+def test_renewal_shows_the_measured_evidence_and_keeps_the_control_group(client, state, session_headers):
+    """A09 D3: after the approval period the owner renews on what was measured; the consent record
+    stores that evidence; the same customers stay held out; the renewed weeks are new weeks."""
+    h = session_headers
+    first = None
+    for design in ({**DESIGN, "audience": "all"}, DESIGN, {**DESIGN, "audience": "new_to_restaurant"}):
+        oid = approved_offer(client, h, design=design)["offer_id"]
+        assert client.post(f"/api/v1/offers/{oid}/renew", headers=h).status_code == 409  # still running
+        for w in range(1, 5):
+            view = client.post(f"/api/v1/offers/{oid}/run_week", params={"week": w}, headers=h).json()
+            if view["status"] != "active":
+                break
+        if view["status"] == "paused":  # a losing offer is changed, not renewed
+            assert client.post(f"/api/v1/offers/{oid}/renew", headers=h).status_code == 409
+            continue
+        first = view
+        break
+    assert first is not None and first["status"] == "consent_expired"
+    oid = first["offer_id"]
+    r = client.post(f"/api/v1/offers/{oid}/renew", headers=h)
+    assert r.status_code == 201, r.text
+    new = r.json()
+    ev, last = new["evidence"], first["weeks"][-1]["measurement"]
+    assert new["renewal_of"] == oid and ev["weeks"] == len(first["weeks"])
+    assert ev["extra_profit"] == pytest.approx(last["profit"]["total"], rel=1e-5)
+    assert ev["extra_profit_low"] <= ev["extra_profit"] <= ev["extra_profit_high"]
+    assert ev["verdict_code"] == last["verdict_code"]
+    ok = client.post(f"/api/v1/offers/{new['offer_id']}/approve", json={"otp": new["demo_otp"]}, headers=h).json()
+    assert ok["consent"]["renewal_of"] == oid and ok["consent"]["evidence_shown"] == ev
+    assert client.get(f"/api/v1/offers/{oid}", headers=h).json()["renewed_by"] == new["offer_id"]
+    assert client.post(f"/api/v1/offers/{oid}/renew", headers=h).status_code == 409  # renewed once only
+    assert client.get(f"/api/v1/offers/{new['offer_id']}/consent", headers=h).json()["verified"]
+    # the same control group, and weeks after the first period (not a replay of them)
+    old_off, new_off = _offer(state, h, oid), _offer(state, h, new["offer_id"])
+    assert new_off.table.offer_id == old_off.table.offer_id == oid
+    wk = client.post(f"/api/v1/offers/{new['offer_id']}/run_week", headers=h).json()["weeks"][-1]
+    assert wk["week"] == 1 and wk["experiment"] != first["weeks"][0]["experiment"]
+    old_held = set(_exposures(state, oid).query("assignment == 'control'")["customer_id"])
+    new_ex = _exposures(state, new["offer_id"])
+    both = set(new_ex["customer_id"]) & set(_exposures(state, oid)["customer_id"])
+    for c in both:  # a customer seen in both periods is held out in both or in neither
+        held_now = (new_ex.loc[new_ex["customer_id"] == c, "assignment"] == "control").any()
+        assert held_now == (c in old_held)

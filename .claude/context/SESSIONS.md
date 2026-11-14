@@ -13,6 +13,20 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (percentage offers, real data, renewal, languages)
+- Did: percentage-off-with-cap offers (`Design.pct`; engine scores them at their average discount per use; sim
+  takes min(pct x bill, cap); create screen "% off up to Rs" chips; export keys `60p30-...`; Money page rows;
+  pipeline `percentage_offers` with a usual and a proportional variant). Real data: `scripts/get_data.py`
+  (SHA-256), `scripts/validate_uplift.py` rewritten (Criteo + Hillstrom, five rankings incl. response model,
+  scikit-uplift qini_auc_score, 200 bootstraps, 5 splits), `tasks.py realdata`, uv group `validation`.
+  Renewal with evidence (`POST /api/v1/offers/{id}/renew`, same control group, weeks continue) and a what-if card
+  (A09 D3/D4). Language drafts hi/kn/gu (`truelift/i18n.py`, `static/i18n/`), off until reviewed (D4, `#lang=hi`).
+- Checked: 160 fast tests, ruff, pyright; quick pipeline equals the golden snapshot except the new section.
+  Not checked yet: freeze run (in progress), browser tests, export.
+- Numbers: real-data reports new (`reports/uplift_validation_{criteo,hillstrom}.json`); simulator numbers land
+  at the freeze commit.
+- Next / open: freeze commit (reports, model, README/plan tables, DEVLOG), export, deploy, M4 docs.
+
 ## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (fleet calibration, M3 UI, docs)
 - Did: weekly measurement recalibrated across running offers (split halves for noise, own-vs-model spread for
   model error; `measurement_study._fleet_calibration`, engine `fleet_sigma_factor`, placebo offers too). Zomato-style

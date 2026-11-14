@@ -27,6 +27,7 @@ import pandas as pd
 
 from .assignment import REWARD_SALT, in_control_group
 from .economics import Terms, fmt_inr, split
+from .i18n import offer_label, texts
 from .model import UpliftModel
 
 Z80 = 1.2816  # half-width of an 80% interval, in standard deviations
@@ -55,6 +56,14 @@ def round_step(x: float, step: float) -> float:
     return round(x / step) * step
 
 
+def pct_for(cap: float, aov: float) -> float:
+    """The percentage the create screen pairs with a cap: twice the cap's share of the average
+    order, in steps of 10% (at most 60%), so the cap is reached from half the usual order upward.
+    That is how percentage offers on Zomato usually look ("40% off up to ₹80" where orders are
+    about ₹400): the headline percentage is paid only on small orders (A19 4.1)."""
+    return float(min(0.6, max(0.1, round(2 * cap / aov, 1))))
+
+
 def design_options(aov: float) -> dict:
     """The choices the create screen offers a restaurant with this average order value."""
     depths = sorted({max(20, int(round_step(aov * f, 10))) for f in (0.10, 0.15, 0.20, 0.25)})
@@ -63,17 +72,26 @@ def design_options(aov: float) -> dict:
         "default_depth": max(20, int(round_step(aov * 0.15, 10))),
         "min_order": int(math.ceil(aov * 1.15 / 50) * 50 - 1),
         "reward": int(max(5, round_step(aov * 0.05, 5))),
+        # the percentage format: one percentage per cap, the caps being the flat amounts above
+        "pct_offers": [{"pct": pct_for(d, aov), "cap": d} for d in depths],
     }
 
 
 @dataclass(frozen=True)
 class Design:
-    discount: float = 0.0  # ₹ off; 0 = no discount
+    discount: float = 0.0  # ₹ off; for a percentage offer the most it takes off (the cap); 0 = no discount
     min_order: float = 0.0  # ₹; 0 = none
     audience: str = "all"  # all | new_to_restaurant | lapsed | targeted
     offpeak_only: bool = False  # valid 3-6 pm only
     reward: float = 0.0  # Brand Pack ₹ per order for regulars (3+ orders in 4 weeks)
     zomato_share: float = 0.0  # share of the discount Zomato funds for customers new to Zomato
+    pct: float = 0.0  # percentage offer: this share of the bill off, up to `discount`; 0 = flat ₹ off
+
+    def headline(self) -> str:
+        """The offer as the customer sees it: "₹60 off" or "30% off up to ₹60"."""
+        if self.pct > 0:
+            return f"{self.pct:.0%} off up to ₹{self.discount:.0f}"
+        return f"₹{self.discount:.0f} off"
 
     def label(self) -> str:
         if not self.discount:
@@ -84,7 +102,7 @@ class Design:
             "lapsed": "for customers who stopped ordering (4+ weeks)",
             "targeted": "only for customers it brings in",
         }[self.audience]
-        parts = [f"₹{self.discount:.0f} off"]
+        parts = [self.headline()]
         if self.min_order:
             parts.append(f"above ₹{self.min_order:.0f}")
         parts.append(aud)
@@ -111,26 +129,57 @@ def rule_eligible(x: pd.DataFrame, d: Design) -> np.ndarray:
     return ok
 
 
+def _offer_uses(
+    b: np.ndarray, discount: float, min_order: float, topup_value: float, pct: float = 0.0
+) -> tuple[np.ndarray, np.ndarray]:
+    """For each usual basket b: the rupees off if the customer uses the offer, and whether they do.
+
+    A flat offer takes `discount` off. A percentage offer takes pct x bill off, at most `discount`
+    (the cap), on the bill after any top-up to the minimum order. A customer below the minimum
+    uses the offer only if it is worth more than the part of the top-up they don't value:
+    off > (1 - topup_value) x (min - b)."""
+    paid = np.maximum(b, min_order)
+    off = np.minimum(pct * paid, discount) if pct > 0 else np.full(len(b), float(discount))
+    return off, off - (1 - topup_value) * np.maximum(0.0, min_order - b) > 0
+
+
 def offer_mix(
-    baskets: np.ndarray, discount: float, min_order: float, aov: float, topup_value: float
+    baskets: np.ndarray, discount: float, min_order: float, aov: float, topup_value: float, pct: float = 0.0
 ) -> tuple[float, float, float, float]:
     """How orders split when an offer has a minimum order.
 
     A customer whose usual basket b is below the minimum uses the offer only if the discount is
     worth more than the part of the top-up they don't value: discount > (1 - topup_value) x (min - b).
-    topup_value is learned from past minimum-order offers (`fit_topup_value`).
+    topup_value is learned from past minimum-order offers (`fit_topup_value`). For a percentage
+    offer the discount is each basket's own (`_offer_uses`).
     Returns (share of orders using the offer, basket when used, basket when not used, usual basket).
     """
     b = baskets if len(baskets) else np.array([aov])
     b0 = float(b.mean())
     if discount <= 0:
         return 0.0, b0, b0, b0
-    uses = discount - (1 - topup_value) * np.maximum(0.0, min_order - b) > 0
+    _, uses = _offer_uses(b, discount, min_order, topup_value, pct)
     if not uses.any():
         return 0.0, b0, b0, b0
     take = float(np.maximum(b[uses], min_order).mean())
     skip = float(b[~uses].mean()) if (~uses).any() else b0
     return float(uses.mean()), take, skip, b0
+
+
+def discount_per_use(
+    baskets: np.ndarray, discount: float, min_order: float, aov: float, topup_value: float, pct: float = 0.0
+) -> float:
+    """Average rupees off an order that uses the offer: the flat amount, or for a percentage offer
+    min(pct x bill, cap) averaged over the restaurant's usual baskets that would use it. The model
+    scores a percentage offer as a flat offer of this size; customers in the simulator respond to
+    their own basket's discount, and the forecast check measures what that approximation costs."""
+    if discount <= 0:
+        return 0.0
+    if pct <= 0:
+        return float(discount)
+    b = baskets if len(baskets) else np.array([aov])
+    off, uses = _offer_uses(b, discount, min_order, topup_value, pct)
+    return float(off[uses].mean()) if uses.any() else float(discount)
 
 
 TOPUP_GRID = np.linspace(0.0, 1.0, 41)
@@ -505,19 +554,25 @@ class Engine:
         return rel * aov * self.fleet_sigma_factor[0], orders * self.fleet_sigma_factor[1]
 
     def mix(self, baskets: np.ndarray, d: Design, aov: float) -> tuple:
-        return offer_mix(baskets, d.discount, d.min_order, aov, self.topup_value)
+        return offer_mix(baskets, d.discount, d.min_order, aov, self.topup_value, d.pct)
+
+    def per_use(self, baskets: np.ndarray, d: Design, aov: float) -> float:
+        """Average rupees off an order that uses this design's offer (`discount_per_use`)."""
+        return discount_per_use(baskets, d.discount, d.min_order, aov, self.topup_value, d.pct)
 
     def design_values(
         self, x: pd.DataFrame, d: Design, aov: float, baskets: np.ndarray, cache: dict | None = None
     ) -> dict:
         """Per-visit expectations for one design, plus who is eligible: the owner's rule, and for a
-        targeted design only the visits where the offer is expected to add profit."""
+        targeted design only the visits where the offer is expected to add profit. A percentage
+        offer is valued at its average discount per use (flat offers: the discount itself)."""
         mx = self.mix(baskets, d, aov)
-        v = self.row_values(x, d.discount, d.min_order, d.reward, d.zomato_share, mx, cache=cache)
+        off = self.per_use(baskets, d, aov)
+        v = self.row_values(x, off, d.min_order, d.reward, d.zomato_share, mx, cache=cache)
         el = rule_eligible(x, d)
         if d.audience == "targeted":
             el &= v["gain"] > 0
-        v.update(eligible=el, mix=mx)
+        v.update(eligible=el, mix=mx, discount_per_use=off)
         return v
 
     # ---------------- 1. quote ----------------
@@ -548,7 +603,7 @@ class Engine:
             dcomm += float(((v["p0"] * v["comm0"] - base["p0"] * base["comm0"]) * reg).sum() / weeks)
             dcontrib += float(((v["p0"] * v["contrib0"] - base["p0"] * base["contrib0"]) * reg).sum() / weeks)
             rw_cost = float((v["p0"] * v["reward"] * reg).sum() / weeks)
-        spend = redemptions * d.discount
+        spend = redemptions * v["discount_per_use"]
         extra = extra_disc + extra_rw
         shown_orders = float((show * v["p1"]).sum())
         order_value = float((show * v["p1"] * v["basket1"]).sum() / shown_orders) if shown_orders > 0 else v["mix"][3]
@@ -580,6 +635,8 @@ class Engine:
             ),
             "detectable_effect_4w": mde,
             "discount_spend": round(spend),
+            # rupees off an order that uses the offer (a percentage offer's average under its cap)
+            "discount_per_use": round(v["discount_per_use"]),
             "reward_spend": round(rw_cost),
             "discount_per_extra_order": round((spend + rw_cost) / extra) if extra > 0.5 else None,
             "zomato_commission_change": round(dcomm),
@@ -592,7 +649,8 @@ class Engine:
 
     def design_grid(self, aov: float, owner: Design) -> list[Design]:
         """The owner's design first, then 'no offer', 'Brand Pack only' and 32 versions at the owner's
-        discount size: minimum order or not, 4 audiences, all day or 3-6 pm, Brand Pack or not.
+        discount size and format (flat, or the same percentage and cap): minimum order or not,
+        4 audiences, all day or 3-6 pm, Brand Pack or not.
 
         The discount size stays the owner's: past offers vary it only between restaurants, which is
         too little to learn how orders respond to ₹40 vs ₹60 vs ₹80 (in the simulator, letting the
@@ -608,7 +666,7 @@ class Engine:
             for aud in ("all", "new_to_restaurant", "lapsed", "targeted"):
                 for off in (False, True):
                     for rw in (0.0, reward):
-                        grid.append(Design(owner.discount, mo, aud, off, rw, owner.zomato_share))
+                        grid.append(Design(owner.discount, mo, aud, off, rw, owner.zomato_share, owner.pct))
         return grid
 
     def best_design(
@@ -676,19 +734,20 @@ class Engine:
         return float(0.5 * (1 + math.erf(q["profit_change"] / (sd * math.sqrt(2)))))
 
     # ---------------- 2. serve ----------------
-    def targeting_scorer(self, mixes: np.ndarray):
+    def targeting_scorer(self, mixes: np.ndarray, per_use: np.ndarray | None = None):
         """Scorer for the simulator: show a targeted offer only where expected profit gain > 0.
 
         mixes: array (restaurants, 4) of each restaurant's offer_mix for its current offer.
+        per_use: each restaurant's average discount per use (needed for percentage offers; flat
+        offers default to the policy's discount).
         """
 
         def score(feats: dict, policy, mask: np.ndarray) -> np.ndarray:
             x = pd.DataFrame({k: np.asarray(v)[mask] for k, v in feats.items() if k != "cust"})
             rest = x.pop("rest").to_numpy().astype(int)
             mx = tuple(mixes[rest, i] for i in range(4))
-            v = self.row_values(
-                x, policy.discount[rest], policy.min_order[rest], policy.reward[rest], policy.zomato_share[rest], mx
-            )
+            off = policy.discount[rest] if per_use is None else per_use[rest]
+            v = self.row_values(x, off, policy.min_order[rest], policy.reward[rest], policy.zomato_share[rest], mx)
             return v["gain"] > 0
 
         return score
@@ -1008,37 +1067,53 @@ def measure_reward(rows: pd.DataFrame | None) -> dict | None:
 
 
 def weekly_message(
-    name: str, week: int, m: dict, d: Design, holdout: float = 0.10, brand_pack: dict | None = None
+    name: str,
+    week: int,
+    m: dict,
+    d: Design,
+    holdout: float = 0.10,
+    brand_pack: dict | None = None,
+    lang: str = "en",
 ) -> str:
-    """The WhatsApp summary to the owner, in plain words, with the same money format as the page."""
+    """The WhatsApp summary to the owner, in plain words, with the same money format as the page.
+    The words come from truelift/static/i18n/<lang>.json (English is the source text)."""
+    t = texts(lang)["wa"]
     o, p, r = m["orders"], m["profit"], m["report_today"]
     one_in = max(int(round(1 / holdout)), 1) if holdout > 0 else 0
     return "\n".join(
         [
-            f"TrueLift weekly summary: {name}, week {week}",
-            f"Offer: {d.label()}",
-            f"Orders that used the offer: {r['orders_with_offer']}",
-            f"Extra orders it created: {max(o['low'], 0):.0f} to {max(o['high'], 0):.0f} "
-            f"(best estimate {max(o['total'], 0):.0f})",
-            f"Extra profit for you: {fmt_inr(p['low'], True)} to {fmt_inr(p['high'], True)} "
-            f"(best estimate {fmt_inr(p['total'], True)})",
-            f"How we know: 1 in {one_in} eligible customers did not see the offer, and we compare the two groups.",
-            VERDICT_SENTENCES[m.get("verdict_code", "wait")],
-            *brand_pack_lines(brand_pack, one_in),
-            "Open the Offers tab in the partner app to keep, change or stop it.",
+            t["title"].format(name=name, week=week),
+            t["offer"].format(label=offer_label(d, lang)),
+            t["used"].format(n=r["orders_with_offer"]),
+            t["extra_orders"].format(
+                low=f"{max(o['low'], 0):.0f}", high=f"{max(o['high'], 0):.0f}", best=f"{max(o['total'], 0):.0f}"
+            ),
+            t["extra_profit"].format(
+                low=fmt_inr(p["low"], True), high=fmt_inr(p["high"], True), best=fmt_inr(p["total"], True)
+            ),
+            t["how"].format(one_in=one_in),
+            t[f"verdict_{m.get('verdict_code', 'wait')}"],
+            *brand_pack_lines(brand_pack, one_in, lang),
+            t["open"],
         ]
     )
 
 
-def brand_pack_lines(bp: dict | None, one_in: int) -> list[str]:
+def brand_pack_lines(bp: dict | None, one_in: int, lang: str = "en") -> list[str]:
     """The Brand Pack's own line in the weekly summary (empty when the offer has no reward)."""
     if not bp:
         return []
+    t = texts(lang)["wa"]
+    verdict = t[f"bp_{bp['verdict_code']}"] if "verdict_code" in bp else bp["verdict"]
     p = bp["profit"]
     if p is None:
-        return [f"Brand Pack reward: {bp['verdict']}"]
+        return [t["bp_only"].format(verdict=verdict)]
     return [
-        f"Brand Pack reward, measured on its own (1 in {one_in} regulars did not get it): "
-        f"{fmt_inr(p['low'], True)} to {fmt_inr(p['high'], True)} for you (best estimate {fmt_inr(p['total'], True)}). "
-        + bp["verdict"]
+        t["bp_line"].format(
+            one_in=one_in,
+            low=fmt_inr(p["low"], True),
+            high=fmt_inr(p["high"], True),
+            best=fmt_inr(p["total"], True),
+            verdict=verdict,
+        )
     ]

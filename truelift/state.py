@@ -62,7 +62,20 @@ class Offer:
     weeks: list = field(default_factory=list)
     table: DecisionTable | None = None
     replaced_by: int | None = None
+    # renewal (A09 D3): the offer this one renews and what was measured over its weeks, which the
+    # owner sees instead of a forecast; the renewal keeps its predecessor's control group
+    # (assign_id) and its simulated weeks carry on from where the last period stopped (week_offset)
+    renewal_of: int | None = None
+    renewed_by: int | None = None
+    evidence: dict | None = None
+    week_offset: int = 0
+    assign_id: int | None = None
     lock: threading.Lock = field(default_factory=threading.Lock, repr=False)
+
+    @property
+    def holdout_key(self) -> int:
+        """The id the control-group hash uses: the first offer of a chain of renewals."""
+        return self.id if self.assign_id is None else self.assign_id
 
 
 @dataclass

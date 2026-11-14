@@ -14,8 +14,8 @@ Steps
     TrueLift with Zomato paying half the discount for customers new to Zomato (unmeasured).
     The simulator knows the truth, so every number below is the true expected value.
  4. Measurement check: TrueLift's weekly estimates vs the truth (error and 80% range coverage).
- 5. Market analyses: Zomato-weight frontier, owners declining OTP approval, Zomato's ledger,
-    partial adoption, history that moves, fairness by segment, control-set option.
+ 5. Market analyses: percentage-off-with-cap offers, Zomato-weight frontier, owners declining OTP
+    approval, Zomato's ledger, partial adoption, history that moves, fairness by segment, control-set option.
  6. Scenarios (full run, in parallel): customers 30% less and 30% more price-sensitive,
     commission on the price before the discount, and four more market seeds for the spread.
 Outputs: data/processed/model.pkl (+ .sha256), reports/evaluation.json, restaurants_results.csv,
@@ -45,7 +45,7 @@ from measurement_study import aa_summary, adaptive_holdout, coverage, detection,
 
 from truelift.assignment import stable_uniform  # noqa: E402
 from truelift.economics import Terms  # noqa: E402
-from truelift.engine import Design, Engine, design_options  # noqa: E402
+from truelift.engine import Design, Engine, design_options, pct_for  # noqa: E402
 from truelift.features import FEATURE_NAMES, skew_report  # noqa: E402
 from truelift.model import UpliftModel, file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
 from truelift.monitoring import drift_html, drift_report, guardrails  # noqa: E402
@@ -307,6 +307,13 @@ def adopt(background: Policy, offers: Policy, mine: np.ndarray, name: str) -> Po
         arr = getattr(pol, attr).copy()
         arr[mine] = getattr(offers, attr)[mine]
         setattr(pol, attr, arr)
+    if offers.pct is not None or background.pct is not None:
+        flat = np.zeros(len(mine))
+        pol.pct = np.where(
+            mine,
+            flat if offers.pct is None else offers.pct,
+            flat if background.pct is None else background.pct,
+        )
     pol.holdout = np.where(mine, offers.holdout, background.holdout)
     return pol
 
@@ -431,8 +438,10 @@ def choose_designs(
     baskets: list,
     zomato_share: float = 0.0,
     zomato_weight: float = 0.0,
+    pct: np.ndarray | None = None,
 ) -> tuple[list[Design], list[tuple]]:
-    """TrueLift's version for every restaurant, starting from the owner's blanket offer of `depth`.
+    """TrueLift's version for every restaurant, starting from the owner's blanket offer of `depth`
+    (a percentage offer up to `depth` where `pct` is given).
 
     Returns the chosen designs (no offer where the best expected profit change is not positive) and,
     per restaurant, (quote of the owner's offer, quote of the chosen version or None)."""
@@ -445,7 +454,7 @@ def choose_designs(
             continue
         owner_q, best = engine.best_design(
             x.drop(columns=["rest", "cust", "week"]),
-            Design(float(depth[r]), zomato_share=zomato_share),
+            Design(float(depth[r]), zomato_share=zomato_share, pct=0.0 if pct is None else float(pct[r])),
             aov[r],
             baskets[r],
             weeks=2,
@@ -461,7 +470,11 @@ def flat_depth(aov: np.ndarray, share: float = 0.15) -> np.ndarray:
     return np.maximum(20.0, np.round(aov * share / 10) * 10)
 
 
-def policy_from_designs(designs: list[Design], engine: Engine, mixes: np.ndarray, name: str) -> Policy:
+def policy_from_designs(
+    designs: list[Design], engine: Engine, mixes: np.ndarray, name: str, per_use: np.ndarray | None = None
+) -> Policy:
+    """The simulator's policy for one design per restaurant. per_use: each restaurant's average
+    discount per use, needed when some designs are percentage offers (`Engine.per_use`)."""
     pol = Policy(
         np.array([d.discount for d in designs]),
         np.array([d.min_order for d in designs]),
@@ -470,9 +483,13 @@ def policy_from_designs(designs: list[Design], engine: Engine, mixes: np.ndarray
         np.array([d.reward for d in designs]),
         np.array([d.audience for d in designs], dtype=object),
         engine.holdout,
-        engine.targeting_scorer(mixes),
+        engine.targeting_scorer(mixes, per_use),
         name,
     )
+    if any(d.pct > 0 for d in designs):
+        if per_use is None:
+            raise ValueError("percentage offers need each restaurant's average discount per use (per_use)")
+        pol.pct = np.array([d.pct for d in designs])
     pol.discount[pol.discount <= 0] = 0.0
     return pol
 
@@ -616,6 +633,61 @@ def evaluate(
             float(np.mean([d.discount / aov[i] for i, d in enumerate(ds) if d.discount > 0])), 3
         ),
     }
+
+    # percentage off with a cap (A19 4.1). The model never saw a percentage offer in the shadow
+    # phase: it scores one as a flat offer of its average discount per use, while customers in the
+    # simulator respond to their own bill's discount; the forecast checks measure what that costs.
+    # "usual": the create screen's pairing and the format most offers on Zomato use, "30% off up to
+    #   Rs 60" where orders are about Rs 400: the cap is the flat amount and is reached from half
+    #   the usual order up, so only small orders get the headline percentage.
+    # "proportional": the flat amount's share of the average order, with a cap twice the flat
+    #   amount ("15% off up to Rs 120"): the discount follows each bill, the hardest case for the
+    #   model's single number.
+    def pct_variant(label: str, pct: np.ndarray, cap: np.ndarray, describe: str) -> dict:
+        blanket_p = replace(blanket, discount=cap, pct=pct, name=f"today: blanket, {label}")
+        designs_p, quotes_p = choose_designs(engine, by_rest, cap, aov, baskets, pct=pct)
+        mixes_p = np.array([engine.mix(baskets[r], designs_p[r], aov[r]) for r in range(n)])
+        per_use_p = np.array([engine.per_use(baskets[r], designs_p[r], aov[r]) for r in range(n)])
+        tl_p = policy_from_designs(designs_p, engine, mixes_p, f"TrueLift, {label}", per_use_p)
+        owner_use = np.array(
+            [engine.per_use(baskets[r], Design(float(cap[r]), pct=float(pct[r])), aov[r]) for r in range(n)]
+        )
+        w_bp, w_tp = run_world(market, hist, blanket_p), run_world(market, hist, tl_p)
+        truth_bp, _ = own_effect_in_todays_market(market, hist, blanket_p)
+        truth_tp, _ = own_effect_in_todays_market(market, hist, tl_p)
+        return {
+            "format": describe,
+            "restaurants_by_percentage": {
+                f"{k:.0%}": int(v) for k, v in pd.Series(pct).value_counts().sort_index().items()
+            },
+            "discount_per_use_share_of_cap": round(float((owner_use / cap).mean()), 3),
+            "discount_per_use_share_of_flat_amount": round(float((owner_use / depth).mean()), 3),
+            "policies": {
+                "today_blanket": {"name": blanket_p.name, **summarise(w_bp, base)},
+                "truelift": {"name": tl_p.name, **summarise(w_tp, base)},
+            },
+            "forecast": {
+                "owner_blanket_offer_in_todays_market": forecast_check([q[0] for q in quotes_p], truth_bp),
+                "truelift_design_in_todays_market": forecast_check([q[1] for q in quotes_p], truth_tp),
+            },
+        }
+
+    results["percentage_offers"] = {
+        "usual": pct_variant(
+            "percentage off up to the same amount",
+            np.array([pct_for(depth[r], aov[r]) for r in range(n)]),
+            depth,
+            "percentage off up to the flat amount; the percentage is twice the flat amount's share of the average "
+            "order, in steps of 10% (the create screen's pairing)",
+        ),
+        "proportional": pct_variant(
+            "15% off up to twice the amount",
+            np.full(n, 0.15),
+            2 * depth,
+            "15% off (the flat amount's share of the average order) up to twice the flat amount",
+        ),
+    }
+    log("percentage offers evaluated")
 
     # weekly measurement, judged against the truth (scripts/measurement_study.py)
     rows = worlds["truelift"]["rows"]

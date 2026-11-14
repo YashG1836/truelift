@@ -53,6 +53,13 @@ class DesignIn(Schema):
     zomato_share: float = Field(
         0, ge=0, le=1, description="Share of the discount Zomato funds for customers new to Zomato"
     )
+    pct: float = Field(
+        0,
+        ge=0,
+        le=0.6,
+        description="Percentage offer: this share of the bill off, up to `discount` rupees (the cap); "
+        "0 means a flat offer of `discount` rupees",
+    )
 
 
 class QuoteIn(Schema):
@@ -124,6 +131,12 @@ class DesignOut(Schema):
     offpeak_only: bool
     reward: float
     zomato_share: float
+    pct: float = 0.0
+
+
+class PctOption(Schema):
+    pct: float = Field(description="Share of the bill off")
+    cap: int = Field(description="The most it takes off, rupees")
 
 
 class DesignOptions(Schema):
@@ -133,6 +146,7 @@ class DesignOptions(Schema):
     default_depth: int
     min_order: int
     reward: int
+    pct_offers: list[PctOption] = Field(description="Percentage offers: one percentage per cap (the depths above)")
 
 
 class Forecast(Schema):
@@ -162,6 +176,7 @@ class Forecast(Schema):
                     "profit_high": 4014,
                     "prob_profit_positive": 0.82,
                     "discount_spend": 7278,
+                    "discount_per_use": 60,
                     "reward_spend": 0,
                     "discount_per_extra_order": 140,
                     "zomato_commission_change": 1820,
@@ -188,6 +203,9 @@ class Forecast(Schema):
         None, description="For a suggested version: expected extra profit a week over the owner's version, ₹"
     )
     discount_spend: int
+    discount_per_use: int = Field(
+        description="Rupees off an order that uses the offer (for a percentage offer, the average under its cap)"
+    )
     reward_spend: int
     discount_per_extra_order: int | None
     zomato_commission_change: int
@@ -228,6 +246,24 @@ class RestaurantList(Schema):
     restaurants: list[RestaurantCard]
 
 
+class Evidence(Schema):
+    """What was measured over an approval period: shown at renewal instead of a forecast (A09 D3)."""
+
+    model_config = ConfigDict(extra="allow")
+    offer_id: int
+    weeks: int
+    extra_orders: float
+    extra_orders_low: float
+    extra_orders_high: float
+    extra_profit: float
+    extra_profit_low: float
+    extra_profit_high: float
+    chance_making_money: float
+    verdict_code: str
+    verdict: str
+    forecast_at_approval: float = Field(description="What the forecast said for the same weeks, rupees")
+
+
 class OfferCreated(Schema):
     offer_id: int
     status: str
@@ -235,6 +271,8 @@ class OfferCreated(Schema):
     otp_sent_to: str
     demo_otp: str = Field(description="Shown only because this is a demo; a real OTP never leaves the SMS")
     otp_expires_in_seconds: int
+    renewal_of: int | None = Field(None, description="For a renewal: the offer whose approval period ended")
+    evidence: Evidence | None = Field(None, description="For a renewal: what that period measured")
 
 
 class ServeDecision(Schema):
@@ -381,6 +419,9 @@ class OfferView(Schema):
     weeks: list[WeekResult]
     who_pays: str
     replaced_by: int | None = None
+    renewal_of: int | None = None
+    renewed_by: int | None = None
+    evidence: Evidence | None = None
 
 
 class ConsentCheck(Schema):
@@ -424,6 +465,10 @@ class ServiceConfig(Schema):
     commission_on: str
     model_version: str
     api_version: str
+    languages_enabled: bool = Field(
+        description="Hindi, Kannada and Gujarati owner texts offered (off until a native speaker reviews them)"
+    )
+    i18n: dict[str, dict[str, Any]] = Field(description="Approval-screen texts by language code")
 
 
 class Health(Schema):

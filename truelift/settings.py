@@ -13,6 +13,8 @@ Environment variables (all optional):
   TRUELIFT_DEMO_RESTAURANT  restaurant opened first in the demo (default 233)
   TRUELIFT_SESSION_IDLE     seconds before an idle demo session is dropped (default 3600)
   TRUELIFT_LOG_JSON         1 to write one JSON log line per request (default 1)
+  TRUELIFT_LANGUAGES        1 to offer the Hindi, Kannada and Gujarati drafts (default 0: they wait
+                            for a native speaker's review, decision D4)
 """
 
 from __future__ import annotations
@@ -40,6 +42,7 @@ class Settings:
     demo_restaurant: int
     session_idle_seconds: int
     log_json: bool
+    languages: bool = False
 
 
 def load_settings() -> Settings:
@@ -54,4 +57,5 @@ def load_settings() -> Settings:
         demo_restaurant=int(_env("TRUELIFT_DEMO_RESTAURANT", "233")),
         session_idle_seconds=int(_env("TRUELIFT_SESSION_IDLE", "3600")),
         log_json=_env("TRUELIFT_LOG_JSON", "1") == "1",
+        languages=_env("TRUELIFT_LANGUAGES", "0") == "1",
     )

@@ -9,7 +9,8 @@ Hooks (what Zomato's systems would call), all under /api/v1:
   POST /offers/{id}/approve      owner enters the OTP: consent appended to the hash-chained ledger
   GET  /serve                    menu opened: show the discount to this customer or not (table lookup)
   GET  /offers/{id}              weekly measurement, WhatsApp summary, itemised payout
-  POST /offers/{id}/decision     keep / stop (renewal after the consent period needs a new OTP)
+  POST /offers/{id}/decision     keep / stop
+  POST /offers/{id}/renew        after the approval period: a new OTP, shown what was measured
   GET  /offers/{id}/consent      the consent record and whether the ledger still verifies
 Demo only: /restaurants, /customers, /offers/{id}/run_week, /calls, /example, /evidence, /reset.
 Operations: /healthz, /readyz, /metrics, /api/v1/config.
@@ -43,6 +44,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from .economics import Terms, fmt_inr, weekly_example
 from .engine import Design
+from .i18n import labels, page_texts
 from .model import BundleError
 from .observability import (
     MODEL_INFO,
@@ -211,6 +213,8 @@ def check_restaurant(s: State, rid: int) -> int:
 def check_design(d: Design, aov: float) -> None:
     """Business rules a request schema cannot know (they depend on the restaurant): audit TL-012."""
     problems = []
+    if d.pct > 0 and d.discount <= 0:
+        problems.append("A percentage offer needs the most it can take off (the cap).")
     if d.discount > 0.6 * aov:
         problems.append(
             f"A {fmt_inr(d.discount)} discount is more than 60% of this restaurant's average order ({fmt_inr(aov)})."
@@ -262,11 +266,37 @@ def offer_view(off: Offer) -> dict:
             "status": off.status,
             "design": asdict(off.design),
             "label": off.design.label(),
+            "label_i18n": labels(off.design),
             "quote": off.quote,
             "consent": off.consent,
             "weeks": off.weeks,
             "who_pays": who_pays(off.design),
             "replaced_by": off.replaced_by,
+            "renewal_of": off.renewal_of,
+            "renewed_by": off.renewed_by,
+            "evidence": off.evidence,
+        }
+    )
+
+
+def evidence_of(off: Offer) -> dict:
+    """What an offer's approval period measured, in the words of the weekly result."""
+    w = off.weeks[-1]
+    m = w["measurement"]
+    return clean(
+        {
+            "offer_id": off.id,
+            "weeks": w["week"],
+            "extra_orders": m["orders"]["total"],
+            "extra_orders_low": m["orders"]["low"],
+            "extra_orders_high": m["orders"]["high"],
+            "extra_profit": m["profit"]["total"],
+            "extra_profit_low": m["profit"]["low"],
+            "extra_profit_high": m["profit"]["high"],
+            "chance_making_money": m["profit"]["prob_positive"],
+            "verdict_code": m["verdict_code"],
+            "verdict": m["verdict"],
+            "forecast_at_approval": off.quote["profit_change"] * w["week"],
         }
     )
 
@@ -395,6 +425,62 @@ def create_offer(q: QuoteIn, request: Request, sess: Session = Depends(session_o
 
 
 @router.post(
+    "/offers/{oid}/renew",
+    response_model=OfferCreated,
+    status_code=201,
+    tags=["hooks"],
+    summary="Renew an offer whose approval period ended: a new OTP, shown what was measured",
+)
+def renew(oid: int, request: Request, sess: Session = Depends(session_of)):
+    """The owner renews on evidence, not on a forecast: the new offer carries what the last period
+    measured (extra orders, extra profit, range, verdict) and the consent record stores it. The
+    same customers stay in the control group, so the measurement carries on (audit A09 D3)."""
+    s = get_state()
+    old = get_offer(sess, oid)
+    request.state.offer = oid
+    with old.lock:
+        if old.status != "consent_expired":
+            hint = " A paused offer was losing money: change it and approve it again." if old.status == "paused" else ""
+            raise ProblemError(
+                409,
+                "offer-state",
+                "Only an offer whose approval period ended can be renewed",
+                f"This offer is {STATUS_TEXT[old.status]}.{hint}",
+            )
+        if old.renewed_by is not None:
+            raise ProblemError(
+                409, "offer-state", "Already renewed", f"This offer was already renewed as offer {old.renewed_by}."
+            )
+        rid, d = old.restaurant_id, old.design
+        qt = s.engine.quote(s.x_for(rid), d, float(s.market.aov[rid]), s.baskets[rid], weeks=2)
+        evidence = evidence_of(old)
+        nid = s.next_offer_id()
+        sess.offers[nid] = Offer(
+            nid,
+            sess.id,
+            rid,
+            d,
+            qt,
+            otp=f"{secrets.randbelow(9000) + 1000}",
+            renewal_of=old.id,
+            evidence=evidence,
+            week_offset=old.week_offset + len(old.weeks),
+            assign_id=old.holdout_key,
+        )
+    refresh_offer_gauge(s)
+    return {
+        "offer_id": nid,
+        "status": "awaiting_otp",
+        "quote": clean(qt),
+        "otp_sent_to": "owner's registered phone",
+        "demo_otp": sess.offers[nid].otp,
+        "otp_expires_in_seconds": OTP_TTL_SECONDS,
+        "renewal_of": old.id,
+        "evidence": evidence,
+    }
+
+
+@router.post(
     "/offers/{oid}/approve",
     response_model=OfferView,
     tags=["hooks"],
@@ -449,7 +535,7 @@ def approve(
         rid, d = off.restaurant_id, off.design
         aov = float(s.market.aov[rid])
         off.table = s.engine.decision_table(
-            s.locality_frame(rid), d, aov, s.baskets[rid], off.id, s.new_visitor_row(rid)
+            s.locality_frame(rid), d, aov, s.baskets[rid], off.holdout_key, s.new_visitor_row(rid)
         )
         if off.table.degraded:
             SERVE_FALLBACK.inc()
@@ -467,8 +553,12 @@ def approve(
                 "valid_for_weeks": s.settings.consent_weeks,
                 "who_pays": who_pays(d),
                 "model_version": s.engine.model_version,
+                # a renewal is approved on what was measured, and the record keeps exactly that
+                **({"renewal_of": off.renewal_of, "evidence_shown": off.evidence} if off.renewal_of else {}),
             }
         )
+        if off.renewal_of is not None and off.renewal_of in sess.offers:
+            sess.offers[off.renewal_of].renewed_by = off.id
         ledger = s.store.append_consent(sess.id, off.id, record, approved_at)
         off.consent = {**record, "ledger": {**ledger, "verified": True}}
     refresh_offer_gauge(s)
@@ -738,7 +828,8 @@ def evidence():
     out = json.loads(p.read_text(encoding="utf-8"))
     # the other reports the Evidence and Operations pages show, when they have been produced
     extra = {
-        "real_data_criteo": "uplift_validation_criteo.json",  # check on real randomised data
+        "real_data_criteo": "uplift_validation_criteo.json",  # checks on real randomised data
+        "real_data_hillstrom": "uplift_validation_hillstrom.json",
         "sensitivity": "sensitivity.json",
         "learner_benchmark": "learner_benchmark.json",
         "guardrails": "guardrails.json",
@@ -779,6 +870,9 @@ def config():
         "commission_on": t.commission_on,
         "model_version": s.engine.model_version,
         "api_version": API_VERSION,
+        # owner texts in other languages: drafts until a native speaker reviews them (decision D4)
+        "languages_enabled": s.settings.languages,
+        "i18n": page_texts(),
     }
 
 

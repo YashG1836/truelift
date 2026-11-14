@@ -8,6 +8,8 @@
     python tasks.py benchmark          uplift learners against the truth -> reports/learner_benchmark.json
     python tasks.py experiments [name] the experiments behind the write-up's claims -> reports/exp_*.json
     python tasks.py latency            time the live service over HTTP -> reports/latency.json
+    python tasks.py realdata [names]   download the public randomised datasets (checksummed) and rank
+                                       their customers five ways -> reports/uplift_validation_*.json
     python tasks.py serve              live service and page at http://localhost:8000
     python tasks.py export [ids...]    static demo -> site/ (default: the demo restaurants)
     python tasks.py reproduce [--quick]  re-run the pipeline in a temp folder, compare with the
@@ -141,6 +143,16 @@ def latency(a) -> int:
     return run([*py(), "scripts/bench_latency.py"])
 
 
+def realdata(a) -> int:
+    """scikit-uplift lives in the optional `validation` group; -I keeps the data folder off the import path."""
+    tool = ["uv", "run", "--group", "validation", "python"] if shutil.which("uv") else [sys.executable]
+    names = a.datasets or ["hillstrom", "criteo"]
+    rc = run([*tool, "scripts/get_data.py", *names])
+    for name in names:
+        rc = rc or run([*tool, "-I", "scripts/validate_uplift.py", name, "--check-data"])
+    return rc
+
+
 def reproduce(a) -> int:
     with tempfile.TemporaryDirectory(prefix="truelift-reproduce-") as tmp:
         out = Path(tmp)
@@ -195,6 +207,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--quick", action="store_true")
     p.set_defaults(fn=experiments)
     sub.add_parser("latency").set_defaults(fn=latency)
+    p = sub.add_parser("realdata")
+    p.add_argument("datasets", nargs="*", choices=["criteo", "hillstrom"], help="default: both")
+    p.set_defaults(fn=realdata)
     p = sub.add_parser("serve")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)
