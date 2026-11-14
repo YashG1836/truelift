@@ -1,170 +1,861 @@
 {
-  "dataset": "criteo",
-  "train_rows": 3000000,
-  "results": [
-    {
-      "arm": 1,
-      "label": "visit",
-      "test_rows": 4192088,
-      "share_treated": 0.85,
-      "rate_treated": 0.04855,
-      "rate_control": 0.03807,
-      "qini_t_learner": 0.339,
-      "qini_random": 0.005,
-      "top30_share_of_total_lift": 0.843,
-      "curve": {
-        "share_targeted": [
-          0.0,
-          0.05,
-          0.1,
-          0.15,
-          0.2,
-          0.25,
-          0.3,
-          0.35,
-          0.4,
-          0.45,
-          0.5,
-          0.55,
-          0.6,
-          0.65,
-          0.7,
-          0.75,
-          0.8,
-          0.85,
-          0.9,
-          0.95,
-          1.0
-        ],
-        "model": [
-          0.0,
-          0.4248,
-          0.5936,
-          0.6925,
-          0.763,
-          0.8099,
-          0.8429,
-          0.8739,
-          0.8967,
-          0.9044,
-          0.9166,
-          0.9202,
-          0.9275,
-          0.9345,
-          0.9364,
-          0.9403,
-          0.9486,
-          0.951,
-          0.9575,
-          0.9768,
-          1.0
-        ],
-        "random": [
-          0.0,
-          0.05,
-          0.1,
-          0.15,
-          0.2,
-          0.25,
-          0.3,
-          0.35,
-          0.4,
-          0.45,
-          0.5,
-          0.55,
-          0.6,
-          0.65,
-          0.7,
-          0.75,
-          0.8,
-          0.85,
-          0.9,
-          0.95,
-          1.0
-        ]
-      }
+ "dataset": "criteo",
+ "what": "Criteo advertising incrementality tests: a random 15% of users held out of advertising",
+ "licence": "CC BY-NC-SA 4.0 (non-commercial)",
+ "source": "https://huggingface.co/datasets/criteo/criteo-uplift",
+ "rows": 13979592,
+ "sha256": "2716e1bf0fd157a93b5bf86924d9088419dfbac2022c6cd90030220634f616dc",
+ "rankings": {
+  "random": "random order (the floor)",
+  "response": "predicted outcome if treated: finds people likely to act anyway",
+  "s_learner": "one model with the treatment as an input",
+  "t_learner": "one model per group (TrueLift's method)",
+  "x_learner": "X-learner (Kunzel et al. 2019)"
+ },
+ "measures": {
+  "top30_share_of_total_lift": "share of the campaign's total incremental outcome in the top 30% of the ranking",
+  "uplift_top30_per_customer": "treated minus untreated outcome per customer within the top 30%",
+  "top30_against_average": "that, divided by the same difference over everyone",
+  "qini_ours": "area between the Qini curve and the random line, divided by the campaign's total gain (this project's own normalisation)",
+  "qini_auc_score": "scikit-uplift's qini_auc_score: the same area divided by a perfect ranking's (0/1 outcomes only)"
+ },
+ "splits": 5,
+ "bootstrap_resamples": 200,
+ "results": [
+  {
+   "arm": "ads",
+   "label": "visit",
+   "train_rows": 2000000,
+   "test_rows": 4194706,
+   "share_treated": 0.85,
+   "mean_treated": 0.04856,
+   "mean_untreated": 0.03849,
+   "rankings": {
+    "random": {
+     "top30_share_of_total_lift": {
+      "value": 0.291,
+      "interval_90": [
+       0.274,
+       0.3111
+      ],
+      "splits_mean": 0.2951,
+      "splits_sd": 0.0201
+     },
+     "qini_ours": {
+      "value": -0.0035,
+      "interval_90": [
+       -0.0154,
+       0.0103
+      ],
+      "splits_mean": -0.0087,
+      "splits_sd": 0.0107
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0098,
+      "interval_90": [
+       0.0091,
+       0.0105
+      ],
+      "splits_mean": 0.0101,
+      "splits_sd": 0.0008
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0101,
+      "interval_90": [
+       0.0097,
+       0.0105
+      ],
+      "splits_mean": 0.0103,
+      "splits_sd": 0.0002
+     },
+     "top30_against_average": {
+      "value": 0.9701,
+      "interval_90": [
+       0.9144,
+       1.0374
+      ],
+      "splits_mean": 0.984,
+      "splits_sd": 0.067
+     },
+     "qini_auc_score": {
+      "value": -0.0008,
+      "splits_mean": -0.0021,
+      "splits_sd": 0.0026
+     }
     },
-    {
-      "arm": 1,
-      "label": "conversion",
-      "test_rows": 4192088,
-      "share_treated": 0.85,
-      "rate_treated": 0.0031,
-      "rate_control": 0.00183,
-      "qini_t_learner": 0.056,
-      "qini_random": 0.015,
-      "top30_share_of_total_lift": 0.674,
-      "curve": {
-        "share_targeted": [
-          0.0,
-          0.05,
-          0.1,
-          0.15,
-          0.2,
-          0.25,
-          0.3,
-          0.35,
-          0.4,
-          0.45,
-          0.5,
-          0.55,
-          0.6,
-          0.65,
-          0.7,
-          0.75,
-          0.8,
-          0.85,
-          0.9,
-          0.95,
-          1.0
-        ],
-        "model": [
-          0.0,
-          0.4424,
-          0.5503,
-          0.5949,
-          0.6264,
-          0.6256,
-          0.6739,
-          0.7036,
-          0.6901,
-          0.5928,
-          0.4754,
-          0.3565,
-          0.2413,
-          0.1238,
-          0.1906,
-          0.7335,
-          0.7223,
-          0.7083,
-          0.7272,
-          0.7478,
-          1.0
-        ],
-        "random": [
-          0.0,
-          0.05,
-          0.1,
-          0.15,
-          0.2,
-          0.25,
-          0.3,
-          0.35,
-          0.4,
-          0.45,
-          0.5,
-          0.55,
-          0.6,
-          0.65,
-          0.7,
-          0.75,
-          0.8,
-          0.85,
-          0.9,
-          0.95,
-          1.0
-        ]
-      }
+    "response": {
+     "top30_share_of_total_lift": {
+      "value": 0.8426,
+      "interval_90": [
+       0.8293,
+       0.8564
+      ],
+      "splits_mean": 0.8482,
+      "splits_sd": 0.0062
+     },
+     "qini_ours": {
+      "value": 0.342,
+      "interval_90": [
+       0.3343,
+       0.35
+      ],
+      "splits_mean": 0.3462,
+      "splits_sd": 0.0036
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0282,
+      "interval_90": [
+       0.0266,
+       0.0294
+      ],
+      "splits_mean": 0.029,
+      "splits_sd": 0.0007
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0101,
+      "interval_90": [
+       0.0096,
+       0.0105
+      ],
+      "splits_mean": 0.0103,
+      "splits_sd": 0.0002
+     },
+     "top30_against_average": {
+      "value": 2.7955,
+      "interval_90": [
+       2.7496,
+       2.8426
+      ],
+      "splits_mean": 2.8136,
+      "splits_sd": 0.0206
+     },
+     "qini_auc_score": {
+      "value": 0.0812,
+      "splits_mean": 0.0844,
+      "splits_sd": 0.0025
+     }
+    },
+    "s_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.8483,
+      "interval_90": [
+       0.8292,
+       0.8702
+      ],
+      "splits_mean": 0.8534,
+      "splits_sd": 0.0082
+     },
+     "qini_ours": {
+      "value": 0.36,
+      "interval_90": [
+       0.344,
+       0.3766
+      ],
+      "splits_mean": 0.3635,
+      "splits_sd": 0.0051
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0283,
+      "interval_90": [
+       0.0271,
+       0.0299
+      ],
+      "splits_mean": 0.0292,
+      "splits_sd": 0.0007
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0101,
+      "interval_90": [
+       0.0097,
+       0.0105
+      ],
+      "splits_mean": 0.0103,
+      "splits_sd": 0.0002
+     },
+     "top30_against_average": {
+      "value": 2.8124,
+      "interval_90": [
+       2.7482,
+       2.8866
+      ],
+      "splits_mean": 2.8292,
+      "splits_sd": 0.0275
+     },
+     "qini_auc_score": {
+      "value": 0.0855,
+      "splits_mean": 0.0886,
+      "splits_sd": 0.0026
+     }
+    },
+    "t_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.8414,
+      "interval_90": [
+       0.8154,
+       0.8616
+      ],
+      "splits_mean": 0.83,
+      "splits_sd": 0.0079
+     },
+     "qini_ours": {
+      "value": 0.3286,
+      "interval_90": [
+       0.3086,
+       0.3475
+      ],
+      "splits_mean": 0.322,
+      "splits_sd": 0.0063
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0281,
+      "interval_90": [
+       0.027,
+       0.0292
+      ],
+      "splits_mean": 0.0284,
+      "splits_sd": 0.0003
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0101,
+      "interval_90": [
+       0.0096,
+       0.0105
+      ],
+      "splits_mean": 0.0103,
+      "splits_sd": 0.0002
+     },
+     "top30_against_average": {
+      "value": 2.791,
+      "interval_90": [
+       2.7058,
+       2.8562
+      ],
+      "splits_mean": 2.7531,
+      "splits_sd": 0.0261
+     },
+     "qini_auc_score": {
+      "value": 0.078,
+      "splits_mean": 0.0784,
+      "splits_sd": 0.0007
+     }
+    },
+    "x_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.854,
+      "interval_90": [
+       0.8318,
+       0.874
+      ],
+      "splits_mean": 0.8504,
+      "splits_sd": 0.0101
+     },
+     "qini_ours": {
+      "value": 0.348,
+      "interval_90": [
+       0.3288,
+       0.3654
+      ],
+      "splits_mean": 0.355,
+      "splits_sd": 0.0095
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0285,
+      "interval_90": [
+       0.0273,
+       0.0296
+      ],
+      "splits_mean": 0.0291,
+      "splits_sd": 0.0004
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0101,
+      "interval_90": [
+       0.0096,
+       0.0105
+      ],
+      "splits_mean": 0.0103,
+      "splits_sd": 0.0002
+     },
+     "top30_against_average": {
+      "value": 2.8328,
+      "interval_90": [
+       2.758,
+       2.9034
+      ],
+      "splits_mean": 2.8195,
+      "splits_sd": 0.0338
+     },
+     "qini_auc_score": {
+      "value": 0.0826,
+      "splits_mean": 0.0863,
+      "splits_sd": 0.0025
+     }
     }
-  ]
+   },
+   "curve": {
+    "share_targeted": [
+     0.0,
+     0.05,
+     0.1,
+     0.15,
+     0.2,
+     0.25,
+     0.3,
+     0.35,
+     0.4,
+     0.45,
+     0.5,
+     0.55,
+     0.6,
+     0.65,
+     0.7,
+     0.75,
+     0.8,
+     0.85,
+     0.9,
+     0.95,
+     1.0
+    ],
+    "random": [
+     0.0,
+     0.0532,
+     0.1054,
+     0.1587,
+     0.1989,
+     0.2435,
+     0.291,
+     0.349,
+     0.393,
+     0.435,
+     0.4833,
+     0.5307,
+     0.5851,
+     0.6423,
+     0.693,
+     0.7474,
+     0.8014,
+     0.8579,
+     0.9117,
+     0.9519,
+     1.0
+    ],
+    "response": [
+     0.0,
+     0.2723,
+     0.4943,
+     0.6472,
+     0.7302,
+     0.7939,
+     0.8426,
+     0.8744,
+     0.9087,
+     0.9316,
+     0.9519,
+     0.9666,
+     0.9718,
+     0.9783,
+     0.9855,
+     0.9906,
+     0.9938,
+     0.9947,
+     0.9985,
+     1.0003,
+     1.0
+    ],
+    "s_learner": [
+     0.0,
+     0.4605,
+     0.5913,
+     0.6874,
+     0.7567,
+     0.8055,
+     0.8483,
+     0.8869,
+     0.9117,
+     0.9327,
+     0.9479,
+     0.9558,
+     0.9617,
+     0.9673,
+     0.9754,
+     0.981,
+     0.9871,
+     0.9861,
+     0.9907,
+     0.9949,
+     1.0
+    ],
+    "t_learner": [
+     0.0,
+     0.399,
+     0.5542,
+     0.6549,
+     0.7425,
+     0.8034,
+     0.8414,
+     0.8674,
+     0.8836,
+     0.8993,
+     0.9122,
+     0.9181,
+     0.925,
+     0.931,
+     0.934,
+     0.9366,
+     0.94,
+     0.9459,
+     0.9487,
+     0.9707,
+     1.0
+    ],
+    "x_learner": [
+     0.0,
+     0.4155,
+     0.5592,
+     0.6754,
+     0.7636,
+     0.8141,
+     0.854,
+     0.8761,
+     0.8997,
+     0.9179,
+     0.9348,
+     0.9476,
+     0.95,
+     0.9525,
+     0.9564,
+     0.9621,
+     0.9658,
+     0.9706,
+     0.9722,
+     0.9853,
+     1.0
+    ]
+   }
+  },
+  {
+   "arm": "ads",
+   "label": "conversion",
+   "train_rows": 2000000,
+   "test_rows": 4194706,
+   "share_treated": 0.85,
+   "mean_treated": 0.00308,
+   "mean_untreated": 0.00195,
+   "rankings": {
+    "random": {
+     "top30_share_of_total_lift": {
+      "value": 0.2969,
+      "interval_90": [
+       0.2577,
+       0.3344
+      ],
+      "splits_mean": 0.2946,
+      "splits_sd": 0.0153
+     },
+     "qini_ours": {
+      "value": 0.0026,
+      "interval_90": [
+       -0.0232,
+       0.0262
+      ],
+      "splits_mean": -0.0082,
+      "splits_sd": 0.0089
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0013
+      ],
+      "splits_mean": 0.0011,
+      "splits_sd": 0.0001
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0012
+      ],
+      "splits_mean": 0.0012,
+      "splits_sd": 0.0
+     },
+     "top30_against_average": {
+      "value": 0.99,
+      "interval_90": [
+       0.8594,
+       1.1161
+      ],
+      "splits_mean": 0.9822,
+      "splits_sd": 0.0511
+     },
+     "qini_auc_score": {
+      "value": 0.0012,
+      "splits_mean": -0.0038,
+      "splits_sd": 0.0041
+     }
+    },
+    "response": {
+     "top30_share_of_total_lift": {
+      "value": 0.9228,
+      "interval_90": [
+       0.9033,
+       0.9417
+      ],
+      "splits_mean": 0.9174,
+      "splits_sd": 0.0176
+     },
+     "qini_ours": {
+      "value": 0.4069,
+      "interval_90": [
+       0.3934,
+       0.4192
+      ],
+      "splits_mean": 0.4022,
+      "splits_sd": 0.0106
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0035,
+      "interval_90": [
+       0.0031,
+       0.0038
+      ],
+      "splits_mean": 0.0035,
+      "splits_sd": 0.0001
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0012
+      ],
+      "splits_mean": 0.0012,
+      "splits_sd": 0.0
+     },
+     "top30_against_average": {
+      "value": 3.0623,
+      "interval_90": [
+       2.9989,
+       3.1291
+      ],
+      "splits_mean": 3.0447,
+      "splits_sd": 0.0582
+     },
+     "qini_auc_score": {
+      "value": 0.1839,
+      "splits_mean": 0.1854,
+      "splits_sd": 0.0056
+     }
+    },
+    "s_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.6327,
+      "interval_90": [
+       0.5875,
+       0.6847
+      ],
+      "splits_mean": 0.7031,
+      "splits_sd": 0.0904
+     },
+     "qini_ours": {
+      "value": 0.2226,
+      "interval_90": [
+       0.1899,
+       0.2622
+      ],
+      "splits_mean": 0.2551,
+      "splits_sd": 0.0486
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0024,
+      "interval_90": [
+       0.0021,
+       0.0026
+      ],
+      "splits_mean": 0.0027,
+      "splits_sd": 0.0004
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0012
+      ],
+      "splits_mean": 0.0012,
+      "splits_sd": 0.0
+     },
+     "top30_against_average": {
+      "value": 2.1011,
+      "interval_90": [
+       1.9508,
+       2.2751
+      ],
+      "splits_mean": 2.3348,
+      "splits_sd": 0.2997
+     },
+     "qini_auc_score": {
+      "value": 0.0989,
+      "splits_mean": 0.1136,
+      "splits_sd": 0.0256
+     }
+    },
+    "t_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.7206,
+      "interval_90": [
+       0.671,
+       0.7633
+      ],
+      "splits_mean": 0.6995,
+      "splits_sd": 0.0206
+     },
+     "qini_ours": {
+      "value": 0.2027,
+      "interval_90": [
+       0.1584,
+       0.2409
+      ],
+      "splits_mean": 0.1861,
+      "splits_sd": 0.0176
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0027,
+      "interval_90": [
+       0.0025,
+       0.003
+      ],
+      "splits_mean": 0.0027,
+      "splits_sd": 0.0001
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0012
+      ],
+      "splits_mean": 0.0012,
+      "splits_sd": 0.0
+     },
+     "top30_against_average": {
+      "value": 2.3927,
+      "interval_90": [
+       2.2319,
+       2.5345
+      ],
+      "splits_mean": 2.3247,
+      "splits_sd": 0.0673
+     },
+     "qini_auc_score": {
+      "value": 0.0916,
+      "splits_mean": 0.0857,
+      "splits_sd": 0.0073
+     }
+    },
+    "x_learner": {
+     "top30_share_of_total_lift": {
+      "value": 0.8522,
+      "interval_90": [
+       0.8204,
+       0.8866
+      ],
+      "splits_mean": 0.8263,
+      "splits_sd": 0.0341
+     },
+     "qini_ours": {
+      "value": 0.3475,
+      "interval_90": [
+       0.3218,
+       0.3793
+      ],
+      "splits_mean": 0.3169,
+      "splits_sd": 0.03
+     },
+     "uplift_top30_per_customer": {
+      "value": 0.0032,
+      "interval_90": [
+       0.0029,
+       0.0036
+      ],
+      "splits_mean": 0.0032,
+      "splits_sd": 0.0002
+     },
+     "uplift_average_per_customer": {
+      "value": 0.0011,
+      "interval_90": [
+       0.001,
+       0.0012
+      ],
+      "splits_mean": 0.0012,
+      "splits_sd": 0.0
+     },
+     "top30_against_average": {
+      "value": 2.827,
+      "interval_90": [
+       2.7209,
+       2.9412
+      ],
+      "splits_mean": 2.7432,
+      "splits_sd": 0.1126
+     },
+     "qini_auc_score": {
+      "value": 0.1568,
+      "splits_mean": 0.1459,
+      "splits_sd": 0.0146
+     }
+    }
+   },
+   "curve": {
+    "share_targeted": [
+     0.0,
+     0.05,
+     0.1,
+     0.15,
+     0.2,
+     0.25,
+     0.3,
+     0.35,
+     0.4,
+     0.45,
+     0.5,
+     0.55,
+     0.6,
+     0.65,
+     0.7,
+     0.75,
+     0.8,
+     0.85,
+     0.9,
+     0.95,
+     1.0
+    ],
+    "random": [
+     0.0,
+     0.0598,
+     0.1115,
+     0.1568,
+     0.1954,
+     0.2684,
+     0.2969,
+     0.3528,
+     0.4096,
+     0.4513,
+     0.4839,
+     0.5313,
+     0.5861,
+     0.6238,
+     0.6976,
+     0.7596,
+     0.8062,
+     0.8694,
+     0.9186,
+     0.96,
+     1.0
+    ],
+    "response": [
+     0.0,
+     0.5724,
+     0.7193,
+     0.8054,
+     0.858,
+     0.8999,
+     0.9228,
+     0.9413,
+     0.9511,
+     0.9618,
+     0.9626,
+     0.9721,
+     0.9793,
+     0.9838,
+     0.9867,
+     0.9874,
+     0.9889,
+     0.9934,
+     0.9988,
+     1.0001,
+     1.0
+    ],
+    "s_learner": [
+     0.0,
+     0.428,
+     0.5413,
+     0.5686,
+     0.5985,
+     0.6147,
+     0.6327,
+     0.6659,
+     0.6886,
+     0.7023,
+     0.7297,
+     0.7538,
+     0.7901,
+     0.8133,
+     0.8369,
+     0.8709,
+     0.8831,
+     0.8986,
+     0.9175,
+     0.9437,
+     1.0
+    ],
+    "t_learner": [
+     0.0,
+     0.4439,
+     0.5635,
+     0.634,
+     0.6713,
+     0.6989,
+     0.7206,
+     0.7252,
+     0.7304,
+     0.7409,
+     0.7466,
+     0.7462,
+     0.7493,
+     0.7506,
+     0.7549,
+     0.7597,
+     0.7642,
+     0.7645,
+     0.7685,
+     0.7826,
+     1.0
+    ],
+    "x_learner": [
+     0.0,
+     0.5454,
+     0.6904,
+     0.767,
+     0.8204,
+     0.8302,
+     0.8522,
+     0.8722,
+     0.8865,
+     0.895,
+     0.8975,
+     0.9043,
+     0.909,
+     0.9115,
+     0.9098,
+     0.9144,
+     0.9204,
+     0.9284,
+     0.9281,
+     0.9385,
+     1.0
+    ]
+   }
+  }
+ ],
+ "meta": {
+  "commit": "c8521351f54d330debd2f8b2a618108c90424c08",
+  "finished_utc": "2026-11-14T17:13:31Z",
+  "wall_seconds": 660,
+  "python": "3.12.10",
+  "libraries": {
+   "numpy": "2.2.6",
+   "pandas": "3.0.5",
+   "scikit-learn": "1.5.2",
+   "scikit-uplift": "0.5.1"
+  },
+  "platform": "Windows-11-10.0.26300-SP0"
+ }
 }

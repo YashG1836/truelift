@@ -1,0 +1,47 @@
+{
+ "weeks": 4,
+ "offers": 228,
+ "checks": [
+  {
+   "check": "sample_ratio",
+   "value": 0,
+   "threshold": "at most 1 offer in 1,000",
+   "passed": true,
+   "meaning": "Customers held out in the planned share. A failure means the split or the logging is broken, and that offer's number cannot be used until it is fixed."
+  },
+  {
+   "check": "forecast_against_measured",
+   "value": 0.946,
+   "threshold": "between 0.67 and 1.5",
+   "passed": true,
+   "meaning": "Forecasts shown at approval against what the offers measured. Outside the band, the quotes owners approve are off and the model needs retraining."
+  },
+  {
+   "check": "verdict_mix",
+   "value": {
+    "wait": 0.5,
+    "keep": 0.487,
+    "pause": 0.009,
+    "probably_losing": 0.004
+   },
+   "threshold": "paused and probably losing together under 25%",
+   "passed": true,
+   "meaning": "Share of offers by weekly verdict. Many losing offers means the selection is letting bad versions through."
+  },
+  {
+   "check": "model_error_against_stated",
+   "value": 0.326,
+   "threshold": "at most 1.5",
+   "passed": true,
+   "meaning": "All running offers' control groups together say how far the model really misses, against the error it states. Above 1.5 the model is worse than it claims: widen the ranges and retrain. Each restaurant's own number may lean on the model (median weight on its own control group 0.15) only while this holds."
+  },
+  {
+   "check": "decision_table_age",
+   "value": 4,
+   "threshold": "at most 4 weeks (rebuilt at each renewal)",
+   "passed": true,
+   "meaning": "Weeks since each offer's decision table was built. An old table serves customers on an old snapshot of their history."
+  }
+ ],
+ "passed": true
+}

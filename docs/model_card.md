@@ -8,7 +8,9 @@ discount and adds up to the forecast an owner sees before approving.
 ordering without an offer from visits that saw none; the other learns ordering with an offer from
 visits that saw one, with the offer's size and minimum order as inputs. Known directions are
 enforced: a bigger discount or Brand Pack reward never lowers the chance of ordering; a higher
-minimum order never raises it. Code: `truelift/model.py`; training: `truelift/training.py`.
+minimum order never raises it. A percentage offer ("20% off up to ₹80") is scored at its average
+discount per use on the restaurant's own baskets, so one model serves flat and percentage offers.
+Code: `truelift/model.py`; training: `truelift/training.py`.
 
 **Inputs.** Only order and visit history on Zomato, the restaurant's public listing, the time of the
 visit and the offer itself. The full list, each input with its meaning, is `ALLOWED_FEATURES` in
@@ -27,8 +29,11 @@ used anywhere.
 and without each offer): correlation with the true uplift, Qini, the profit of targeting its top 30%,
 reliability by decile, and the forecast an owner approves against the true effect in the market it
 was made for. Against other learners (`reports/learner_benchmark.json`, five markets). On real
-randomised data: Criteo's open ad-holdout benchmark (`reports/uplift_validation_criteo.json`). The
-numbers are in `reports/` and on the Evidence page; they are not repeated here so they cannot drift.
+randomised data: Criteo's open ad-holdout benchmark and Hillstrom's e-mail test
+(`reports/uplift_validation_criteo.json`, `reports/uplift_validation_hillstrom.json`), each against
+the ranking practitioners use as a shortcut (people most likely to act anyway) and with intervals.
+The numbers are in `reports/` and on the Evidence page; they are not repeated here so they cannot
+drift.
 
 **Calibration.** Forecast gains are scaled by factors learned from the shadow phase's random holdouts
 (cross-fitted, above and below zero). The weekly measurement's two noise sizes are re-estimated every
@@ -44,9 +49,13 @@ tool, `scripts/experiments.py depth-test`), and not for any decision about a cus
 they see an offer.
 
 **Known limits.**
-- Everything is simulated except the Criteo check, which is advertising, not food discounts.
-- Predicted uplift is too spread out: the top decile is over-predicted by about a quarter (slope of
-  truth on prediction about 0.75), so forecasts are scaled and ranges are shown.
+- Everything is simulated except the Criteo and Hillstrom checks, which are advertising and e-mail,
+  not food discounts. On those, the shortcut ranking is a real competitor: on Criteo's rare
+  purchases it beats the T-learner, while on Hillstrom's women's e-mail the uplift models win. The
+  shadow phase inside Zomato is where the choice between them would be made.
+- Predicted uplift is too spread out: across the benchmark's five markets the top decile is
+  over-predicted by about a quarter (slope of truth on prediction about 0.75,
+  `reports/learner_benchmark.json`), so forecasts are scaled and ranges are shown.
 - The stated advantage of a suggested version over the owner's runs higher than its true advantage,
   because the best of about 34 forecasts favours the ones that came out high; most suggestions still
   truly beat the owner's offer.

@@ -361,9 +361,13 @@ class Experiment(Schema):
     """The two groups the week's number comes from (cumulative)."""
 
     shown_visits: int
-    shown_orders: int
+    shown_orders: int | None = Field(description="Hidden (null) while either group has fewer than 20 customers")
     control_visits: int
-    control_orders: int
+    control_orders: int | None
+    shown_customers: int | None = None
+    control_customers: int | None = None
+    suppressed: bool = False
+    min_group_customers: int | None = None
 
 
 class BrandPackQuantity(Schema):

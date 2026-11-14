@@ -1,0 +1,91 @@
+{
+ "meta": {
+  "commit": "04368724de4666216a8ffbd3a47ffded2434b769",
+  "uncommitted_changes": true,
+  "command": "python scripts/experiments.py all",
+  "started_utc": "2026-11-14T17:39:24Z",
+  "wall_seconds": 261,
+  "python": "3.12.10",
+  "libraries": {
+   "python": "3.12.10",
+   "numpy": "2.2.6",
+   "pandas": "3.0.5",
+   "scikit-learn": "1.5.2"
+  },
+  "platform": "Windows-11-10.0.26300-SP0",
+  "processor": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
+  "seed": 7,
+  "quick": false,
+  "config": {
+   "customers_per_locality": 5000,
+   "type_share": [
+    0.25,
+    0.4,
+    0.2,
+    0.15
+   ],
+   "occasions_per_week": [
+    2.0,
+    0.9,
+    1.0,
+    0.5
+   ],
+   "base_utility": [
+    -2.3,
+    -2.5,
+    -3.3,
+    -3.0
+   ],
+   "favourite_bonus": [
+    2.8,
+    1.4,
+    0.3,
+    0.0
+   ],
+   "price_sensitivity": [
+    0.45,
+    1.2,
+    2.6,
+    1.6
+   ],
+   "swiggy_base": [
+    -1.1,
+    -0.7,
+    -0.1,
+    -1.3
+   ],
+   "swiggy_saving": 40.0,
+   "taste_sd": 1.0,
+   "menus_per_occasion": 8,
+   "topup_value": 0.5,
+   "slot_share": [
+    0.35,
+    0.15,
+    0.5
+   ],
+   "joiner_share": 0.08,
+   "aov_factor": 0.7,
+   "seed": 7
+  },
+  "terms": {
+   "commission_rate": 0.25,
+   "gst_on_commission": 0.18,
+   "food_cost_share": 0.37,
+   "commission_on": "post_discount",
+   "zomato_contribution_share": 0.085,
+   "zomato_ebitda_share": 0.055
+  },
+  "restaurants_csv_sha256": "45a176ac4bf8b3c2788d5a4b352305e9a195f7613f9a5d8370ba1c80a94cb7d1"
+ },
+ "experiment": "depth-test",
+ "result": {
+  "offers_tested": 228,
+  "share_picking_the_truly_better_size": 0.645,
+  "share_confident_at_80": 0.105,
+  "share_right_when_confident": 1.0,
+  "share_right_larger_half": 0.789,
+  "share_right_smaller_half": 0.5,
+  "share_where_deeper_truly_better": 0.785,
+  "note": "arms: the owner's size and the next size the create screen offers; 4 weeks; restaurant's own control group only"
+ }
+}

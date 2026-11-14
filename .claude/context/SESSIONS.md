@@ -13,6 +13,21 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (number freeze, documents, field kit)
+- Did: froze the numbers of the 14 Nov night run: `reports/` and the model `data/processed/model.pkl` (+ `.sha256`),
+  now committed (un-ignored; D15). README, STATE and method-doc tables rendered from reports; claims ledger
+  `docs/claims.yml` (118 claims) checked by `scripts/check_claims.py`. New docs: method_and_evidence (renamed write-up,
+  pointer at the old path), what_we_tested (all 50 findings with their guard tests), integration_blueprint, events
+  schemas, openapi.json, privacy_and_fairness, decisions 0001-0010, CHANGELOG; model card, simulator datasheet and
+  architecture updated (percentage offers, renewal, Hillstrom, privacy rule, shadow kit). Shadow kit and sample events
+  (`scripts/shadow_measure.py`, `data/sample/`), pilot size. Field kit `docs/field_research.md` + `docs/field_research/`
+  (EN sheet, HI/GU drafts, consent, cards, notes, outlets, short form; not yet conducted). Golden re-recorded (only
+  the new `percentage_offers` section differs). Suggestion card links to the Evidence page's inflation note.
+- Checked: see the commit's test run (full pytest incl. slow, claims, tables, lint). Not checked: export of the 32
+  restaurants, browser tests on it, deploy.
+- Numbers changed: every simulator number now comes from the final run; DEVLOG "Corrections" lists what moved.
+- Next / open: export + offline bundle + browser tests + `[deploy]`; pitch (deck, questions, video, one-pager).
+
 ## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (percentage offers, real data, renewal, languages)
 - Did: percentage-off-with-cap offers (`Design.pct`; engine scores them at their average discount per use; sim
   takes min(pct x bill, cap); create screen "% off up to Rs" chips; export keys `60p30-...`; Money page rows;

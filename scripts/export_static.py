@@ -86,8 +86,12 @@ def write(path: Path, obj) -> None:
 
 
 def export_restaurant(rid: int) -> list:
-    """All designs for one restaurant; runs in its own process (its own copy of the service)."""
+    """All designs for one restaurant; runs in its own process (its own copy of the service).
+
+    The weekly WhatsApp text's draft translations are kept only for the demo restaurant: they are
+    off until reviewed (decision D4), and in every file they would double the site's size."""
     c = TestClient(app)
+    demo = get_state().demo_restaurant
     h = {"X-Session": f"export{rid}"}
     data = SITE / "data"
     timings = []
@@ -118,6 +122,9 @@ def export_restaurant(rid: int) -> list:
                 view = c.post(f"/api/v1/offers/{off['offer_id']}/run_week", params={"week": w}, headers=h).json()
                 if view["status"] != "active":
                     break
+            if rid != demo:  # draft translations (off by default, D4) only where reviewers look
+                for wk in view["weeks"]:
+                    wk.pop("whatsapp_i18n", None)
             item["offer"] = view
         else:
             item["customers"] = c.post("/api/v1/customers", json=body, headers=h).json()

@@ -30,6 +30,7 @@ Zomato's data: each assumption below says what would replace it. Code: `truelift
 | GST on commission | 18% | Indian GST on services |
 | Food and packaging cost | 37% of the menu price | Assumption; varied 30% to 45% |
 | Zomato contribution | 8.5% of the bill minus any discount Zomato funds | Assumption for the platform's margin before fixed costs |
+| Percentage offers | Each order's discount is the percentage of its bill (after any top-up to the minimum order), up to the cap | The create screen's own format; each basket is drawn from the restaurant's simulated baskets |
 
 ## What the simulator leaves out
 
@@ -43,4 +44,8 @@ would measure.
 
 `tests/test_simulator.py` checks that probabilities are valid, that a world with no offers has no
 effect, that the control-group hash is the one serving uses, that features use only the history before
-each week, and that the fast history used by the service is identical to the full one.
+each week, that the fast history used by the service is identical to the full one, and that a
+percentage offer takes off exactly its share of each bill up to the cap. `tests/test_consistency.py`
+checks that the demo's week for one restaurant equals that restaurant's rows in a full-market run,
+and that a renewed offer keeps the same customers held out. The A/A world (placebo offers that change
+nothing) checks the weekly verdicts against a known zero.

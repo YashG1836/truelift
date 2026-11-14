@@ -1,0 +1,137 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YashG1836/truelift/blob/main/docs/events/offer.consented.schema.json",
+  "title": "Offer consented",
+  "description": "The owner's OTP approval, with exactly what they were shown. Written by Zomato's offer service. Wrapped in a CloudEvents 1.0 envelope so it fits an existing event bus.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique per event; consumers drop duplicates by it"
+    },
+    "source": {
+      "type": "string",
+      "description": "The service that wrote it, e.g. /truelift/serve"
+    },
+    "type": {
+      "const": "truelift.offer.consented"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "offer_id",
+        "restaurant_id",
+        "design",
+        "forecast_shown",
+        "who_pays",
+        "valid_from",
+        "valid_to",
+        "consent_reference"
+      ],
+      "properties": {
+        "offer_id": {
+          "type": "integer"
+        },
+        "restaurant_id": {
+          "type": "integer"
+        },
+        "design": {
+          "type": "object",
+          "description": "The offer as the owner set it up (the API's design fields)",
+          "required": [
+            "discount",
+            "min_order",
+            "audience",
+            "offpeak_only",
+            "reward",
+            "zomato_share",
+            "pct"
+          ],
+          "properties": {
+            "discount": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Rupees off; for a percentage offer the cap"
+            },
+            "pct": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 0.6,
+              "description": "Share of the bill off; 0 = flat"
+            },
+            "min_order": {
+              "type": "number",
+              "minimum": 0
+            },
+            "audience": {
+              "enum": [
+                "all",
+                "new_to_restaurant",
+                "lapsed",
+                "targeted"
+              ]
+            },
+            "offpeak_only": {
+              "type": "boolean"
+            },
+            "reward": {
+              "type": "number",
+              "minimum": 0,
+              "description": "Brand Pack reward per order for regulars"
+            },
+            "zomato_share": {
+              "type": "number",
+              "minimum": 0,
+              "maximum": 1
+            }
+          }
+        },
+        "forecast_shown": {
+          "type": "object",
+          "description": "The quote on the OTP screen"
+        },
+        "evidence_shown": {
+          "type": [
+            "object",
+            "null"
+          ],
+          "description": "For a renewal: what the last period measured"
+        },
+        "who_pays": {
+          "type": "string"
+        },
+        "valid_from": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "valid_to": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "consent_reference": {
+          "type": "string",
+          "description": "Reference to Zomato's OTP record"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

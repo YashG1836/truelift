@@ -22,6 +22,7 @@ from .observability import FORECAST_RATIO, HOLDOUT_SHARE
 from .sim import display_name
 
 BACKGROUND_OFFER_BASE = 10_000_000  # ids for competitors' offers in the simulated market
+MIN_GROUP_CUSTOMERS = 20  # smallest group whose order counts an owner may see (docs/privacy_and_fairness.md)
 
 
 def payout_for(orders: pd.DataFrame, terms: Terms) -> dict:
@@ -49,9 +50,14 @@ def payout_for(orders: pd.DataFrame, terms: Terms) -> dict:
     return p
 
 
-def week_rows(state, offer, w: int) -> tuple[pd.DataFrame, pd.DataFrame]:
+def week_rows(state, offer, w: int, full_market: bool = False) -> tuple[pd.DataFrame, pd.DataFrame]:
     """Simulate week `w` of an offer (deterministic). Returns (all of this restaurant's visits,
-    the eligible ones with the model's predictions), without logging anything."""
+    the eligible ones with the model's predictions), without logging anything.
+
+    Only the ordering occasions in which this restaurant's menu was opened are simulated: a
+    customer's choice on one occasion depends only on the menus of that occasion, so the
+    restaurant's rows are exactly those of the full market (`full_market=True`, checked by a test),
+    at a small fraction of the work."""
     m, engine = state.market, state.engine
     occ, feats = state.week_inputs(w + offer.week_offset)  # a renewal runs the weeks after the last period
     rid, d = offer.restaurant_id, offer.design
@@ -70,10 +76,21 @@ def week_rows(state, offer, w: int) -> tuple[pd.DataFrame, pd.DataFrame]:
         return table.eligible(np.asarray(fe["cust"])[mask], np.asarray(fe["slot"])[mask])
 
     pol.scorer = from_table  # only this restaurant's offer is targeted
+    k = occ["rest"].shape[1]
+    if full_market:
+        keep = np.arange(len(occ["cust"]))
+    else:
+        keep = np.flatnonzero((occ["rest"] == rid).any(1))
+        n_occ = len(occ["cust"])
+        occ = {key: v[keep] if isinstance(v, np.ndarray) and len(v) == n_occ else v for key, v in occ.items()}
+    visit = (keep[:, None] * k + np.arange(k)).ravel()  # each exposure's index in the full market
+    if not full_market:
+        feats = {key: np.asarray(v)[visit] for key, v in feats.items()}
     res = m.run_week(occ, pol, feats, salt=0, truth=True)
+    res["occ"] = keep[res["occ"]]
     mine = res["rest"] == rid
-    df = pd.DataFrame({k: v[mine] for k, v in res.items() if isinstance(v, np.ndarray) and len(v) == len(mine)})
-    df["visit_id"] = np.flatnonzero(mine)
+    df = pd.DataFrame({key: v[mine] for key, v in res.items() if isinstance(v, np.ndarray) and len(v) == len(mine)})
+    df["visit_id"] = visit[mine]
     el = df[df["eligible"]].reset_index(drop=True)
     v = engine.design_values(el, d, float(m.aov[rid]), state.baskets[rid])
     el["p0"], el["p1"], el["gain"] = v["p0"], v["p1"], v["gain"]
@@ -112,11 +129,20 @@ def simulate_week(state, offer) -> dict:
     prev = offer.weeks[-1]["simulator_truth"] if offer.weeks else {"extra_orders": 0.0, "extra_profit": 0.0}
     truth = {k: prev[k] + week_truth[k] for k in week_truth}
     t, c, ch = rows["shown"].to_numpy(), rows["holdout"].to_numpy(), rows["chosen"].to_numpy()
+    cust = rows["cust"].to_numpy()
+    groups = (len(np.unique(cust[t])), len(np.unique(cust[c])))
+    # privacy (audit A13 F4): no order counts for a group of fewer than MIN_GROUP_CUSTOMERS people,
+    # so the owner can never read a handful of identifiable customers' behaviour off the table
+    hide = min(groups) < MIN_GROUP_CUSTOMERS
     experiment = {
         "shown_visits": int(t.sum()),
-        "shown_orders": int((t & ch).sum()),
+        "shown_orders": None if hide else int((t & ch).sum()),
         "control_visits": int(c.sum()),
-        "control_orders": int((c & ch).sum()),
+        "control_orders": None if hide else int((c & ch).sum()),
+        "shown_customers": groups[0],
+        "control_customers": groups[1],
+        "suppressed": hide,
+        "min_group_customers": MIN_GROUP_CUSTOMERS,
     }
     payout = payout_for(df[df["chosen"]], state.terms)
     name = display_name(state.R.loc[rid])

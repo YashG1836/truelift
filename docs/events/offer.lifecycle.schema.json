@@ -1,0 +1,74 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YashG1836/truelift/blob/main/docs/events/offer.lifecycle.schema.json",
+  "title": "Offer paused, stopped or renewed",
+  "description": "A change in an offer's status, with what it rests on. Written by Zomato's offer service. Wrapped in a CloudEvents 1.0 envelope so it fits an existing event bus.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique per event; consumers drop duplicates by it"
+    },
+    "source": {
+      "type": "string",
+      "description": "The service that wrote it, e.g. /truelift/serve"
+    },
+    "type": {
+      "const": "truelift.offer.lifecycle"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "offer_id",
+        "status",
+        "reason"
+      ],
+      "properties": {
+        "offer_id": {
+          "type": "integer"
+        },
+        "status": {
+          "enum": [
+            "paused",
+            "stopped",
+            "renewed",
+            "consent_expired",
+            "replaced"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "evidence_reference": {
+          "type": "string",
+          "description": "The offer.measured event it rests on"
+        },
+        "renewed_as": {
+          "type": [
+            "integer",
+            "null"
+          ]
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

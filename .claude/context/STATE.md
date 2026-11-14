@@ -1,65 +1,66 @@
 # Current state
 
-Last updated: 14 Nov 2026 by Kshitish (Claude), M3 features batch (freeze pending). Overwrite lines that become wrong; do not append history here
-(history goes in SESSIONS.md).
+Last updated: 15 Nov 2026 by Kshitish (Claude), freeze of branch `kshitish`. Overwrite lines that become wrong;
+do not append history here (history goes in SESSIONS.md).
 
 ## Status
-- Round 2 submission is complete and live. Tag `round2-submission` marks the submitted version
-  (before the UI redesign); `main` has the redesigned UI.
-- Branches: `main` (shared), `kshitish` (Kshitish's work), `gh-pages` (generated demo site, do not edit).
-- Branch `kshitish` (not merged yet): API under `/api/v1/` (old paths gone), model bundle with a `.sha256`
-  sidecar (rebuild with `python tasks.py pipeline` after switching to it), `uv` environment, `tasks.py`,
-  93 fast tests + golden numbers + contract fuzzing + Playwright, CI in `.github/workflows/`. Numbers unchanged.
-- Teammates ksawesome (Kshitish) and BhavayGoyal have write access (invites sent 12 Nov).
-- One-time history rewrite (13 Nov, run by Yash): drops the Claude co-author line from the old commits;
-  files, authors and dates stay the same, hashes change. It is done when
-  `git log origin/main --format=%B | grep -c anthropic` prints 0. If your clone is older than that:
-  `git stash` (if you have uncommitted work), `git pull --rebase`, `git stash pop`. Never merge old history back.
+- Round 2 submission is live from `main` (tag `round2-submission`). Branch `kshitish` holds the audited rebuild
+  (service v1, measurement, market analyses, real-data checks, restyle, docs); not merged into `main` yet.
+- Branches: `main` (shared), `kshitish` (Kshitish's work, CI publishes the demo from it on `[deploy]`), `gh-pages`
+  (generated demo site, do not edit).
+- Numbers are frozen on `kshitish` (one final run, 14 Nov night): `reports/` and the committed model
+  `data/processed/model.pkl` (+ `.sha256`). Any later change that moves a number needs a new full run and must
+  update README, DEVLOG, docs and this file together; `scripts/check_claims.py` and `render_tables.py --check` fail
+  until they agree.
+- Teammates ksawesome (Kshitish) and BhavayGoyal have write access. History rewrite of 13 Nov is done (never merge
+  old history back).
 
-## Headline numbers (source: `reports/evaluation.json`, per week, 300 simulated restaurants)
-| | Blanket | Rule: new customers only | TrueLift |
+## Headline numbers (generated from `reports/evaluation.json`; per week, 300 simulated restaurants)
+<!-- BEGIN:results-table -->
+| | Today: same discount for everyone | Rule: new customers only | TrueLift |
 |---|---|---|---|
-| Offers that pay for themselves | 130 | 211 | 242 |
-| Own-offer restaurant profit | ₹6.94 L | ₹7.34 L | ₹7.65 L |
-| Restaurant profit vs no offers (market) | +₹2.46 L | +₹3.96 L | +₹4.85 L |
-| Discount given | ₹16.7 L | ₹10.8 L | ₹10.0 L |
-| Zomato commission vs no offers | +₹6.45 L | +₹5.95 L | +₹6.38 L |
+| Offers that pay for themselves | 130 of 300 | 214 of 300 | **218 of 228** |
+| Offers that lose money | 170 | 86 | **10** |
+| Restaurants' profit from their own offers | +₹6.94 lakh | +₹7.16 lakh | **+₹7.89 lakh** |
+| Restaurant profit vs no offers (market) | +₹2.46 lakh | +₹3.80 lakh | **+₹4.77 lakh** |
+| Discount given | ₹16.71 lakh | **₹10.72 lakh** | ₹10.77 lakh |
+| Zomato commission vs no offers | +₹6.45 lakh | +₹5.79 lakh | **+₹6.53 lakh** |
+<!-- END:results-table -->
 
-- Measurement: 80% ranges cover truth 67% / 79% / 81% after weeks 1 / 2 / 4; "keep" verdicts right 87 / 90 / 92%.
-- Real data (Criteo, 4.2M unseen users, `reports/uplift_validation_criteo.json`): visits Qini 0.339 vs 0.005
-  random, top 30% holds 84% of extra visits; purchases Qini 0.056 vs 0.015 (67%).
-- Example week (`truelift/economics.py`): ₹400 order, restaurant keeps ₹134 full price, ₹91.70 with ₹60 off.
-  Blanket offer: restaurant −₹210, Zomato +₹1,500; TrueLift: +₹2,101 and +₹2,550.
-- Break-even share of extra orders (money page): 21% / 32% / 42% / 53%.
+- Measurement (TrueLift offers): truth inside the 80% range 79% / 87% / 90% after weeks 1 / 2 / 4; "keep" verdicts
+  truly positive 140 of 142 / 113 of 114 / 111 of 111; placebo offers paused 1.8% over four weekly looks.
+- Selection: the suggested version truly beats the owner's at 79% of restaurants, but its stated advantage is about
+  five times its true one (disclosed on the page and in the docs).
+- Real data (`reports/uplift_validation_*.json`): Criteo visits, every ranking incl. "likely to act anyway" finds
+  83-85% in the top 30%; purchases T-learner 72% vs the shortcut 92%; Hillstrom women's e-mail, uplift models beat
+  the shortcut in 5 of 5 splits; dollars spent too noisy to rank.
+- Money example (`truelift/economics.py`): ₹400 order keeps ₹134 at full price, ₹91.70 with ₹60 off; break-even
+  21 / 32 / 42 / 53% of orders extra at 10-25% off (45% at 15% off if commission is on the pre-discount bill).
 
 ## Demo site
-- 12 restaurants: 233 Burger King (default), 248 Domino's, 17 Empire, 142 On The Nose, 191, 273, 84, 172,
-  57, 146, 283, 31. ~18 MB of precomputed JSON in `site/data/<id>/`.
-- Guided demo: 10 steps, keys → / Enter / Esc. Tabs: Demo, How it works, Evidence, Money maths.
-- Last full check (13 Nov): `tests/ui_check.js` and a 12-restaurant sweep passed on the live site.
-  Truth inside the range after 4 weeks for 10 of 12 (Beijing Bites and Empire outside; expected at ~80%).
+- 32 restaurants (tasks.py `DEMO_RESTAURANTS`, six localities x five price bands); 233 Burger King opens first.
+  Flat and percentage designs (258 files a restaurant). Draft translations kept only for 233.
+- Tabs: Demo (guided demo, 10 steps, Back and keys), How it works, Evidence, Money maths, Operations.
+- Offline bundle: `python scripts/build_offline.py` after an export -> `dist/truelift-offline/`.
 
 ## Open tasks (owner in brackets; change when you pick one up)
-1. [team] Interview 6–8 restaurant owners: offer report, OTP screen, payout statement (plan §7).
-2. [team] Send Eternal the questions in plan §10 (commission before or after discount: break-even 32% vs 45%
-   at 15% off; anonymised offer logs or a shadow test).
-3. [team] Rehearse the 5-minute demo (plan §8) with the guided demo; local server as backup.
-4. [open] Customer-level randomised depth test (two discount sizes at random), see DECISIONS D6.
-5. [open] Control group for Zomato's own (platform-funded) discounts, see DEVLOG step 8.
+1. [team] Interview 6-8 restaurant owners with the field kit (`docs/field_research.md`, `docs/field_research/`).
+2. [team] Native-speaker review of `truelift/static/i18n/{hi,kn,gu}.json`, then switch `TRUELIFT_LANGUAGES=1` (D4).
+3. [team] Send Eternal the questions in `docs/method_and_evidence.md` §10.
+4. [team] Rehearse the 5-minute demo (`docs/method_and_evidence.md` §8, pitch folder) with the guided demo.
+5. [Yash] Review the restyle of `truelift/static/` (his last area) before `kshitish` is merged into `main`.
+6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); repository settings listed in the handoff.
 
 ## Known limits (say these if asked)
-- All outcomes are simulated; only the real-data checks (Criteo ads, Hillstrom e-mails) use real randomised
-  data, and neither is about restaurant offers. On Criteo, ranking by "likely to act anyway" does as well as
-  uplift models on visits and better on purchases; on Hillstrom women's e-mail the uplift models do better.
-- Brand Pack is rarely chosen (2 of 300): in the simulator loyal customers are not very price sensitive.
-- Small restaurants: a 10% holdout alone gives ±5.4 points in a week on a 3-point effect, so the estimate
-  leans on the model early and on the restaurant's own holdout later.
+- All outcomes are simulated; only the real-data checks (ads, e-mail) are real, and neither is about restaurant offers.
+- The suggested version's stated advantage runs well above its true advantage.
+- Across ten holdout draws the four-week estimate over-states the truth by about ₹450 an offer (model prior bias).
+- Small restaurants: a 10% holdout alone gives ±5.4 points in a week on a 3-point effect, so the estimate leans on
+  the model early and on the restaurant's own holdout later.
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
-- Yash: idle after the UI iteration and this shared-context setup (13 Nov).
-- Kshitish: branch `kshitish`, implementing his audit plan. M1 and M2 science done; final freeze run in progress
-  (14 Nov night; the headline numbers above are main's until the freeze commit). M3 done in code: Zomato restyle of
-  `truelift/static/` (Yash's last area: Yash to be told), percentage offers, renewal with evidence, what-if card,
-  language drafts (off, D4). Left: export 32 restaurants, browser tests, deploy, M4 docs and pitch, M5.
-  Files: `truelift/*`, `scripts/*`, `tests/*`, `.github/*`.
+- Yash: idle since 13 Nov; to review the `truelift/static/` restyle on `kshitish`.
+- Kshitish: branch `kshitish`. M1-M3 and the M4 documents and field kit done; finishing export, deploy, pitch
+  (`docs/pitch/`) and M5 checks.
+  Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

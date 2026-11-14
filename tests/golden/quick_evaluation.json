@@ -1,10 +1,10 @@
 {
   "meta": {
-    "commit": "f803fa4f797e234b425e89a1298c29d57682074f",
+    "commit": "04368724de4666216a8ffbd3a47ffded2434b769",
     "uncommitted_changes": true,
-    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q21 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q21/model.pkl",
-    "started_utc": "2026-11-14T13:16:46Z",
-    "wall_seconds": 167,
+    "command": "python scripts/run_pipeline.py --quick --out C:\\Users\\kshit\\AppData\\Local\\Temp\\truelift-golden-7k6d84nz --model-out C:\\Users\\kshit\\AppData\\Local\\Temp\\truelift-golden-7k6d84nz\\model.pkl",
+    "started_utc": "2026-11-14T21:57:47Z",
+    "wall_seconds": 192,
     "python": "3.12.10",
     "libraries": {
       "python": "3.12.10",
@@ -328,6 +328,196 @@
       "with_min_order": 15,
       "offpeak_only": 0,
       "depth_share_of_aov": 0.147
+    },
+    "percentage_offers": {
+      "usual": {
+        "format": "percentage off up to the flat amount; the percentage is twice the flat amount's share of the average order, in steps of 10% (the create screen's pairing)",
+        "restaurants_by_percentage": {
+          "30%": 300
+        },
+        "discount_per_use_share_of_cap": 1.0,
+        "discount_per_use_share_of_flat_amount": 1.0,
+        "policies": {
+          "today_blanket": {
+            "name": "today: blanket, percentage off up to the same amount",
+            "orders_per_week": 8723,
+            "extra_orders_vs_no_offer": 2336,
+            "restaurant_profit": 1080521,
+            "restaurant_profit_change": 99852,
+            "zomato_commission": 993409,
+            "zomato_commission_change": 261566,
+            "zomato_contribution_change": 88932,
+            "zomato_funded_discount": 0,
+            "customer_savings": 677422,
+            "savings_per_extra_order": 290,
+            "redemptions": 8723,
+            "anyway_share_of_redemptions": 0.603,
+            "order_value": 533,
+            "restaurants_with_offer": 300,
+            "own_offer_profit_effect": 279395,
+            "own_offer_extra_orders": 3467,
+            "offers_that_pay": 135,
+            "offers_that_lose": 165,
+            "platform_extra_orders": 1649,
+            "restaurants_better_off_vs_no_offers": 53,
+            "restaurants_worse_off_vs_no_offers": 247,
+            "swiggy_share_of_occasions": 0.1641,
+            "swiggy_share_loyal": 0.0774
+          },
+          "truelift": {
+            "name": "TrueLift, percentage off up to the same amount",
+            "orders_per_week": 8177,
+            "extra_orders_vs_no_offer": 1790,
+            "restaurant_profit": 1175394,
+            "restaurant_profit_change": 194725,
+            "zomato_commission": 996903,
+            "zomato_commission_change": 265060,
+            "zomato_contribution_change": 90120,
+            "zomato_funded_discount": 0,
+            "customer_savings": 433664,
+            "savings_per_extra_order": 242,
+            "redemptions": 4455,
+            "anyway_share_of_redemptions": 0.427,
+            "order_value": 541,
+            "restaurants_with_offer": 174,
+            "own_offer_profit_effect": 318572,
+            "own_offer_extra_orders": 2555,
+            "offers_that_pay": 159,
+            "offers_that_lose": 15,
+            "platform_extra_orders": 1324,
+            "restaurants_better_off_vs_no_offers": 89,
+            "restaurants_worse_off_vs_no_offers": 211,
+            "swiggy_share_of_occasions": 0.1815,
+            "swiggy_share_loyal": 0.0872
+          }
+        },
+        "forecast": {
+          "owner_blanket_offer_in_todays_market": {
+            "offers": 300,
+            "forecast_total": 320477,
+            "truth_total": 371154,
+            "ratio_forecast_to_truth": 0.863,
+            "mean_abs_error": 439,
+            "coverage_80": 0.987,
+            "misses_below_range": 0,
+            "misses_above_range": 4,
+            "sign_right": 0.597,
+            "share_forecast_below_truth": 0.183,
+            "truth_from_new_accounts": 31337,
+            "ratio_to_truth_existing_customers": 0.943,
+            "coverage_80_existing_customers": 0.997
+          },
+          "truelift_design_in_todays_market": {
+            "offers": 174,
+            "forecast_total": 328861,
+            "truth_total": 388263,
+            "ratio_forecast_to_truth": 0.847,
+            "mean_abs_error": 458,
+            "coverage_80": 1.0,
+            "misses_below_range": 0,
+            "misses_above_range": 0,
+            "sign_right": 0.92,
+            "share_forecast_below_truth": 0.431,
+            "truth_from_new_accounts": 28829,
+            "ratio_to_truth_existing_customers": 0.915,
+            "coverage_80_existing_customers": 1.0
+          }
+        }
+      },
+      "proportional": {
+        "format": "15% off (the flat amount's share of the average order) up to twice the flat amount",
+        "restaurants_by_percentage": {
+          "15%": 300
+        },
+        "discount_per_use_share_of_cap": 0.525,
+        "discount_per_use_share_of_flat_amount": 1.049,
+        "policies": {
+          "today_blanket": {
+            "name": "today: blanket, 15% off up to twice the amount",
+            "orders_per_week": 8847,
+            "extra_orders_vs_no_offer": 2459,
+            "restaurant_profit": 1120610,
+            "restaurant_profit_change": 139941,
+            "zomato_commission": 1038717,
+            "zomato_commission_change": 306874,
+            "zomato_contribution_change": 104337,
+            "zomato_funded_discount": 0,
+            "customer_savings": 733162,
+            "savings_per_extra_order": 298,
+            "redemptions": 8847,
+            "anyway_share_of_redemptions": 0.588,
+            "order_value": 553,
+            "restaurants_with_offer": 300,
+            "own_offer_profit_effect": 327657,
+            "own_offer_extra_orders": 3643,
+            "offers_that_pay": 146,
+            "offers_that_lose": 154,
+            "platform_extra_orders": 1704,
+            "restaurants_better_off_vs_no_offers": 59,
+            "restaurants_worse_off_vs_no_offers": 241,
+            "swiggy_share_of_occasions": 0.1591,
+            "swiggy_share_loyal": 0.0768
+          },
+          "truelift": {
+            "name": "TrueLift, 15% off up to twice the amount",
+            "orders_per_week": 7997,
+            "extra_orders_vs_no_offer": 1610,
+            "restaurant_profit": 1186635,
+            "restaurant_profit_change": 205966,
+            "zomato_commission": 1012769,
+            "zomato_commission_change": 280926,
+            "zomato_contribution_change": 95515,
+            "zomato_funded_discount": 0,
+            "customer_savings": 460744,
+            "savings_per_extra_order": 286,
+            "redemptions": 4270,
+            "anyway_share_of_redemptions": 0.463,
+            "order_value": 564,
+            "restaurants_with_offer": 191,
+            "own_offer_profit_effect": 317075,
+            "own_offer_extra_orders": 2295,
+            "offers_that_pay": 176,
+            "offers_that_lose": 15,
+            "platform_extra_orders": 1243,
+            "restaurants_better_off_vs_no_offers": 106,
+            "restaurants_worse_off_vs_no_offers": 193,
+            "swiggy_share_of_occasions": 0.1885,
+            "swiggy_share_loyal": 0.0877
+          }
+        },
+        "forecast": {
+          "owner_blanket_offer_in_todays_market": {
+            "offers": 300,
+            "forecast_total": 338879,
+            "truth_total": 436407,
+            "ratio_forecast_to_truth": 0.777,
+            "mean_abs_error": 535,
+            "coverage_80": 0.967,
+            "misses_below_range": 0,
+            "misses_above_range": 10,
+            "sign_right": 0.627,
+            "share_forecast_below_truth": 0.287,
+            "truth_from_new_accounts": 36721,
+            "ratio_to_truth_existing_customers": 0.848,
+            "coverage_80_existing_customers": 0.987
+          },
+          "truelift_design_in_todays_market": {
+            "offers": 191,
+            "forecast_total": 392229,
+            "truth_total": 372777,
+            "ratio_forecast_to_truth": 1.052,
+            "mean_abs_error": 439,
+            "coverage_80": 1.0,
+            "misses_below_range": 0,
+            "misses_above_range": 0,
+            "sign_right": 0.932,
+            "share_forecast_below_truth": 0.304,
+            "truth_from_new_accounts": 28638,
+            "ratio_to_truth_existing_customers": 1.14,
+            "coverage_80_existing_customers": 1.0
+          }
+        }
+      }
     },
     "measurement": {
       "after_1_weeks": {

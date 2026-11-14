@@ -11,7 +11,7 @@ approval, so an owner who cannot see whether an offer pays will stop approving. 
 targets and measures each offer by the extra orders and profit it creates, inside that OTP flow.
 
 - Live demo: https://yashg1836.github.io/truelift/ (branch `gh-pages`, generated; do not edit by hand)
-- Code: https://github.com/YashG1836/truelift (public). Write-up: `TrueLift_Round2_Plan.md`.
+- Code: https://github.com/YashG1836/truelift (public). Write-up: `docs/method_and_evidence.md` (was `TrueLift_Round2_Plan.md`).
   Judge-facing build story: `DEVLOG.md`. Round 1 PDF: `docs/round1_problem_statement.pdf`.
 
 ## Shared context (read in this order)

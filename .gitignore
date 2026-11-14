@@ -9,8 +9,7 @@ coverage.xml
 htmlcov/
 .DS_Store
 data/raw/
-data/processed/model.pkl
-data/processed/model.pkl.sha256
+# data/processed/model.pkl and its .sha256 are committed: the published numbers and the demo come from it (D15)
 data/processed/serving_*.npz
 data/processed/*.npz.tmp
 site/

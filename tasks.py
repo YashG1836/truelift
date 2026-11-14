@@ -15,6 +15,7 @@
     python tasks.py reproduce [--quick]  re-run the pipeline in a temp folder, compare with the
                                        committed numbers (--quick: with the golden snapshot)
     python tasks.py golden             re-record the golden snapshot after an intended change
+    python tasks.py openapi            write the API contract to docs/openapi.json (a test checks it)
     python tasks.py docker             build the image and run it on port 8000
 
 Uses `uv run` when uv is installed; otherwise the Python running this file (so an activated
@@ -178,6 +179,15 @@ def golden(a) -> int:
     return 0
 
 
+def openapi(a) -> int:
+    code = (
+        "import json; from pathlib import Path; from truelift.api import app; "
+        "Path('docs/openapi.json').write_text(json.dumps(app.openapi(), indent=1, ensure_ascii=False) + chr(10), "
+        "encoding='utf-8', newline=chr(10))"
+    )
+    return run([*py(), "-c", code])
+
+
 def docker(a) -> int:
     return run(["docker", "build", "-t", "truelift", "."]) or run(
         ["docker", "run", "--rm", "-p", f"{a.port}:8000", "truelift"]
@@ -221,6 +231,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--quick", action="store_true")
     p.set_defaults(fn=reproduce)
     sub.add_parser("golden").set_defaults(fn=golden)
+    sub.add_parser("openapi").set_defaults(fn=openapi)
     p = sub.add_parser("docker")
     p.add_argument("--port", type=int, default=8000)
     p.set_defaults(fn=docker)

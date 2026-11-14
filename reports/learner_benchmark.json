@@ -1,0 +1,940 @@
+{
+ "meta": {
+  "commit": "04368724de4666216a8ffbd3a47ffded2434b769",
+  "uncommitted_changes": true,
+  "command": "python scripts/benchmark_learners.py --workers 2",
+  "started_utc": "2026-11-14T17:38:24Z",
+  "wall_seconds": 58,
+  "python": "3.12.10",
+  "libraries": {
+   "python": "3.12.10",
+   "numpy": "2.2.6",
+   "pandas": "3.0.5",
+   "scikit-learn": "1.5.2"
+  },
+  "platform": "Windows-11-10.0.26300-SP0",
+  "processor": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
+  "seed": 7,
+  "quick": true,
+  "config": {
+   "customers_per_locality": 2000,
+   "type_share": [
+    0.25,
+    0.4,
+    0.2,
+    0.15
+   ],
+   "occasions_per_week": [
+    2.0,
+    0.9,
+    1.0,
+    0.5
+   ],
+   "base_utility": [
+    -2.3,
+    -2.5,
+    -3.3,
+    -3.0
+   ],
+   "favourite_bonus": [
+    2.8,
+    1.4,
+    0.3,
+    0.0
+   ],
+   "price_sensitivity": [
+    0.45,
+    1.2,
+    2.6,
+    1.6
+   ],
+   "swiggy_base": [
+    -1.1,
+    -0.7,
+    -0.1,
+    -1.3
+   ],
+   "swiggy_saving": 40.0,
+   "taste_sd": 1.0,
+   "menus_per_occasion": 8,
+   "topup_value": 0.5,
+   "slot_share": [
+    0.35,
+    0.15,
+    0.5
+   ],
+   "joiner_share": 0.08,
+   "aov_factor": 0.7,
+   "seed": 7
+  },
+  "terms": {
+   "commission_rate": 0.25,
+   "gst_on_commission": 0.18,
+   "food_cost_share": 0.37,
+   "commission_on": "post_discount",
+   "zomato_contribution_share": 0.085,
+   "zomato_ebitda_share": 0.055
+  },
+  "restaurants_csv_sha256": "45a176ac4bf8b3c2788d5a4b352305e9a195f7613f9a5d8370ba1c80a94cb7d1"
+ },
+ "summary": {
+  "random": {
+   "corr_with_true_uplift": {
+    "mean": 0.001,
+    "sd": 0.002
+   },
+   "normalised_qini": {
+    "mean": 0.001,
+    "sd": 0.004
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.3,
+    "sd": 0.002
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.371,
+    "sd": 0.003
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.239,
+    "sd": 0.002
+   }
+  },
+  "response": {
+   "corr_with_true_uplift": {
+    "mean": 0.385,
+    "sd": 0.018
+   },
+   "normalised_qini": {
+    "mean": 0.722,
+    "sd": 0.009
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.68,
+    "sd": 0.006
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.84,
+    "sd": 0.007
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.696,
+    "sd": 0.009
+   }
+  },
+  "rule": {
+   "corr_with_true_uplift": {
+    "mean": -0.203,
+    "sd": 0.006
+   },
+   "normalised_qini": {
+    "mean": -0.184,
+    "sd": 0.009
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.257,
+    "sd": 0.004
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.318,
+    "sd": 0.005
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.271,
+    "sd": 0.008
+   }
+  },
+  "s_learner": {
+   "corr_with_true_uplift": {
+    "mean": 0.627,
+    "sd": 0.016
+   },
+   "normalised_qini": {
+    "mean": 0.745,
+    "sd": 0.023
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.676,
+    "sd": 0.013
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.836,
+    "sd": 0.016
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.768,
+    "sd": 0.025
+   }
+  },
+  "t_learner": {
+   "corr_with_true_uplift": {
+    "mean": 0.598,
+    "sd": 0.017
+   },
+   "normalised_qini": {
+    "mean": 0.718,
+    "sd": 0.015
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.67,
+    "sd": 0.008
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.828,
+    "sd": 0.01
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.778,
+    "sd": 0.02
+   }
+  },
+  "x_learner": {
+   "corr_with_true_uplift": {
+    "mean": 0.567,
+    "sd": 0.022
+   },
+   "normalised_qini": {
+    "mean": 0.64,
+    "sd": 0.038
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.633,
+    "sd": 0.018
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.783,
+    "sd": 0.022
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.72,
+    "sd": 0.069
+   }
+  },
+  "dr_learner": {
+   "corr_with_true_uplift": {
+    "mean": 0.469,
+    "sd": 0.07
+   },
+   "normalised_qini": {
+    "mean": 0.611,
+    "sd": 0.043
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.639,
+    "sd": 0.021
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 0.79,
+    "sd": 0.026
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.748,
+    "sd": 0.034
+   }
+  },
+  "oracle": {
+   "corr_with_true_uplift": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "normalised_qini": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "share_of_extra_orders_in_top_30pct": {
+    "mean": 0.809,
+    "sd": 0.001
+   },
+   "top_30pct_vs_oracle": {
+    "mean": 1.0,
+    "sd": 0.0
+   },
+   "profit_top_30pct_vs_best_possible": {
+    "mean": 0.766,
+    "sd": 0.01
+   }
+  }
+ },
+ "by_seed": [
+  {
+   "seed": 7,
+   "learners": {
+    "random": {
+     "corr_with_true_uplift": -0.0,
+     "normalised_qini": -0.001,
+     "share_of_extra_orders_in_top_30pct": 0.298,
+     "top_30pct_vs_oracle": 0.368,
+     "profit_top_30pct_vs_best_possible": 0.24
+    },
+    "response": {
+     "corr_with_true_uplift": 0.39,
+     "normalised_qini": 0.739,
+     "share_of_extra_orders_in_top_30pct": 0.69,
+     "top_30pct_vs_oracle": 0.851,
+     "profit_top_30pct_vs_best_possible": 0.701
+    },
+    "rule": {
+     "corr_with_true_uplift": -0.212,
+     "normalised_qini": -0.197,
+     "share_of_extra_orders_in_top_30pct": 0.252,
+     "top_30pct_vs_oracle": 0.311,
+     "profit_top_30pct_vs_best_possible": 0.262
+    },
+    "s_learner": {
+     "corr_with_true_uplift": 0.654,
+     "normalised_qini": 0.768,
+     "share_of_extra_orders_in_top_30pct": 0.69,
+     "top_30pct_vs_oracle": 0.851,
+     "profit_top_30pct_vs_best_possible": 0.765
+    },
+    "t_learner": {
+     "corr_with_true_uplift": 0.62,
+     "normalised_qini": 0.735,
+     "share_of_extra_orders_in_top_30pct": 0.682,
+     "top_30pct_vs_oracle": 0.842,
+     "profit_top_30pct_vs_best_possible": 0.776
+    },
+    "x_learner": {
+     "corr_with_true_uplift": 0.58,
+     "normalised_qini": 0.666,
+     "share_of_extra_orders_in_top_30pct": 0.648,
+     "top_30pct_vs_oracle": 0.799,
+     "profit_top_30pct_vs_best_possible": 0.653
+    },
+    "dr_learner": {
+     "corr_with_true_uplift": 0.535,
+     "normalised_qini": 0.642,
+     "share_of_extra_orders_in_top_30pct": 0.656,
+     "top_30pct_vs_oracle": 0.809,
+     "profit_top_30pct_vs_best_possible": 0.699
+    },
+    "oracle": {
+     "corr_with_true_uplift": 1.0,
+     "normalised_qini": 1.0,
+     "share_of_extra_orders_in_top_30pct": 0.81,
+     "top_30pct_vs_oracle": 1.0,
+     "profit_top_30pct_vs_best_possible": 0.762
+    }
+   },
+   "reliability_t_learner": {
+    "by_decile": [
+     {
+      "decile": 1,
+      "predicted": -0.0041,
+      "true": 0.0115
+     },
+     {
+      "decile": 2,
+      "predicted": 0.0081,
+      "true": 0.0081
+     },
+     {
+      "decile": 3,
+      "predicted": 0.012,
+      "true": 0.0101
+     },
+     {
+      "decile": 4,
+      "predicted": 0.0156,
+      "true": 0.012
+     },
+     {
+      "decile": 5,
+      "predicted": 0.0201,
+      "true": 0.0152
+     },
+     {
+      "decile": 6,
+      "predicted": 0.0259,
+      "true": 0.0198
+     },
+     {
+      "decile": 7,
+      "predicted": 0.0339,
+      "true": 0.0261
+     },
+     {
+      "decile": 8,
+      "predicted": 0.0467,
+      "true": 0.0368
+     },
+     {
+      "decile": 9,
+      "predicted": 0.0734,
+      "true": 0.0547
+     },
+     {
+      "decile": 10,
+      "predicted": 0.1633,
+      "true": 0.1292
+     }
+    ],
+    "slope_true_on_predicted": 0.752
+   },
+   "holdout_only_check_t_learner": {
+    "top_30pct": {
+     "estimate": 0.0874,
+     "low_80": 0.0812,
+     "high_80": 0.0936,
+     "truth": 0.0735,
+     "truth_inside_80": false,
+     "held_out_visits": 3224
+    },
+    "bottom_70pct": {
+     "estimate": 0.0152,
+     "low_80": 0.0123,
+     "high_80": 0.0181,
+     "truth": 0.0147,
+     "truth_inside_80": true,
+     "held_out_visits": 7669
+    }
+   },
+   "evaluation_visits_shown": 98851,
+   "training_rows": 403664
+  },
+  {
+   "seed": 8,
+   "learners": {
+    "random": {
+     "corr_with_true_uplift": 0.002,
+     "normalised_qini": 0.003,
+     "share_of_extra_orders_in_top_30pct": 0.304,
+     "top_30pct_vs_oracle": 0.376,
+     "profit_top_30pct_vs_best_possible": 0.241
+    },
+    "response": {
+     "corr_with_true_uplift": 0.389,
+     "normalised_qini": 0.718,
+     "share_of_extra_orders_in_top_30pct": 0.674,
+     "top_30pct_vs_oracle": 0.834,
+     "profit_top_30pct_vs_best_possible": 0.705
+    },
+    "rule": {
+     "corr_with_true_uplift": -0.195,
+     "normalised_qini": -0.172,
+     "share_of_extra_orders_in_top_30pct": 0.262,
+     "top_30pct_vs_oracle": 0.324,
+     "profit_top_30pct_vs_best_possible": 0.282
+    },
+    "s_learner": {
+     "corr_with_true_uplift": 0.623,
+     "normalised_qini": 0.742,
+     "share_of_extra_orders_in_top_30pct": 0.672,
+     "top_30pct_vs_oracle": 0.832,
+     "profit_top_30pct_vs_best_possible": 0.758
+    },
+    "t_learner": {
+     "corr_with_true_uplift": 0.613,
+     "normalised_qini": 0.722,
+     "share_of_extra_orders_in_top_30pct": 0.668,
+     "top_30pct_vs_oracle": 0.826,
+     "profit_top_30pct_vs_best_possible": 0.768
+    },
+    "x_learner": {
+     "corr_with_true_uplift": 0.593,
+     "normalised_qini": 0.664,
+     "share_of_extra_orders_in_top_30pct": 0.643,
+     "top_30pct_vs_oracle": 0.796,
+     "profit_top_30pct_vs_best_possible": 0.782
+    },
+    "dr_learner": {
+     "corr_with_true_uplift": 0.464,
+     "normalised_qini": 0.6,
+     "share_of_extra_orders_in_top_30pct": 0.636,
+     "top_30pct_vs_oracle": 0.787,
+     "profit_top_30pct_vs_best_possible": 0.749
+    },
+    "oracle": {
+     "corr_with_true_uplift": 1.0,
+     "normalised_qini": 1.0,
+     "share_of_extra_orders_in_top_30pct": 0.808,
+     "top_30pct_vs_oracle": 1.0,
+     "profit_top_30pct_vs_best_possible": 0.779
+    }
+   },
+   "reliability_t_learner": {
+    "by_decile": [
+     {
+      "decile": 1,
+      "predicted": -0.0032,
+      "true": 0.0099
+     },
+     {
+      "decile": 2,
+      "predicted": 0.0049,
+      "true": 0.0089
+     },
+     {
+      "decile": 3,
+      "predicted": 0.0093,
+      "true": 0.0115
+     },
+     {
+      "decile": 4,
+      "predicted": 0.0133,
+      "true": 0.0135
+     },
+     {
+      "decile": 5,
+      "predicted": 0.0175,
+      "true": 0.0166
+     },
+     {
+      "decile": 6,
+      "predicted": 0.0228,
+      "true": 0.021
+     },
+     {
+      "decile": 7,
+      "predicted": 0.0304,
+      "true": 0.0274
+     },
+     {
+      "decile": 8,
+      "predicted": 0.0436,
+      "true": 0.0368
+     },
+     {
+      "decile": 9,
+      "predicted": 0.0708,
+      "true": 0.055
+     },
+     {
+      "decile": 10,
+      "predicted": 0.1509,
+      "true": 0.1268
+     }
+    ],
+    "slope_true_on_predicted": 0.797
+   },
+   "holdout_only_check_t_learner": {
+    "top_30pct": {
+     "estimate": 0.079,
+     "low_80": 0.0725,
+     "high_80": 0.0854,
+     "truth": 0.0729,
+     "truth_inside_80": true,
+     "held_out_visits": 3209
+    },
+    "bottom_70pct": {
+     "estimate": 0.0141,
+     "low_80": 0.0111,
+     "high_80": 0.0171,
+     "truth": 0.0155,
+     "truth_inside_80": true,
+     "held_out_visits": 7507
+    }
+   },
+   "evaluation_visits_shown": 96636,
+   "training_rows": 396432
+  },
+  {
+   "seed": 9,
+   "learners": {
+    "random": {
+     "corr_with_true_uplift": 0.0,
+     "normalised_qini": 0.0,
+     "share_of_extra_orders_in_top_30pct": 0.3,
+     "top_30pct_vs_oracle": 0.371,
+     "profit_top_30pct_vs_best_possible": 0.238
+    },
+    "response": {
+     "corr_with_true_uplift": 0.409,
+     "normalised_qini": 0.717,
+     "share_of_extra_orders_in_top_30pct": 0.675,
+     "top_30pct_vs_oracle": 0.834,
+     "profit_top_30pct_vs_best_possible": 0.683
+    },
+    "rule": {
+     "corr_with_true_uplift": -0.203,
+     "normalised_qini": -0.187,
+     "share_of_extra_orders_in_top_30pct": 0.254,
+     "top_30pct_vs_oracle": 0.314,
+     "profit_top_30pct_vs_best_possible": 0.264
+    },
+    "s_learner": {
+     "corr_with_true_uplift": 0.613,
+     "normalised_qini": 0.707,
+     "share_of_extra_orders_in_top_30pct": 0.656,
+     "top_30pct_vs_oracle": 0.81,
+     "profit_top_30pct_vs_best_possible": 0.808
+    },
+    "t_learner": {
+     "corr_with_true_uplift": 0.588,
+     "normalised_qini": 0.694,
+     "share_of_extra_orders_in_top_30pct": 0.659,
+     "top_30pct_vs_oracle": 0.814,
+     "profit_top_30pct_vs_best_possible": 0.81
+    },
+    "x_learner": {
+     "corr_with_true_uplift": 0.55,
+     "normalised_qini": 0.613,
+     "share_of_extra_orders_in_top_30pct": 0.627,
+     "top_30pct_vs_oracle": 0.775,
+     "profit_top_30pct_vs_best_possible": 0.803
+    },
+    "dr_learner": {
+     "corr_with_true_uplift": 0.492,
+     "normalised_qini": 0.626,
+     "share_of_extra_orders_in_top_30pct": 0.643,
+     "top_30pct_vs_oracle": 0.794,
+     "profit_top_30pct_vs_best_possible": 0.783
+    },
+    "oracle": {
+     "corr_with_true_uplift": 1.0,
+     "normalised_qini": 1.0,
+     "share_of_extra_orders_in_top_30pct": 0.809,
+     "top_30pct_vs_oracle": 1.0,
+     "profit_top_30pct_vs_best_possible": 0.757
+    }
+   },
+   "reliability_t_learner": {
+    "by_decile": [
+     {
+      "decile": 1,
+      "predicted": -0.0021,
+      "true": 0.0137
+     },
+     {
+      "decile": 2,
+      "predicted": 0.0109,
+      "true": 0.0084
+     },
+     {
+      "decile": 3,
+      "predicted": 0.0149,
+      "true": 0.0111
+     },
+     {
+      "decile": 4,
+      "predicted": 0.0184,
+      "true": 0.0131
+     },
+     {
+      "decile": 5,
+      "predicted": 0.0224,
+      "true": 0.0167
+     },
+     {
+      "decile": 6,
+      "predicted": 0.027,
+      "true": 0.0213
+     },
+     {
+      "decile": 7,
+      "predicted": 0.0325,
+      "true": 0.0256
+     },
+     {
+      "decile": 8,
+      "predicted": 0.0409,
+      "true": 0.0349
+     },
+     {
+      "decile": 9,
+      "predicted": 0.0635,
+      "true": 0.0529
+     },
+     {
+      "decile": 10,
+      "predicted": 0.1643,
+      "true": 0.125
+     }
+    ],
+    "slope_true_on_predicted": 0.713
+   },
+   "holdout_only_check_t_learner": {
+    "top_30pct": {
+     "estimate": 0.0739,
+     "low_80": 0.0678,
+     "high_80": 0.08,
+     "truth": 0.071,
+     "truth_inside_80": true,
+     "held_out_visits": 3325
+    },
+    "bottom_70pct": {
+     "estimate": 0.0116,
+     "low_80": 0.0083,
+     "high_80": 0.0148,
+     "truth": 0.0157,
+     "truth_inside_80": false,
+     "held_out_visits": 7656
+    }
+   },
+   "evaluation_visits_shown": 97619,
+   "training_rows": 400960
+  },
+  {
+   "seed": 10,
+   "learners": {
+    "random": {
+     "corr_with_true_uplift": -0.002,
+     "normalised_qini": -0.003,
+     "share_of_extra_orders_in_top_30pct": 0.299,
+     "top_30pct_vs_oracle": 0.37,
+     "profit_top_30pct_vs_best_possible": 0.237
+    },
+    "response": {
+     "corr_with_true_uplift": 0.36,
+     "normalised_qini": 0.717,
+     "share_of_extra_orders_in_top_30pct": 0.678,
+     "top_30pct_vs_oracle": 0.839,
+     "profit_top_30pct_vs_best_possible": 0.699
+    },
+    "rule": {
+     "corr_with_true_uplift": -0.202,
+     "normalised_qini": -0.18,
+     "share_of_extra_orders_in_top_30pct": 0.259,
+     "top_30pct_vs_oracle": 0.321,
+     "profit_top_30pct_vs_best_possible": 0.273
+    },
+    "s_learner": {
+     "corr_with_true_uplift": 0.629,
+     "normalised_qini": 0.755,
+     "share_of_extra_orders_in_top_30pct": 0.684,
+     "top_30pct_vs_oracle": 0.847,
+     "profit_top_30pct_vs_best_possible": 0.741
+    },
+    "t_learner": {
+     "corr_with_true_uplift": 0.584,
+     "normalised_qini": 0.716,
+     "share_of_extra_orders_in_top_30pct": 0.668,
+     "top_30pct_vs_oracle": 0.827,
+     "profit_top_30pct_vs_best_possible": 0.758
+    },
+    "x_learner": {
+     "corr_with_true_uplift": 0.574,
+     "normalised_qini": 0.67,
+     "share_of_extra_orders_in_top_30pct": 0.644,
+     "top_30pct_vs_oracle": 0.798,
+     "profit_top_30pct_vs_best_possible": 0.705
+    },
+    "dr_learner": {
+     "corr_with_true_uplift": 0.503,
+     "normalised_qini": 0.646,
+     "share_of_extra_orders_in_top_30pct": 0.656,
+     "top_30pct_vs_oracle": 0.813,
+     "profit_top_30pct_vs_best_possible": 0.774
+    },
+    "oracle": {
+     "corr_with_true_uplift": 1.0,
+     "normalised_qini": 1.0,
+     "share_of_extra_orders_in_top_30pct": 0.807,
+     "top_30pct_vs_oracle": 1.0,
+     "profit_top_30pct_vs_best_possible": 0.774
+    }
+   },
+   "reliability_t_learner": {
+    "by_decile": [
+     {
+      "decile": 1,
+      "predicted": -0.0077,
+      "true": 0.0111
+     },
+     {
+      "decile": 2,
+      "predicted": 0.0047,
+      "true": 0.0087
+     },
+     {
+      "decile": 3,
+      "predicted": 0.0105,
+      "true": 0.0109
+     },
+     {
+      "decile": 4,
+      "predicted": 0.0161,
+      "true": 0.0135
+     },
+     {
+      "decile": 5,
+      "predicted": 0.0214,
+      "true": 0.0169
+     },
+     {
+      "decile": 6,
+      "predicted": 0.0269,
+      "true": 0.0201
+     },
+     {
+      "decile": 7,
+      "predicted": 0.0341,
+      "true": 0.0272
+     },
+     {
+      "decile": 8,
+      "predicted": 0.0441,
+      "true": 0.0356
+     },
+     {
+      "decile": 9,
+      "predicted": 0.0665,
+      "true": 0.0581
+     },
+     {
+      "decile": 10,
+      "predicted": 0.1446,
+      "true": 0.124
+     }
+    ],
+    "slope_true_on_predicted": 0.764
+   },
+   "holdout_only_check_t_learner": {
+    "top_30pct": {
+     "estimate": 0.0646,
+     "low_80": 0.0578,
+     "high_80": 0.0714,
+     "truth": 0.0727,
+     "truth_inside_80": false,
+     "held_out_visits": 3373
+    },
+    "bottom_70pct": {
+     "estimate": 0.0172,
+     "low_80": 0.0143,
+     "high_80": 0.02,
+     "truth": 0.0155,
+     "truth_inside_80": true,
+     "held_out_visits": 7701
+    }
+   },
+   "evaluation_visits_shown": 97742,
+   "training_rows": 397264
+  },
+  {
+   "seed": 11,
+   "learners": {
+    "random": {
+     "corr_with_true_uplift": 0.004,
+     "normalised_qini": 0.006,
+     "share_of_extra_orders_in_top_30pct": 0.301,
+     "top_30pct_vs_oracle": 0.372,
+     "profit_top_30pct_vs_best_possible": 0.238
+    },
+    "response": {
+     "corr_with_true_uplift": 0.379,
+     "normalised_qini": 0.72,
+     "share_of_extra_orders_in_top_30pct": 0.681,
+     "top_30pct_vs_oracle": 0.841,
+     "profit_top_30pct_vs_best_possible": 0.691
+    },
+    "rule": {
+     "corr_with_true_uplift": -0.202,
+     "normalised_qini": -0.185,
+     "share_of_extra_orders_in_top_30pct": 0.259,
+     "top_30pct_vs_oracle": 0.32,
+     "profit_top_30pct_vs_best_possible": 0.274
+    },
+    "s_learner": {
+     "corr_with_true_uplift": 0.618,
+     "normalised_qini": 0.754,
+     "share_of_extra_orders_in_top_30pct": 0.679,
+     "top_30pct_vs_oracle": 0.839,
+     "profit_top_30pct_vs_best_possible": 0.767
+    },
+    "t_learner": {
+     "corr_with_true_uplift": 0.587,
+     "normalised_qini": 0.723,
+     "share_of_extra_orders_in_top_30pct": 0.673,
+     "top_30pct_vs_oracle": 0.832,
+     "profit_top_30pct_vs_best_possible": 0.778
+    },
+    "x_learner": {
+     "corr_with_true_uplift": 0.538,
+     "normalised_qini": 0.587,
+     "share_of_extra_orders_in_top_30pct": 0.605,
+     "top_30pct_vs_oracle": 0.747,
+     "profit_top_30pct_vs_best_possible": 0.659
+    },
+    "dr_learner": {
+     "corr_with_true_uplift": 0.353,
+     "normalised_qini": 0.542,
+     "share_of_extra_orders_in_top_30pct": 0.605,
+     "top_30pct_vs_oracle": 0.748,
+     "profit_top_30pct_vs_best_possible": 0.733
+    },
+    "oracle": {
+     "corr_with_true_uplift": 1.0,
+     "normalised_qini": 1.0,
+     "share_of_extra_orders_in_top_30pct": 0.809,
+     "top_30pct_vs_oracle": 1.0,
+     "profit_top_30pct_vs_best_possible": 0.756
+    }
+   },
+   "reliability_t_learner": {
+    "by_decile": [
+     {
+      "decile": 1,
+      "predicted": -0.0083,
+      "true": 0.0099
+     },
+     {
+      "decile": 2,
+      "predicted": 0.0032,
+      "true": 0.0081
+     },
+     {
+      "decile": 3,
+      "predicted": 0.009,
+      "true": 0.0107
+     },
+     {
+      "decile": 4,
+      "predicted": 0.0138,
+      "true": 0.0134
+     },
+     {
+      "decile": 5,
+      "predicted": 0.0185,
+      "true": 0.0171
+     },
+     {
+      "decile": 6,
+      "predicted": 0.0239,
+      "true": 0.0209
+     },
+     {
+      "decile": 7,
+      "predicted": 0.0314,
+      "true": 0.0248
+     },
+     {
+      "decile": 8,
+      "predicted": 0.0469,
+      "true": 0.0358
+     },
+     {
+      "decile": 9,
+      "predicted": 0.067,
+      "true": 0.0539
+     },
+     {
+      "decile": 10,
+      "predicted": 0.1525,
+      "true": 0.1264
+     }
+    ],
+    "slope_true_on_predicted": 0.74
+   },
+   "holdout_only_check_t_learner": {
+    "top_30pct": {
+     "estimate": 0.0691,
+     "low_80": 0.0626,
+     "high_80": 0.0757,
+     "truth": 0.0719,
+     "truth_inside_80": true,
+     "held_out_visits": 3300
+    },
+    "bottom_70pct": {
+     "estimate": 0.012,
+     "low_80": 0.009,
+     "high_80": 0.0151,
+     "truth": 0.015,
+     "truth_inside_80": true,
+     "held_out_visits": 7865
+    }
+   },
+   "evaluation_visits_shown": 98683,
+   "training_rows": 406088
+  }
+ ]
+}

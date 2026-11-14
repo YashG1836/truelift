@@ -1,0 +1,144 @@
+# Every number the documents state about the results, and where it comes from (audit A07 R1).
+# `python scripts/check_claims.py` computes each `expr` from reports/ (ev = evaluation.json,
+# criteo / hill = uplift_validation_*.json, pilot = pilot_sample_size.json, bench = learner_benchmark.json,
+# exp(name) = exp_<name>.json result, ex / pre = the money
+# example with commission after / before the discount, from truelift/economics.py), formats it,
+# and checks that every listed document contains `text` with the number in place of {}.
+# Generated tables (render_tables.py markers) are checked by `render_tables.py --check` instead.
+
+claims:
+  # ---- the money of one order (truelift/economics.py)
+  - {id: keeps_discounted, expr: "ex.per_order_discounted.restaurant_profit", format: inr2, text: "f = 1 − {} / ₹134", docs: [docs/method_and_evidence.md]}
+  - {id: keeps_full, expr: "ex.per_order_full.restaurant_profit", format: inr, text: "₹91.70 / {} = 31.6%", docs: [docs/method_and_evidence.md]}
+  - {id: break_even_15, expr: "1 - ex.per_order_discounted.restaurant_profit / ex.per_order_full.restaurant_profit", format: pct1, text: "/ ₹134 = {}", docs: [docs/method_and_evidence.md]}
+  - {id: break_even_10, expr: "ex.break_even[0]['extra_share_needed']", format: pct0, text: "| 10% (₹40) | {} |", docs: [docs/method_and_evidence.md]}
+  - {id: break_even_15_row, expr: "ex.break_even[1]['extra_share_needed']", format: pct0, text: "| 15% (₹60) | {} |", docs: [docs/method_and_evidence.md]}
+  - {id: break_even_20, expr: "ex.break_even[2]['extra_share_needed']", format: pct0, text: "| 20% (₹80) | {} |", docs: [docs/method_and_evidence.md]}
+  - {id: break_even_25, expr: "ex.break_even[3]['extra_share_needed']", format: pct0, text: "| 25% (₹100) | {} |", docs: [docs/method_and_evidence.md]}
+  - {id: pre_discount_keeps, expr: "pre.per_order_discounted.restaurant_profit", format: inr, text: "off leaves {} and the break-even rises", docs: [docs/method_and_evidence.md]}
+  - {id: pre_discount_break_even, expr: "1 - pre.per_order_discounted.restaurant_profit / pre.per_order_full.restaurant_profit", format: pct0, text: "the break-even rises to {}", docs: [docs/method_and_evidence.md]}
+  - {id: pct_small_order, expr: "ex.pct_example.rows[0]['extra_share_needed']", format: pct0, text: "pays only if {} of the ₹150 orders using it are extra", docs: [docs/method_and_evidence.md]}
+  - {id: pct_usual_order, expr: "ex.pct_example.rows[2]['extra_share_needed']", format: pct0, text: "against {} of the ₹400 ones", docs: [docs/method_and_evidence.md]}
+  - {id: pct_large_order, expr: "ex.pct_example.rows[3]['extra_share_needed']", format: pct0, text: "and {} of the ₹600 ones", docs: [docs/method_and_evidence.md]}
+  - {id: r1_blanket_restaurant, expr: "ex.blanket.restaurant_change", format: inr_signed, text: "the restaurant makes {} a week and Zomato's commission", docs: [docs/method_and_evidence.md]}
+  - {id: r1_blanket_zomato, expr: "ex.blanket.zomato_change", format: inr, text: "Zomato's commission rises by {};", docs: [docs/method_and_evidence.md]}
+  - {id: r1_blanket_spend, expr: "ex.blanket.discount_spend", format: inr, text: "{} of discounts buy 30 extra orders", docs: [docs/method_and_evidence.md]}
+  - {id: r1_blanket_per_extra, expr: "ex.blanket.discount_per_extra_order", format: inr, text: "30 extra orders, {} per extra order", docs: [docs/method_and_evidence.md]}
+  - {id: r1_truelift_restaurant, expr: "ex.truelift.restaurant_change", format: inr_signed, text: "the restaurant makes {} and Zomato", docs: [docs/method_and_evidence.md]}
+  - {id: r1_truelift_zomato, expr: "ex.truelift.zomato_change", format: inr_signed, text: "and Zomato {},", docs: [docs/method_and_evidence.md]}
+  - {id: r1_truelift_per_extra, expr: "ex.truelift.discount_per_extra_order", format: inr, text: "{} per extra order. Gross commission", docs: [docs/method_and_evidence.md]}
+
+  # ---- how precise one restaurant's own control group is (+3 points on 7%, 1,000 visits a week)
+  - {id: precision_1w, expr: "precision_95(0.07, 0.10, 1000, 0.10)", format: f1, text: "| 10% holdout, 1 week | ±{} points", docs: [docs/method_and_evidence.md]}
+  - {id: precision_4w, expr: "precision_95(0.07, 0.10, 1000, 0.10, 4)", format: f1, text: "| 10% holdout, 4 weeks | ±{} points", docs: [docs/method_and_evidence.md]}
+  - {id: precision_20pct_4w, expr: "precision_95(0.07, 0.10, 1000, 0.20, 4)", format: f1, text: "| 20% holdout, 4 weeks | ±{} points", docs: [docs/method_and_evidence.md]}
+  - {id: precision_pooled, expr: "precision_95(0.07, 0.10, 50000, 0.10)", format: f1, text: "pooled, 1 week | ±{} points", docs: [docs/method_and_evidence.md]}
+
+  # ---- the simulated market (reports/evaluation.json)
+  - {id: tl_pay, expr: "ev.main.policies.truelift.offers_that_pay", text: "{} of TrueLift's 228 offers pay", docs: [docs/method_and_evidence.md]}
+  - {id: tl_offers, expr: "ev.main.policies.truelift.restaurants_with_offer", text: "218 of TrueLift's {} offers pay", docs: [docs/method_and_evidence.md]}
+  - {id: bl_pay, expr: "ev.main.policies.today_blanket.offers_that_pay", text: "against {} of 300 blanket offers", docs: [docs/method_and_evidence.md]}
+  - {id: tl_no_offer, expr: "ev.main.selection.no_offer_chosen", text: "no discount at the other {} restaurants", docs: [docs/method_and_evidence.md]}
+  - {id: bl_anyway, expr: "ev.main.policies.today_blanket.anyway_share_of_redemptions", format: pct0, text: "Of the orders using a blanket offer, {} would have come anyway", docs: [docs/method_and_evidence.md]}
+  - {id: tl_anyway, expr: "ev.main.policies.truelift.anyway_share_of_redemptions", format: pct0, text: "with TrueLift, {}.", docs: [docs/method_and_evidence.md]}
+  - {id: seeds_less_discount, expr: "-ev.seeds.differences.truelift_minus_today_blanket.customer_savings.mean / 1e5", text: "about ₹{} lakh a week less discount", docs: [docs/method_and_evidence.md]}
+  - {id: bl_lose, expr: "ev.main.policies.today_blanket.offers_that_lose", text: "{} of the 300 blanket offers lose their restaurant money", docs: [docs/method_and_evidence.md]}
+  - {id: tl_platform_share, expr: "ev.main.zomato_ledger.platform_incremental_share_of_extra_orders.truelift", format: pct0, text: "{} are extra for Zomato as a whole", docs: [docs/method_and_evidence.md]}
+  - {id: bl_platform_share, expr: "ev.main.zomato_ledger.platform_incremental_share_of_extra_orders.today_blanket", format: pct0, text: "For blanket offers the share is {}.", docs: [docs/method_and_evidence.md]}
+  - {id: tl_swiggy_loyal, expr: "ev.main.policies.truelift.swiggy_share_loyal", format: pct1, text: "({} of their visits against 7.7%)", docs: [docs/method_and_evidence.md]}
+  - {id: bl_swiggy_loyal, expr: "ev.main.policies.today_blanket.swiggy_share_loyal", format: pct1, text: "of their visits against {})", docs: [docs/method_and_evidence.md]}
+  - {id: no_offer_swiggy_loyal, expr: "ev.main.policies.no_offer.swiggy_share_loyal", format: pct1, text: "with no offers at all ({})", docs: [docs/method_and_evidence.md]}
+  - {id: control_group_profit, expr: "ev.main.zomato_ledger.control_group_cost_truelift.profit_forgone_a_week", format: inr, text: "gives up {} of restaurant profit a week", docs: [docs/method_and_evidence.md]}
+  - {id: control_group_orders, expr: "ev.main.zomato_ledger.control_group_cost_truelift.orders_forgone_a_week", text: "across the market ({} orders)", docs: [docs/method_and_evidence.md]}
+  - {id: cofund_transfer, expr: "ev.main.zomato_ledger.cofunding.extra_zomato_funded_discount", format: inr, text: "costs Zomato {} a week and creates no extra order", docs: [docs/method_and_evidence.md]}
+  - {id: cofund_no_order, expr: "ev.main.zomato_ledger.cofunding.extra_platform_incremental_orders", text: "creates no extra order", docs: [docs/method_and_evidence.md], note: "holds only while the value is 0"}
+  - {id: forecast_ratio, expr: "ev.main.forecast.truelift_design_in_todays_market.ratio_forecast_to_truth", format: pct0, text: "forecasts add up to {} of the true effect", docs: [docs/method_and_evidence.md]}
+  - {id: forecast_coverage, expr: "ev.main.forecast.truelift_design_in_todays_market.coverage_80", format: pct0, text: "{} of the true effects fall inside the 80% ranges", docs: [docs/method_and_evidence.md]}
+  - {id: forecast_sign, expr: "ev.main.forecast.truelift_design_in_todays_market.sign_right", format: pct0, text: "the sign is right for {} of offers", docs: [docs/method_and_evidence.md]}
+  - {id: selection_truly_better, expr: "ev.main.selection.share_truly_better_than_owner", format: pct0, text: "For {} of restaurants it does", docs: [docs/method_and_evidence.md]}
+  - {id: selection_inflation, expr: "ev.main.selection.forecast_advantage_total / ev.main.selection.true_advantage_total", format: word, text: "about {} times its true advantage", docs: [docs/method_and_evidence.md]}
+  - {id: selection_stated, expr: "ev.main.selection.forecast_advantage_total", format: lakh2, text: "({} against ₹0.28 lakh a week", docs: [docs/method_and_evidence.md]}
+  - {id: selection_true, expr: "ev.main.selection.true_advantage_total", format: lakh2, text: "against {} a week across the market", docs: [docs/method_and_evidence.md]}
+  - {id: aa_4_looks, expr: "ev.main.aa_test.lifetime_false_pause_4_looks", format: pct1, text: "paused in {} of cases over a four-week approval", docs: [docs/method_and_evidence.md]}
+  - {id: aa_4_looks_before, expr: "ev.main.aa_test.lifetime_false_pause_4_looks_rule_before", format: pct1, text: "paused {}), and", docs: [docs/method_and_evidence.md]}
+  - {id: aa_12_looks, expr: "ev.main.aa_test.lifetime_false_pause_12_looks", format: pct1, text: "in {} over twelve weekly looks", docs: [docs/method_and_evidence.md]}
+  - {id: aa_12_looks_before, expr: "ev.main.aa_test.lifetime_false_pause_12_looks_rule_before", format: pct1, text: "({} before)", docs: [docs/method_and_evidence.md]}
+  - {id: uplift_corr, expr: "ev.main.uplift_quality.corr_with_true_uplift", format: f2, text: "correlates {} with the true uplift", docs: [docs/method_and_evidence.md]}
+  - {id: uplift_qini, expr: "ev.main.uplift_quality.qini_model", format: f2, text: "(Qini {}, where 0 is a random ranking)", docs: [docs/method_and_evidence.md]}
+
+  # ---- real randomised data (reports/uplift_validation_*.json)
+  - {id: criteo_rows, expr: "round(criteo.rows / 1e6)", text: "Criteo's advertising tests ({} million users", docs: [docs/method_and_evidence.md]}
+  - {id: hillstrom_rows, expr: "round(hill.rows, -3)", format: int, text: "({} customers, with what they spent)", docs: [docs/method_and_evidence.md]}
+  - {id: hillstrom_test_rows, expr: "round(hill.results[0]['test_rows'], -3)", format: int, text: "with about {} test customers per e-mail", docs: [docs/method_and_evidence.md]}
+
+  # ---- the pilot (reports/pilot_sample_size.json)
+  - {id: pilot_per_arm, expr: "pilot.restaurants_per_arm", format: int, text: "the pilot needs {} restaurants in each half", docs: [docs/integration_blueprint.md]}
+  - {id: pilot_total, expr: "pilot.restaurants_total", format: int, text: "restaurants in each half, {} in all", docs: [docs/integration_blueprint.md]}
+  - {id: pilot_cluster_low, expr: "pilot.if_whole_localities_are_randomised['icc_0.01']['restaurants_per_arm']", format: int, text: "between {} and", docs: [docs/integration_blueprint.md]}
+  - {id: pilot_cluster_high, expr: "pilot.if_whole_localities_are_randomised['icc_0.10']['restaurants_per_arm']", format: int, text: "and {} per half", docs: [docs/integration_blueprint.md]}
+
+  # ---- experiments and benchmark (reports/exp_*.json, learner_benchmark.json)
+  - {id: depth_owner_own, expr: "exp('depth_choice').owner_size_kept.own_offer_profit_effect", format: lakh2, text: "own offers from {} to ₹9.57 lakh a week", docs: [docs/method_and_evidence.md]}
+  - {id: depth_model_own, expr: "exp('depth_choice').model_picks_size.own_offer_profit_effect", format: lakh2, text: "from ₹7.89 lakh to {} a week", docs: [docs/method_and_evidence.md]}
+  - {id: depth_market_gain, expr: "exp('depth_choice').model_picks_size.restaurant_profit_change - exp('depth_choice').owner_size_kept.restaurant_profit_change", format: lakh2, text: "across the market by only {}", docs: [docs/method_and_evidence.md]}
+  - {id: depth_lose_before, expr: "exp('depth_choice').owner_size_kept.offers_that_lose", text: "the offers that lose money rise from {} to 28", docs: [docs/method_and_evidence.md]}
+  - {id: depth_lose_after, expr: "exp('depth_choice').model_picks_size.offers_that_lose", text: "lose money rise from 10 to {}", docs: [docs/method_and_evidence.md]}
+  - {id: depth_test_right, expr: "exp('depth_test').share_picking_the_truly_better_size", format: pct0, text: "pick the truly better size {} of the time", docs: [docs/method_and_evidence.md]}
+  - {id: depth_test_small, expr: "exp('depth_test').share_right_smaller_half", format: pct0, text: "and only {} for the smaller half of restaurants", docs: [docs/method_and_evidence.md]}
+  - {id: noise_cut, expr: "exp('variance_reduction').noise_cut", format: pct0, text: "cuts the noise of an offer's own estimate by {}", docs: [docs/method_and_evidence.md]}
+  - {id: draws_bias, expr: "exp('holdout_draws').mean_error_rs", format: inr, text: "over-states the truth by {} an offer on average", docs: [docs/method_and_evidence.md]}
+  - {id: draws_bias_se, expr: "exp('holdout_draws').mean_error_se_rs", format: inr, text: "(standard error {})", docs: [docs/method_and_evidence.md]}
+  - {id: draws_coverage, expr: "exp('holdout_draws').coverage_80", format: pct0, text: "holds the truth {} of the time (`reports/exp_holdout_draws.json`)", docs: [docs/method_and_evidence.md]}
+  - {id: bench_t_profit, expr: "bench.summary.t_learner.profit_top_30pct_vs_best_possible.mean", format: pct0, text: "top 30% of any learner ({} of the best possible)", docs: [docs/method_and_evidence.md]}
+  - {id: bench_response_profit, expr: "bench.summary.response.profit_top_30pct_vs_best_possible.mean", format: pct0, text: "against {} for ranking by who is likely to order anyway", docs: [docs/method_and_evidence.md]}
+  - {id: oracle_share, expr: "exp('oracle').share_of_oracle_gain_over_blanket_captured", format: pct0, text: "targeting captures {} of what an oracle", docs: [docs/method_and_evidence.md]}
+
+  # ---- the README's three numbers
+  - {id: readme_tl_pay, expr: "ev.main.policies.truelift.offers_that_pay", text: "**{} of 228** TrueLift offers pay", docs: [README.md]}
+  - {id: readme_tl_offers, expr: "ev.main.policies.truelift.restaurants_with_offer", text: "**218 of {}** TrueLift offers", docs: [README.md]}
+  - {id: readme_bl_pay, expr: "ev.main.policies.today_blanket.offers_that_pay", text: "against **{} of 300** blanket offers", docs: [README.md]}
+  - {id: readme_tl_market, expr: "ev.main.policies.truelift.restaurant_profit_change", format: lakh2, text: "Restaurants make **+{}** more than with no offers", docs: [README.md]}
+  - {id: readme_bl_market, expr: "ev.main.policies.today_blanket.restaurant_profit_change", format: lakh2, text: "against +{} with blanket offers", docs: [README.md]}
+  - {id: readme_less_discount, expr: "ev.main.policies.today_blanket.customer_savings - ev.main.policies.truelift.customer_savings", format: lakh2, text: "giving **{} less discount**", docs: [README.md]}
+  - {id: readme_tl_commission, expr: "ev.main.policies.truelift.zomato_commission_change", format: lakh2, text: "(+{} against +₹6.45 lakh)", docs: [README.md]}
+  - {id: readme_bl_commission, expr: "ev.main.policies.today_blanket.zomato_commission_change", format: lakh2, text: "against +{}), and in every one of five", docs: [README.md]}
+  - {id: readme_seeds_commission, expr: "len(ev.seeds.seeds) if ev.seeds.differences.truelift_minus_today_blanket.zomato_commission_change.same_sign_every_seed else -1", format: word, text: "in every one of {} market seeds", docs: [README.md]}
+  - {id: method_seeds_count, expr: "len(ev.seeds.seeds) if all(v['same_sign_every_seed'] for k, v in ev.seeds.differences.truelift_minus_today_blanket.items() if k != 'customer_savings') else -1", format: word, text: "across {} market seeds TrueLift beats blanket offers", docs: [docs/method_and_evidence.md]}
+
+  # ---- DEVLOG corrections (current values)
+  - {id: devlog_depth_model, expr: "exp('depth_choice').model_picks_size.own_offer_profit_effect", format: lakh2, text: "raises own-offer profit ({} against ₹7.89 lakh)", docs: [DEVLOG.md]}
+  - {id: devlog_depth_owner, expr: "exp('depth_choice').owner_size_kept.own_offer_profit_effect", format: lakh2, text: "against {}) and market-wide profit", docs: [DEVLOG.md]}
+  - {id: devlog_depth_lose, expr: "exp('depth_choice').model_picks_size.offers_that_lose", text: "losing offers rise from 10 to {}", docs: [DEVLOG.md]}
+  - {id: devlog_tl_pay, expr: "ev.main.policies.truelift.offers_that_pay", text: "{} of 228 TrueLift offers pay", docs: [DEVLOG.md]}
+  - {id: devlog_rule_pay, expr: "ev.main.policies.rule_new_customers.offers_that_pay", text: "the rule {} of 300", docs: [DEVLOG.md]}
+  - {id: devlog_topup, expr: "ev.main.calibration.topup_value", format: f2, text: "| {} | Fitted on menu visits", docs: [DEVLOG.md]}
+  - {id: devlog_noise_cut, expr: "exp('variance_reduction').noise_cut", format: pct0, text: "| {} on the full market |", docs: [DEVLOG.md]}
+  - {id: devlog_cov_1, expr: "ev.main.measurement.after_1_weeks.coverage_80", format: pct0, text: "| {} after one week", docs: [DEVLOG.md]}
+  - {id: devlog_cov_2, expr: "ev.main.measurement.after_2_weeks.coverage_80", format: pct0, text: "after one week, {} after two", docs: [DEVLOG.md]}
+  - {id: devlog_cov_4, expr: "ev.main.measurement.after_4_weeks.coverage_80", format: pct0, text: "after two, {} after four", docs: [DEVLOG.md]}
+  - {id: devlog_keep_1, expr: "ev.main.measurement.after_1_weeks.said_keep_and_truly_positive", text: "| {} of 142 after one week", docs: [DEVLOG.md]}
+  - {id: devlog_keep_1_total, expr: "ev.main.measurement.after_1_weeks.verdicts.keep", text: "140 of {} after one week", docs: [DEVLOG.md]}
+  - {id: devlog_keep_4, expr: "ev.main.measurement.after_4_weeks.said_keep_and_truly_positive", text: "{} of 111 after four", docs: [DEVLOG.md]}
+  - {id: devlog_draws_bias, expr: "exp('holdout_draws').mean_error_rs", format: inr, text: "over-states the truth by {} an offer (standard error", docs: [DEVLOG.md]}
+  - {id: devlog_draws_se, expr: "exp('holdout_draws').mean_error_se_rs", format: inr, text: "(standard error {})", docs: [DEVLOG.md]}
+  - {id: devlog_cofund, expr: "ev.main.zomato_ledger.cofunding.extra_zomato_funded_discount", format: inr, text: "| {} a week and no extra order", docs: [DEVLOG.md]}
+  - {id: devlog_criteo_t, expr: "criteo.results[0]['rankings']['t_learner']['top30_share_of_total_lift']['value']", format: pct0, text: "| {} still, but ranking by likely visitors", docs: [DEVLOG.md]}
+  - {id: devlog_criteo_r, expr: "criteo.results[0]['rankings']['response']['top30_share_of_total_lift']['value']", format: pct0, text: "likely visitors also finds {}", docs: [DEVLOG.md]}
+  - {id: devlog_criteo_conv_t, expr: "criteo.results[1]['rankings']['t_learner']['top30_share_of_total_lift']['value']", format: pct0, text: "on purchases {} against 92%", docs: [DEVLOG.md]}
+  - {id: devlog_criteo_conv_r, expr: "criteo.results[1]['rankings']['response']['top30_share_of_total_lift']['value']", format: pct0, text: "against {} for that ranking", docs: [DEVLOG.md]}
+  - {id: devlog_criteo_qini, expr: "criteo.results[0]['rankings']['t_learner']['qini_auc_score']['value']", format: f3, text: "Qini as scikit-uplift defines it: {}", docs: [DEVLOG.md]}
+  - {id: devlog_brand_pack, expr: "ev.main.truelift_designs.brand_pack", text: "| {} | Selection now needs", docs: [DEVLOG.md]}
+
+  # ---- the team's shared state (.claude/context/STATE.md)
+  - {id: state_cov_1, expr: "ev.main.measurement.after_1_weeks.coverage_80", format: pct0, text: "80% range {} / 87% / 90%", docs: [.claude/context/STATE.md]}
+  - {id: state_cov_2, expr: "ev.main.measurement.after_2_weeks.coverage_80", format: pct0, text: "79% / {} / 90%", docs: [.claude/context/STATE.md]}
+  - {id: state_cov_4, expr: "ev.main.measurement.after_4_weeks.coverage_80", format: pct0, text: "87% / {} after weeks", docs: [.claude/context/STATE.md]}
+  - {id: state_keep_1, expr: "ev.main.measurement.after_1_weeks.said_keep_and_truly_positive", text: "truly positive {} of 142", docs: [.claude/context/STATE.md]}
+  - {id: state_keep_2, expr: "ev.main.measurement.after_2_weeks.said_keep_and_truly_positive", text: "/ {} of 114 /", docs: [.claude/context/STATE.md]}
+  - {id: state_keep_4, expr: "ev.main.measurement.after_4_weeks.said_keep_and_truly_positive", text: "/ {} of 111;", docs: [.claude/context/STATE.md]}
+  - {id: state_aa, expr: "ev.main.aa_test.lifetime_false_pause_4_looks", format: pct1, text: "placebo offers paused {} over four", docs: [.claude/context/STATE.md]}
+  - {id: state_selection, expr: "ev.main.selection.share_truly_better_than_owner", format: pct0, text: "owner's at {} of restaurants", docs: [.claude/context/STATE.md]}
+  - {id: state_inflation, expr: "ev.main.selection.forecast_advantage_total / ev.main.selection.true_advantage_total", format: word, text: "about {} times its true one", docs: [.claude/context/STATE.md]}
+  - {id: state_criteo_conv_t, expr: "criteo.results[1]['rankings']['t_learner']['top30_share_of_total_lift']['value']", format: pct0, text: "purchases T-learner {} vs the shortcut", docs: [.claude/context/STATE.md]}
+  - {id: state_criteo_conv_r, expr: "criteo.results[1]['rankings']['response']['top30_share_of_total_lift']['value']", format: pct0, text: "vs the shortcut {};", docs: [.claude/context/STATE.md]}
+  - {id: state_draws_bias, expr: "round(exp('holdout_draws').mean_error_rs, -1)", format: inr, text: "over-states the truth by about {} an offer", docs: [.claude/context/STATE.md]}

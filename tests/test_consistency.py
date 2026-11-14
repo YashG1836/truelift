@@ -176,3 +176,18 @@ def test_renewal_shows_the_measured_evidence_and_keeps_the_control_group(client,
     for c in both:  # a customer seen in both periods is held out in both or in neither
         held_now = (new_ex.loc[new_ex["customer_id"] == c, "assignment"] == "control").any()
         assert held_now == (c in old_held)
+
+
+def test_demo_week_of_one_restaurant_equals_the_full_market(client, state, session_headers):
+    """The demo simulates only the occasions in which the offer's restaurant was opened; its rows
+    must be exactly those of a full-market week (same visits, outcomes, truth and visit ids)."""
+    from truelift.demo import week_rows
+
+    for design in ({**DESIGN, "audience": "all"}, DESIGN, {**DESIGN, "discount": 60, "pct": 0.3}):
+        oid = approved_offer(client, session_headers, design=design)["offer_id"]
+        off = _offer(state, session_headers, oid)
+        for w in (1, 3):
+            fast, fast_el = week_rows(state, off, w)
+            full, full_el = week_rows(state, off, w, full_market=True)
+            pd.testing.assert_frame_equal(fast, full)
+            pd.testing.assert_frame_equal(fast_el, full_el)

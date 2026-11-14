@@ -547,3 +547,33 @@ def test_static_export_keys_match_the_page(client):
     assert len(flat) == len(pct) == 32 * len(card["design_options"]["depths"])
     assert key({**DESIGN, "discount": 60}) == "60-0-targeted-0-0"
     assert key({**DESIGN, "discount": 60, "pct": 0.3}) == "60p30-0-targeted-0-0"
+
+
+def test_committed_openapi_contract_is_current():
+    """docs/openapi.json is the contract Zomato's engineers would read (integration blueprint); it must
+    be the one the service serves. Regenerate with `python tasks.py openapi`."""
+    import json
+    from pathlib import Path
+
+    from truelift.api import app
+
+    committed = json.loads((Path(__file__).resolve().parents[1] / "docs/openapi.json").read_text(encoding="utf-8"))
+    assert committed == json.loads(json.dumps(app.openapi(), ensure_ascii=False))
+
+
+def test_small_groups_order_counts_stay_hidden(client, session_headers):
+    """Privacy (A13 F4): an owner never sees order counts for a group of fewer than 20 customers."""
+    off = approved_offer(client, session_headers, design={**DESIGN, "audience": "all"})
+    seen = set()
+    for w in range(1, 5):
+        e = client.post(f"/api/v1/offers/{off['offer_id']}/run_week", params={"week": w}, headers=session_headers)
+        wk = e.json()["weeks"][-1]
+        x = wk["experiment"]
+        small = min(x["shown_customers"], x["control_customers"]) < x["min_group_customers"]
+        assert x["suppressed"] == small
+        assert (x["shown_orders"] is None) == small and (x["control_orders"] is None) == small
+        assert x["shown_visits"] == wk["measurement"]["shown_visits"]
+        seen.add(small)
+        if e.json()["status"] != "active":
+            break
+    assert seen  # at least one week checked

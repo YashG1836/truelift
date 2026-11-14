@@ -385,7 +385,7 @@ function forecastHTML(q) {
   return `<div class="card ${o.profit_change < 0 ? "warn" : ""}" id="ownerCard"><div class="eyebrow">Forecast for your offer · one week</div>
       ${forecastBlock(o)}<p class="note">${why}</p></div>
     ${b ? `<div class="card better" id="betterCard"><div class="eyebrow">TrueLift suggests</div><h4>${esc(b.label)}</h4>
-      <p class="note"><b class="pos">about ${approx(b.profit_change - o.profit_change)} more a week</b> than your version, same discount size. Best of ${q.designs_compared} versions compared, so the gain may be smaller in practice. TrueLift picks the version that earns <i>you</i> the most; it does not weigh Zomato's commission.</p>
+      <p class="note"><b class="pos">about ${approx(b.profit_change - o.profit_change)} more a week</b> than your version, same discount size. Best of ${q.designs_compared} versions compared, so the gain may be smaller in practice (<a href="#tab=evidence">how much smaller</a>). TrueLift picks the version that earns <i>you</i> the most; it does not weigh Zomato's commission.</p>
       ${forecastBlock(b)}<button class="btn small" data-act="useBetter">Use this version</button></div>`
       : `<div class="card"><p class="note">This is already the best of the ${q.designs_compared} versions compared (who sees it, minimum order, time, Brand Pack). The discount size is yours to choose.</p></div>`}`;
 }
@@ -538,8 +538,9 @@ function weekHTML(w, off) {
       <div class="note"><b>Today's offer report would show ${n0(r.orders_with_offer)} orders</b> using the offer (${inr(r.sales_from_offer)} of sales). TrueLift's measurement says about ${n0(Math.max(o.total, 0))} of them would not have happened without it.</div></div>
     <details id="howKnow"><summary>Show me how you know</summary>
       <p class="note">Customers who could get the offer were split at random: most saw it, about 1 in ${oneIn()} did not. The difference in how often each group ordered is what the offer added.</p>
+      ${e.suppressed ? `<p class="note">One group has fewer than ${e.min_group_customers} customers so far (${n0(e.shown_customers)} saw the offer, ${n0(e.control_customers)} were held out), so its order counts stay hidden to protect them. The estimate above still uses every visit.</p>` : `
       <div class="row"><span class="k">Saw the offer</span><span class="v">${n0(e.shown_orders)} orders from ${n0(e.shown_visits)} visits (${rate(e.shown_orders, e.shown_visits)})</span></div>
-      <div class="row"><span class="k">Held out (control group)</span><span class="v">${n0(e.control_orders)} orders from ${n0(e.control_visits)} visits (${rate(e.control_orders, e.control_visits)})</span></div>
+      <div class="row"><span class="k">Held out (control group)</span><span class="v">${n0(e.control_orders)} orders from ${n0(e.control_visits)} visits (${rate(e.control_orders, e.control_visits)})</span></div>`}
       <p class="note">With few held-out visits the comparison is noisy, so the estimate also leans on the model learned from all restaurants (${pct(p.weight_on_own_data)} of the weight is on your own control group now).</p></details>
     ${(() => { const wa = (LANG.code !== "en" && w.whatsapp_i18n?.[LANG.code]) || w.whatsapp; return `<details><summary>WhatsApp summary sent to the owner${wa !== w.whatsapp ? " (draft translation)" : ""}</summary><div class="wa" lang="${wa !== w.whatsapp ? LANG.code : "en"}">${esc(wa)}</div>
       <a class="btn small ghost" href="https://wa.me/?text=${encodeURIComponent(wa)}" target="_blank" rel="noopener noreferrer">Send to my WhatsApp</a></details>`; })()}

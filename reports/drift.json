@@ -1,0 +1,212 @@
+{
+ "psi_watch": 0.1,
+ "psi_fail": 0.25,
+ "features": {
+  "c_orders_pw": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.7941,
+    "mean_here": 0.7953
+   },
+   "evaluation": {
+    "psi": 0.0276,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.7941,
+    "mean_here": 0.7317
+   }
+  },
+  "c_disc_share": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0075,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.3446,
+    "mean_here": 0.3159
+   },
+   "evaluation": {
+    "psi": 0.1269,
+    "share_outside_training": 0.0,
+    "status": "watch",
+    "mean_training": 0.3446,
+    "mean_here": 0.2296
+   }
+  },
+  "c_weeks_since": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 2.5925,
+    "mean_here": 2.5927
+   },
+   "evaluation": {
+    "psi": 0.0685,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 2.5925,
+    "mean_here": 3.0907
+   }
+  },
+  "c_sessions_pw": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 1.3777,
+    "mean_here": 1.3793
+   },
+   "evaluation": {
+    "psi": 0.0526,
+    "share_outside_training": 9e-05,
+    "status": "pass",
+    "mean_training": 1.3777,
+    "mean_here": 1.2738
+   }
+  },
+  "c_no_order_8w": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.0573,
+    "mean_here": 0.0565
+   },
+   "evaluation": {
+    "psi": 0.0674,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.0573,
+    "mean_here": 0.1312
+   }
+  },
+  "cr_orders_4w": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.2358,
+    "mean_here": 0.2366
+   },
+   "evaluation": {
+    "psi": 0.0007,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.2358,
+    "mean_here": 0.2169
+   }
+  },
+  "cr_orders_all": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.4703,
+    "mean_here": 0.4707
+   },
+   "evaluation": {
+    "psi": 0.0011,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 0.4703,
+    "mean_here": 0.4345
+   }
+  },
+  "cr_visits_4w": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 1.4716,
+    "mean_here": 1.4743
+   },
+   "evaluation": {
+    "psi": 0.0102,
+    "share_outside_training": 1e-05,
+    "status": "pass",
+    "mean_training": 1.4716,
+    "mean_here": 1.3594
+   }
+  },
+  "cr_weeks_since": {
+   "discrete": true,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 8.2341,
+    "mean_here": 8.2299
+   },
+   "evaluation": {
+    "psi": 0.001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 8.2341,
+    "mean_here": 8.2896
+   }
+  },
+  "r_rating": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 3.8831,
+    "mean_here": 3.8832
+   },
+   "evaluation": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 3.8831,
+    "mean_here": 3.8822
+   }
+  },
+  "r_aov": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 434.0922,
+    "mean_here": 434.2853
+   },
+   "evaluation": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 434.0922,
+    "mean_here": 434.3437
+   }
+  },
+  "r_logvotes": {
+   "discrete": false,
+   "quote_input": {
+    "psi": 0.0,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 5.9088,
+    "mean_here": 5.9107
+   },
+   "evaluation": {
+    "psi": 0.0001,
+    "share_outside_training": 0.0,
+    "status": "pass",
+    "mean_training": 5.9088,
+    "mean_here": 5.9078
+   }
+  }
+ },
+ "worst_psi": 0.1269,
+ "passed": true
+}

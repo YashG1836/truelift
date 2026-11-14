@@ -1,0 +1,283 @@
+{
+ "limit": 0.005,
+ "features": {
+  "c_orders_pw": {
+   "train_quantiles": [
+    0.0,
+    0.5,
+    2.25
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.5,
+     2.25
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.5,
+     2.25
+    ]
+   }
+  },
+  "c_disc_share": {
+   "train_quantiles": [
+    0.0,
+    0.25,
+    1.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.2,
+     1.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  },
+  "c_weeks_since": {
+   "train_quantiles": [
+    1.0,
+    2.0,
+    9.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     1.0,
+     2.0,
+     9.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     1.0,
+     2.0,
+     9.0
+    ]
+   }
+  },
+  "c_sessions_pw": {
+   "train_quantiles": [
+    0.25,
+    1.25,
+    3.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.25,
+     1.25,
+     3.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 9e-05,
+    "quantiles": [
+     0.0,
+     1.25,
+     2.75
+    ]
+   }
+  },
+  "c_no_order_8w": {
+   "train_quantiles": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  },
+  "cr_orders_4w": {
+   "train_quantiles": [
+    0.0,
+    0.0,
+    1.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     1.0
+    ]
+   }
+  },
+  "cr_orders_all": {
+   "train_quantiles": [
+    0.0,
+    0.0,
+    2.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     2.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     0.0,
+     2.0
+    ]
+   }
+  },
+  "cr_visits_4w": {
+   "train_quantiles": [
+    0.0,
+    1.0,
+    6.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     0.0,
+     1.0,
+     6.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 1e-05,
+    "quantiles": [
+     0.0,
+     1.0,
+     5.0
+    ]
+   }
+  },
+  "cr_weeks_since": {
+   "train_quantiles": [
+    2.0,
+    9.0,
+    9.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     2.0,
+     9.0,
+     9.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     2.0,
+     9.0,
+     9.0
+    ]
+   }
+  },
+  "r_rating": {
+   "train_quantiles": [
+    3.0,
+    3.9,
+    4.4
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     3.0,
+     3.9,
+     4.4
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     3.0,
+     3.9,
+     4.4
+    ]
+   }
+  },
+  "r_aov": {
+   "train_quantiles": [
+    150.0,
+    380.0,
+    980.0
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     150.0,
+     380.0,
+     980.0
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     150.0,
+     380.0,
+     980.0
+    ]
+   }
+  },
+  "r_logvotes": {
+   "train_quantiles": [
+    3.8067,
+    5.8201,
+    7.9575
+   ],
+   "quote_input": {
+    "share_outside": 0.0,
+    "quantiles": [
+     3.8067,
+     5.8201,
+     7.9575
+    ]
+   },
+   "evaluation": {
+    "share_outside": 0.0,
+    "quantiles": [
+     3.7842,
+     5.8201,
+     7.9575
+    ]
+   }
+  }
+ },
+ "worst_share": 8.839648771288821e-05,
+ "passed": true
+}

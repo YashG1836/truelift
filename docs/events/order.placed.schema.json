@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YashG1836/truelift/blob/main/docs/events/order.placed.schema.json",
+  "title": "Order placed",
+  "description": "An order and how its discount was funded. Zomato already writes this event; TrueLift needs the visit it came from (or customer, restaurant and time to match it). Wrapped in a CloudEvents 1.0 envelope so it fits an existing event bus.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique per event; consumers drop duplicates by it"
+    },
+    "source": {
+      "type": "string",
+      "description": "The service that wrote it, e.g. /truelift/serve"
+    },
+    "type": {
+      "const": "truelift.order.placed"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "order_id",
+        "customer_id",
+        "restaurant_id",
+        "basket",
+        "discount",
+        "used_offer"
+      ],
+      "properties": {
+        "order_id": {
+          "type": "string"
+        },
+        "visit_id": {
+          "type": "string"
+        },
+        "customer_id": {
+          "type": "integer"
+        },
+        "restaurant_id": {
+          "type": "integer"
+        },
+        "basket": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Menu value before any discount"
+        },
+        "discount": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Offer discount on this order"
+        },
+        "reward": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Brand Pack reward on this order"
+        },
+        "zomato_funded": {
+          "type": "number",
+          "minimum": 0,
+          "description": "Part of the discount Zomato pays"
+        },
+        "used_offer": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

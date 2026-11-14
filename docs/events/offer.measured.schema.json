@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YashG1836/truelift/blob/main/docs/events/offer.measured.schema.json",
+  "title": "Offer measured",
+  "description": "TrueLift's weekly result for one offer. Wrapped in a CloudEvents 1.0 envelope so it fits an existing event bus.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique per event; consumers drop duplicates by it"
+    },
+    "source": {
+      "type": "string",
+      "description": "The service that wrote it, e.g. /truelift/serve"
+    },
+    "type": {
+      "const": "truelift.offer.measured"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "offer_id",
+        "week",
+        "extra_profit",
+        "extra_profit_low",
+        "extra_profit_high",
+        "verdict",
+        "model_version"
+      ],
+      "properties": {
+        "offer_id": {
+          "type": "integer"
+        },
+        "week": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "extra_orders": {
+          "type": "number"
+        },
+        "extra_profit": {
+          "type": "number"
+        },
+        "extra_profit_low": {
+          "type": "number"
+        },
+        "extra_profit_high": {
+          "type": "number"
+        },
+        "weight_on_own_data": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "verdict": {
+          "enum": [
+            "keep",
+            "wait",
+            "probably_losing",
+            "pause",
+            "check_failed"
+          ]
+        },
+        "sample_ratio_ok": {
+          "type": "boolean"
+        },
+        "model_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
