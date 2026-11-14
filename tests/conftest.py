@@ -85,6 +85,27 @@ def state(client):
     return get_state()
 
 
+@pytest.fixture(scope="session")
+def quick_report(tmp_path_factory) -> dict:
+    """The quick pipeline's evaluation.json, run once per test session (slow tests only)."""
+    import json
+    import subprocess
+    import sys
+
+    out = tmp_path_factory.mktemp("quick_pipeline")
+    cmd = [
+        sys.executable,
+        str(ROOT / "scripts/run_pipeline.py"),
+        "--quick",
+        "--out",
+        str(out),
+        "--model-out",
+        str(out / "model.pkl"),
+    ]
+    subprocess.run(cmd, check=True, cwd=ROOT, capture_output=True)
+    return json.loads((out / "evaluation.json").read_text(encoding="utf-8"))
+
+
 DESIGN = {"discount": 60, "min_order": 0, "audience": "targeted", "offpeak_only": False, "reward": 0, "zomato_share": 0}
 
 

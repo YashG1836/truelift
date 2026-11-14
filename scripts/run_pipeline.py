@@ -39,7 +39,7 @@ from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine  # noqa: E402
 from truelift.features import skew_report  # noqa: E402
 from truelift.model import file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
-from truelift.sim import Config, Market, Policy, display_name, recent_visits  # noqa: E402
+from truelift.sim import Config, Market, Policy, display_name, recent_visits, status_quo_policy  # noqa: E402
 from truelift.training import train as train_model  # noqa: E402
 
 EVAL_WEEKS = (1, 2, 3, 4)
@@ -109,6 +109,10 @@ def run_world(market: Market, hist, policy: Policy, keep_rows: bool = False) -> 
                 "redemptions": p * res["takes"],
                 "lift": np.where(sh, p - res["p_cf"], 0.0),
                 "lift_profit": np.where(sh, p * res["profit"] - res["p_cf"] * res["profit_cf"], 0.0),
+                # the part of the own-offer effect that comes from customers new to Zomato
+                "lift_profit_new": np.where(
+                    sh & (res["c_new_account"] == 1), p * res["profit"] - res["p_cf"] * res["profit_cf"], 0.0
+                ),
                 "platform_lift": np.where(sh, res["platform_lift"], 0.0),
             }
         )
@@ -165,6 +169,65 @@ def summarise(world: dict, base: dict) -> dict:
         "restaurants_worse_off_vs_no_offers": int((d_rest < -1).sum()),
         "swiggy_share_of_occasions": round(world["swiggy_share"], 4),
         "swiggy_share_loyal": round(world["swiggy_share_loyal"], 4),
+    }
+
+
+ADOPTION_GROUPS = 10  # one tenth of restaurants switch at a time
+
+
+def own_effect_in_todays_market(market: Market, hist, offers: Policy) -> tuple[pd.DataFrame, list]:
+    """Each restaurant's true own-offer effect when it alone (with a tenth of the market) switches
+    to `offers` while everyone else keeps today's offers: the condition a quote describes.
+
+    Returns the per-restaurant weekly truths and the ten worlds (each one is also a 10% adoption).
+    """
+    background = status_quo_policy(market, np.random.default_rng(4242), name="today's market")
+    parts, worlds = [], []
+    for g in range(ADOPTION_GROUPS):
+        mine = np.arange(market.n_rest) % ADOPTION_GROUPS == g
+        pol = replace(background, name=f"{offers.name}: group {g}", scorer=offers.scorer, holdout=offers.holdout)
+        for attr in ("discount", "min_order", "offpeak_only", "zomato_share", "reward", "audience"):
+            arr = getattr(pol, attr).copy()
+            arr[mine] = getattr(offers, attr)[mine]
+            setattr(pol, attr, arr)
+        w = run_world(market, hist, pol)
+        worlds.append(w)
+        parts.append(w["per_rest"][mine])
+    return pd.concat(parts).sort_index(), worlds
+
+
+def forecast_check(qs: list, per_rest: pd.DataFrame) -> dict:
+    """Quotes (one per restaurant, None if no offer) against the true weekly own-offer profit effect."""
+    rows = [
+        (
+            q["profit_change"],
+            q["profit_low"],
+            q["profit_high"],
+            float(per_rest["lift_profit"].iloc[r]),
+            float(per_rest["lift_profit_new"].iloc[r]),
+        )
+        for r, q in enumerate(qs)
+        if q is not None
+    ]
+    if not rows:
+        return {"offers": 0}
+    f, lo, hi, t, t_new = (np.array(c, float) for c in zip(*rows, strict=True))
+    t_old = t - t_new
+    return {
+        "offers": len(rows),
+        "forecast_total": round(float(f.sum())),
+        "truth_total": round(float(t.sum())),
+        "ratio_forecast_to_truth": round(float(f.sum() / t.sum()), 3) if t.sum() else None,
+        "mean_abs_error": round(float(np.abs(f - t).mean())),
+        "coverage_80": round(float(((t >= lo) & (t <= hi)).mean()), 3),
+        "misses_below_range": int((t < lo).sum()),
+        "misses_above_range": int((t > hi).sum()),
+        "sign_right": round(float((np.sign(f) == np.sign(t)).mean()), 3),
+        "share_forecast_below_truth": round(float((f < t).mean()), 3),
+        # customers who join Zomato after the quote cannot be in a quote built from past visits
+        "truth_from_new_accounts": round(float(t_new.sum())),
+        "ratio_to_truth_existing_customers": round(float(f.sum() / t_old.sum()), 3) if t_old.sum() else None,
+        "coverage_80_existing_customers": round(float(((t_old >= lo) & (t_old <= hi)).mean()), 3),
     }
 
 
@@ -236,20 +299,25 @@ def evaluate(
     if not skew["passed"]:
         raise SystemExit(f"training-serving skew above {skew['limit']:.1%}: see skew_check.json")
     designs = {}
+    quotes: dict[str, list] = {}
     for key, zshare in (("truelift", 0.0), ("truelift_cofund", 0.5)):
-        chosen = []
+        chosen, qs = [], []
         for r in range(n):
             x = by_rest.get(r)
             owner = Design(float(depth[r]), zomato_share=zshare)
             if x is None:
                 chosen.append(Design(0.0))
+                qs.append((None, None))
                 continue
-            _, best = engine.best_design(x.drop(columns=["rest", "cust"]), owner, aov[r], baskets[r], weeks=2)
+            owner_q, best = engine.best_design(
+                x.drop(columns=["rest", "cust", "week"]), owner, aov[r], baskets[r], weeks=2
+            )
             d = Design(**best["design"])
             if best["profit_change"] <= 0:
                 d = Design(0.0)
             chosen.append(d)
-        designs[key] = chosen
+            qs.append((owner_q, best if d.discount > 0 or d.reward > 0 else None))
+        designs[key], quotes[key] = chosen, qs
         log(f"{key}: designs chosen for {n} restaurants")
     mixes = {k: np.array([engine.mix(baskets[r], designs[k][r], aov[r]) for r in range(n)]) for k in designs}
     pols = {
@@ -270,6 +338,20 @@ def evaluate(
     base = worlds["no_offer"]
     results["policies"] = {k: {"name": pols[k].name, **summarise(w, base)} for k, w in worlds.items()}
     log("policies evaluated")
+
+    # forecast check (audit TL-006): the quote an owner sees before approving, against the truth
+    # "in today's market": a tenth of restaurants switch at a time, as the quote assumes; "after
+    # everyone switches": the whole market changes offers at once (the policy comparison's world)
+    truth_tl, adoption_worlds = own_effect_in_todays_market(market, hist, pols["truelift"])
+    truth_bl, _ = own_effect_in_todays_market(market, hist, blanket)
+    tl_quotes, bl_quotes = [q[1] for q in quotes["truelift"]], [q[0] for q in quotes["truelift"]]
+    results["forecast"] = {
+        "truelift_design_in_todays_market": forecast_check(tl_quotes, truth_tl),
+        "owner_blanket_offer_in_todays_market": forecast_check(bl_quotes, truth_bl),
+        "truelift_design_after_everyone_switches": forecast_check(tl_quotes, worlds["truelift"]["per_rest"]),
+        "owner_blanket_offer_after_everyone_switches": forecast_check(bl_quotes, worlds["today_blanket"]["per_rest"]),
+    }
+    log("forecast checked against the truth")
     if not with_details:
         return results
 

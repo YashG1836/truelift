@@ -338,17 +338,25 @@ def status_quo_policy(
     """Today's market: a share of restaurants run blanket flat discounts.
 
     explore=True varies designs (depth, minimum order, 3-6 pm, audience, Brand Pack) at random and
-    keeps a random holdout: the data TrueLift's shadow phase would collect.
+    keeps a random holdout: the data TrueLift's shadow phase would collect. It explores the options
+    the create screen offers (10-25% of the restaurant's average order, Brand Pack about 5% of it),
+    so the model never has to extrapolate to a depth it has not seen (a tree model cannot), and it
+    keeps today's share of restaurants with an offer (the shadow phase varies the designs of offers
+    owners already run; it does not add offers).
     """
     n = market.n_rest
     active = rng.random(n) < share_active
-    depth = rng.choice([40.0, 60.0, 80.0, 100.0], n) if explore else rng.choice([40.0, 50.0, 60.0, 80.0], n)
+    if explore:
+        depth = np.maximum(20.0, np.round(market.aov * rng.choice([0.10, 0.15, 0.20, 0.25], n) / 10) * 10)
+    else:
+        depth = rng.choice([40.0, 50.0, 60.0, 80.0], n)
     discount = np.where(active, depth, 0.0)
     use_mov = rng.random(n) < 0.4
     mov = np.where(active & use_mov, np.round(market.aov * rng.choice([1.0, 1.15, 1.3], n) / 50) * 50 - 1, 0.0)
     mov = np.maximum(mov, 0.0)
     offpeak = active & (rng.random(n) < (0.25 if explore else 0.0))
-    reward = np.where(rng.random(n) < (0.3 if explore else 0.0), rng.choice([15.0, 25.0], n), 0.0)
+    reward_size = np.maximum(5.0, np.round(market.aov * rng.choice([0.04, 0.06], n) / 5) * 5)
+    reward = np.where(rng.random(n) < (0.3 if explore else 0.0), reward_size, 0.0)
     aud = np.array(["all"] * n, dtype=object)
     if explore:
         aud = rng.choice(np.array(["all", "all", "new_to_restaurant", "lapsed"], dtype=object), n)
@@ -377,7 +385,7 @@ def build_history(market: Market, weeks_quo: int = 8, weeks_explore: int = 4, li
     train = []
     for w in range(start + weeks_quo, 0):
         occ = market.occasions(w)
-        pol = status_quo_policy(market, rng, holdout=0.10, share_active=0.6, explore=True, name="shadow")
+        pol = status_quo_policy(market, rng, holdout=0.10, share_active=0.4, explore=True, name="shadow")
         # holdout salt is fixed for the whole phase: a held-out customer stays held out
         res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=2, truth=not light)
         if light:
