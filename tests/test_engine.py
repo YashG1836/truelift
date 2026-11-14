@@ -222,3 +222,41 @@ def test_weekly_message_uses_one_money_format_and_says_what_to_do():
     assert "Reply 1" not in text  # replies that do nothing are gone (TL-032)
     paused = weekly_message("X", 2, {**m, "verdict_code": "pause"}, Design(60), holdout=0.20)
     assert "paused" in paused and "1 in 5" in paused
+
+
+class _NewCustomerModel(_FlatModel):
+    """Offer works only on customers who never ordered from the restaurant (uplift known)."""
+
+    def p1(self, x, discount, min_order):
+        return np.where(x["cr_orders_all"].to_numpy() == 0, 0.30, 0.10)
+
+
+class _ExplodingModel(_FlatModel):
+    def p0(self, x):
+        raise AssertionError("serve must not call the model")
+
+    def p1(self, x, discount, min_order):
+        raise AssertionError("serve must not call the model")
+
+
+def test_targeted_table_matches_the_models_decisions():
+    """WP-40: the table built at approval says exactly what the model says for every row."""
+    eng = Engine(_NewCustomerModel())
+    x = _table_x(20)
+    d = Design(60, audience="targeted")
+    t = eng.decision_table(x, d, 400, np.full(10, 400.0), offer_id=5)
+    want = eng.design_values(x.drop(columns=["cust"]), d, 400, np.full(10, 400.0))["eligible"]
+    got = np.array([t.lookup(c, s)[0] for c, s in zip(x["cust"], x["slot"], strict=True)])
+    assert np.array_equal(got, want)
+    assert got.any() and not got.all()  # the model separates the two groups
+
+
+def test_serve_never_calls_the_model():
+    """TL-001 / TL-005: serving is a table lookup plus the holdout hash, never a prediction."""
+    eng = Engine(_FlatModel())
+    t = eng.decision_table(_table_x(), Design(60, audience="targeted"), 400, np.full(10, 400.0), offer_id=9)
+    eng.model = _ExplodingModel()
+    for c in range(6):
+        out = eng.serve(t, c, 2, regular=False)
+        assert out["degraded"] is False
+    eng.serve(t, 999, 2, regular=False)  # unseen customer: the table's default, still no model call

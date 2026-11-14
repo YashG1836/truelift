@@ -21,6 +21,7 @@ belongs to the shared "public" session. Errors are RFC 9457 problem details.
 from __future__ import annotations
 
 import json
+import logging
 import secrets
 import threading
 import time
@@ -34,6 +35,7 @@ import numpy as np
 import pandas as pd
 from fastapi import APIRouter, Depends, FastAPI, Header, Query, Request
 from fastapi.exceptions import RequestValidationError
+from fastapi.openapi.utils import get_openapi
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from prometheus_client import make_asgi_app
@@ -99,6 +101,7 @@ def problem_response(request: Request, status: int, kind: str, title: str, detai
 PROBLEMS = {
     code: {"model": Problem, "description": text}
     for code, text in (
+        (400, "Request body is not valid JSON"),
         (403, "Wrong OTP"),
         (404, "Unknown restaurant, customer or offer"),
         (409, "Offer is in the wrong state"),
@@ -306,14 +309,16 @@ async def _invalid(request: Request, exc: RequestValidationError):
 
 @app.exception_handler(StarletteHTTPException)
 async def _http(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 400:  # FastAPI could not decode the body
+        return problem_response(
+            request, 400, "malformed-body", "Malformed request", "The request body could not be read as JSON."
+        )
     kind = {404: "not-found", 405: "method-not-allowed"}.get(exc.status_code, "http-error")
     return problem_response(request, exc.status_code, kind, str(exc.detail), str(exc.detail))
 
 
 @app.exception_handler(Exception)
 async def _internal(request: Request, exc: Exception):
-    import logging
-
     logging.getLogger("truelift.api").exception("unhandled error")
     return problem_response(
         request,
@@ -791,3 +796,28 @@ app.mount("/static", StaticFiles(directory=STATIC), name="static")
 @app.get("/", include_in_schema=False)
 def index():
     return FileResponse(STATIC / "index.html")
+
+
+def openapi_contract() -> dict:
+    """The OpenAPI document, describing errors exactly as they are sent: RFC 9457 problem details
+    (`application/problem+json`, schema `Problem`), including FastAPI's own 422 for invalid input."""
+    if app.openapi_schema:
+        return app.openapi_schema
+    spec = get_openapi(
+        title=app.title, version=app.version, description=app.description, routes=app.routes, tags=app.openapi_tags
+    )
+    problem = {"application/problem+json": {"schema": {"$ref": "#/components/schemas/Problem"}}}
+    for item in spec.get("paths", {}).values():
+        for op in item.values():
+            for code, resp in op.get("responses", {}).items():
+                if code[0] in "45" and "Problem" in json.dumps(resp.get("content", {})) or code == "422":
+                    resp["content"] = problem
+                    if code == "422":
+                        resp["description"] = "Invalid input or design"
+    for unused in ("HTTPValidationError", "ValidationError"):
+        spec.get("components", {}).get("schemas", {}).pop(unused, None)
+    app.openapi_schema = spec
+    return spec
+
+
+app.openapi = openapi_contract

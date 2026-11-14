@@ -352,3 +352,97 @@ def test_model_bundle_version_check(tmp_path):
     save_bundle({"library_versions": {"scikit-learn": "0.0.1"}, "model": None}, tmp_path / "m.pkl")
     with pytest.raises(BundleError, match="scikit-learn 0.0.1"):
         load_bundle(tmp_path / "m.pkl")
+
+
+def test_clean_preserves_small_values():
+    """TL-038: six significant figures, so per-visit values still add up to the totals."""
+    import numpy as np
+
+    from truelift.api import clean
+
+    out = clean({"a": np.float64(0.000123456789), "b": [np.int64(3), np.bool_(True)], "c": float("inf")})
+    assert out == {"a": 0.000123457, "b": [3, True], "c": None}
+    assert type(out["b"][0]) is int and type(out["b"][1]) is bool
+    assert clean(123456789.0) == 123457000.0
+
+
+def test_payout_uses_terms():
+    """TL-033: the payout's rates come from Terms, and the lines add up to the net payout."""
+    import pandas as pd
+
+    from truelift.demo import payout_for
+    from truelift.economics import Terms
+
+    orders = pd.DataFrame(
+        {
+            "basket": [400.0, 500.0],
+            "restaurant_funded": [60.0, 0.0],
+            "zomato_funded": [0.0, 30.0],
+            "reward": [0.0, 0.0],
+            "commission": [85.0, 117.5],
+        }
+    )
+    terms = Terms(commission_rate=0.20, gst_on_commission=0.18)
+    p = payout_for(orders, terms)
+    assert p["commission_rate"] == 0.20 and p["gst_rate"] == 0.18
+    assert p["gst_on_commission"] == round(0.18 * 202.5)
+    assert p["net_payout"] == 900 - 60 - 0 - 202 - 36
+
+
+def test_card_values_match_the_raw_history(client, state):
+    """TL-013: cached cards say what the history says (recomputed here from the weekly arrays)."""
+    import numpy as np
+
+    card = client.get("/api/v1/restaurants/233").json()
+    m = state.market
+    local = int(m.R.loc[233, "local"])
+    in_loc = m.c_loc == m.R.loc[233, "loc"]
+    last4 = np.sum(np.stack(state.hist.pair_orders[-4:]), axis=0)[:, local][in_loc]
+    assert card["orders_per_week"] == round(float(last4.sum()) / 4, 1)
+    assert card["regular_customers"] == int((last4 >= 3).sum())
+
+
+def test_fallback_counter_stays_zero_after_a_normal_flow(client, session_headers):
+    """A16 O3: a healthy model never takes the fallback path."""
+    off = approved_offer(client, session_headers)
+    client.post(f"/api/v1/offers/{off['offer_id']}/run_week", headers=session_headers)
+    for cid in range(5):
+        client.get("/api/v1/serve", params={"restaurant_id": 233, "customer_id": cid}, headers=session_headers)
+    assert "truelift_serve_fallback_total 0.0" in client.get("/metrics").text
+
+
+def test_openapi_documents_errors_as_problem_details(client):
+    """Errors are documented exactly as sent: application/problem+json with the Problem schema."""
+    spec = client.get("/openapi.json").json()
+    for path, method in (("/api/v1/quote", "post"), ("/api/v1/serve", "get"), ("/api/v1/offers/{oid}/approve", "post")):
+        responses = spec["paths"][path][method]["responses"]
+        for code in ("400", "404", "422"):
+            content = responses[code]["content"]
+            assert list(content) == ["application/problem+json"], (path, code)
+            assert content["application/problem+json"]["schema"]["$ref"].endswith("/Problem")
+    assert "HTTPValidationError" not in spec["components"]["schemas"]
+
+
+def test_malformed_body_is_a_problem_not_a_crash(client, session_headers):
+    r = client.post(
+        "/api/v1/quote", content=b"\xff\xfe not json", headers={**session_headers, "Content-Type": "application/json"}
+    )
+    assert r.status_code in (400, 422)
+    assert r.headers["content-type"].startswith("application/problem+json")
+
+
+def test_csp_allows_every_external_resource_the_page_loads(client):
+    """A resource the page links but the CSP blocks fails only in a browser; catch it here."""
+    import re
+    from urllib.parse import urlsplit
+
+    html = client.get("/").text
+    csp = client.get("/").headers["content-security-policy"]
+    urls = re.findall(r'<(?:link|script)[^>]+(?:href|src)="(https?://[^"]+)"', html)
+    for url in urls:
+        if 'rel="preconnect"' in html and url.endswith(".com"):  # preconnect hints load nothing
+            continue
+        origin = "{0.scheme}://{0.netloc}".format(urlsplit(url))
+        assert origin in csp, f"{origin} is linked from index.html but blocked by the CSP"
+    if "fonts.googleapis.com/css" in html:
+        assert "https://fonts.gstatic.com" in csp  # the stylesheet's font files come from here

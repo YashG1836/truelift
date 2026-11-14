@@ -75,7 +75,7 @@ class QuoteIn(Schema):
         },
     )
     restaurant_id: int = Field(ge=0, description="Restaurant (0-299 in the simulated market)")
-    design: DesignIn = Field(default_factory=DesignIn)
+    design: DesignIn = Field(default_factory=lambda: DesignIn.model_validate({}))
 
 
 class OtpIn(Schema):

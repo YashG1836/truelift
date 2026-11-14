@@ -13,6 +13,18 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish
+- Did: M1 of Kshitish's audit plan. Pinned `uv` environment; service v1 (typed `/api/v1` hooks, RFC 9457 errors,
+  per-visitor sessions, OTP expiry and attempt limit, hash-chained consent ledger, exposure log, decision-table
+  serving, health/readiness/metrics); tests split by area + golden + Schemathesis fuzz; Playwright suite (static
+  and live); `tasks.py`, Makefile, Docker, pre-commit, CI with a gated deploy (D15). Fixed: CSP blocked Google Fonts.
+- Files: `truelift/*` (9 new modules), `scripts/` (run_pipeline, export_static, compare_reports), `tests/*`,
+  `tests/ui/*`, `tasks.py`, `Dockerfile`, `.github/*`, `pyproject.toml`, `uv.lock`, CLAUDE.md, README (Run it).
+- Checked: 93 fast tests, golden, fuzz, ruff, pyright, pre-commit; full pipeline equals `reports/`; browser suite
+  on `site/` (12 restaurants) and the live service. Not checked: Docker build (no Docker locally; CI builds it).
+- Numbers changed: none.
+- Next / open: M2 science fixes (numbers change once, at a single freeze), M3 UI restyle (tell Yash first).
+
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main
 - Did: added this shared context (`CLAUDE.md`, `.claude/context/`), project settings that turn off Claude
   attribution, and `.claude/hooks/git_guard.py` (blocks AI attribution, force-pushes, and commits that do

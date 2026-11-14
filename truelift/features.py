@@ -40,6 +40,14 @@ class FeatureSource(Protocol):
         ...
 
 
+def _total(weeks: list, shape) -> np.ndarray:
+    """Element-wise sum of weekly count arrays, as floats; zeros when no week is recorded."""
+    out = np.zeros(shape)
+    for w in weeks:
+        out += w
+    return out
+
+
 class HistoryFeatures:
     """Aggregates of a history snapshot, computed once.
 
@@ -53,19 +61,19 @@ class HistoryFeatures:
         last4 = slice(max(0, len(po) - 4), len(po))
         self.n_weeks = len(po)
         self.n4 = max(1, len(po[last4]))
-        self.p4 = sum(po[last4]).astype(float) if po else np.zeros((n, L))
-        self.v4 = sum(pv[last4]).astype(float) if pv else np.zeros((n, L))
-        self.p_all = sum(po).astype(float) if po else np.zeros((n, L))
+        self.p4 = _total(po[last4], (n, L))
+        self.v4 = _total(pv[last4], (n, L))
+        self.p_all = _total(po, (n, L))
         self.weeks_since_r = np.full((n, L), 8.0)
         self.weeks_since_c = np.full(n, 8.0)
         for i, arr in enumerate(po):  # most recent week wins
             ago = len(po) - i
             self.weeks_since_r[arr > 0] = min(ago, 8)
             self.weeks_since_c[hist.cust_orders[i] > 0] = min(ago, 8)
-        self.co4 = sum(hist.cust_orders[last4]).astype(float) if po else np.zeros(n)
-        self.cd4 = sum(hist.cust_disc_orders[last4]).astype(float) if po else np.zeros(n)
-        self.cs4 = sum(hist.cust_sessions[last4]).astype(float) if po else np.zeros(n)
-        self.c_all = sum(hist.cust_orders).astype(float) if po else np.zeros(n)
+        self.co4 = _total(hist.cust_orders[last4], n)
+        self.cd4 = _total(hist.cust_disc_orders[last4], n)
+        self.cs4 = _total(hist.cust_sessions[last4], n)
+        self.c_all = _total(hist.cust_orders, n)
         self.rating = market.rating
         self.aov = market.aov
         self.logvotes = np.log1p(market.R["votes"].to_numpy(float))

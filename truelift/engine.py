@@ -20,6 +20,7 @@ import logging
 import math
 from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -222,7 +223,7 @@ class Engine:
                 n,
             )
         elif has.any():
-            p1[has] = self.model.p1(xr[has], discount[has], min_order[has])
+            p1[has] = self.model.p1(xr.loc[has], discount[has], min_order[has])
         new_z = x["c_new_to_zomato"].to_numpy() == 1
         tot = discount + rw
         zs = np.where(new_z & (tot > 0), zomato_share * discount / np.maximum(tot, 1e-9), 0.0)
@@ -473,7 +474,7 @@ class Engine:
         n_t, n_c = int(t.sum()), int(c.sum())
         chosen = rows["chosen"].to_numpy()
         zero = np.zeros(len(rows))
-        out = {"shown_visits": n_t, "control_visits": n_c}
+        out: dict[str, Any] = {"shown_visits": n_t, "control_visits": n_c}
         for key, y, prior, sig, base in (
             (
                 "profit",
