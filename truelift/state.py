@@ -92,6 +92,7 @@ def _save_serving(path: Path, hist: History, baskets: list) -> None:
         "cust_disc_orders": np.stack(hist.cust_disc_orders),
         "cust_sessions": np.stack(hist.cust_sessions),
         "weeks": np.asarray(hist.weeks, dtype=np.int64),
+        "cust_offers_seen": np.stack(hist.cust_offers_seen),
         "basket_lengths": lengths,
         "baskets": flat,
     }
@@ -112,6 +113,7 @@ def _load_serving(path: Path) -> tuple[History, list]:
             [a for a in z["cust_disc_orders"]],
             [a for a in z["cust_sessions"]],
             [int(w) for w in z["weeks"]],
+            [a for a in z["cust_offers_seen"]],
         )
         ends = np.cumsum(z["basket_lengths"])
         flat = z["baskets"]

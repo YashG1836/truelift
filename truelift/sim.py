@@ -101,6 +101,7 @@ class History:
     cust_disc_orders: list = field(default_factory=list)
     cust_sessions: list = field(default_factory=list)
     weeks: list = field(default_factory=list)  # week number of each entry, in order
+    cust_offers_seen: list = field(default_factory=list)  # per week: menus with an offer shown, per customer
 
     def before(self, week: int) -> History:
         """The history as it stood when `week` began: only the weeks before it (no look-ahead)."""
@@ -112,6 +113,7 @@ class History:
             self.cust_disc_orders[:k],
             self.cust_sessions[:k],
             self.weeks[:k],
+            self.cust_offers_seen[:k],
         )
 
 
@@ -320,6 +322,7 @@ class Market:
         hist.cust_orders.append(co)
         hist.cust_disc_orders.append(cd)
         hist.cust_sessions.append(cs)
+        hist.cust_offers_seen.append(np.bincount(res["cust"][res["shown"]], minlength=n))
         hist.weeks.append(int(res["week"][0]) if len(res["week"]) else (hist.weeks[-1] + 1 if hist.weeks else 0))
 
     def flat_features(self, hist: History, occ: dict) -> dict:

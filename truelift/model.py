@@ -41,6 +41,11 @@ BASE_FEATURES = [
     "reward",
 ]
 DESIGN_FEATURES = ["offer_discount", "disc_pct", "mov_ratio"]
+# Tried and not adopted (A05 L8, 14 Nov): "c_offer_share_4w", the share of recently opened menus that
+# showed the customer an offer. It moved the forecast slightly closer to the truth (0.908 -> 0.927 in
+# today's market, quick configuration) but lowered uplift quality (Qini 0.284 -> 0.276, correlation
+# 0.640 -> 0.637) and TrueLift's profit; the rule was to keep it only if both improved. It is still
+# computed (features.py) for monitoring competition in the drift report.
 
 
 def design_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -51,7 +56,17 @@ def design_columns(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-def _gbm(seed: int) -> HistGradientBoostingClassifier:
+# Known directions (WP-24): a bigger discount or Brand Pack reward never lowers the chance of
+# ordering; a higher minimum order (relative to the usual basket) never raises it.
+MONOTONE = {"offer_discount": 1, "disc_pct": 1, "reward": 1, "mov_ratio": -1}
+# Adopted 14 Nov (quick configuration): forecast/truth 0.908 -> 0.927, offers that pay 224 -> 229,
+# Qini 0.284 -> 0.271 (one seed). The create screen quotes four depths, and the owner must never see
+# a bigger discount forecast to bring fewer orders.
+MONOTONE_DEFAULT = True
+
+
+def _gbm(seed: int, features: list[str] | None = None, monotone: bool = False) -> HistGradientBoostingClassifier:
+    cst = [MONOTONE.get(f, 0) for f in features] if monotone and features else None
     return HistGradientBoostingClassifier(
         max_iter=300,
         learning_rate=0.08,
@@ -61,6 +76,7 @@ def _gbm(seed: int) -> HistGradientBoostingClassifier:
         early_stopping=True,
         validation_fraction=0.1,
         random_state=seed,
+        monotonic_cst=cst,
     )
 
 
@@ -70,14 +86,14 @@ class UpliftModel:
     m1: HistGradientBoostingClassifier
 
     @classmethod
-    def fit(cls, rows: pd.DataFrame, seed: int = 0) -> UpliftModel:
+    def fit(cls, rows: pd.DataFrame, seed: int = 0, monotone: bool = MONOTONE_DEFAULT) -> UpliftModel:
         """rows: exposures from a period with random holdouts. Needs columns BASE_FEATURES,
         offer_discount, min_order, shown, chosen."""
         ctrl = rows[~rows["shown"]]
         trt = rows[rows["shown"]]
-        m0 = _gbm(seed).fit(ctrl[BASE_FEATURES], ctrl["chosen"])
+        m0 = _gbm(seed, BASE_FEATURES, monotone).fit(ctrl[BASE_FEATURES], ctrl["chosen"])
         x1 = pd.concat([trt[BASE_FEATURES], design_columns(trt)], axis=1)
-        m1 = _gbm(seed + 1).fit(x1, trt["chosen"])
+        m1 = _gbm(seed + 1, list(x1.columns), monotone).fit(x1, trt["chosen"])
         return cls(m0, m1)
 
     def p0(self, x: pd.DataFrame) -> np.ndarray:

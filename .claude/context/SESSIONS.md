@@ -29,6 +29,7 @@ Template:
   top-up value fitted on menu visits (TL-020: 0.50, the simulator truth; was 0.55-0.60).
   Forecast check (TL-006): quote/truth 0.59 -> 0.91 for TrueLift designs once the shadow phase explores
   the create screen's depths (10-25% of the order) at today's share of offers (40%).
+  Monotone constraints adopted; competition feature tried, not adopted (A05 L8; numbers in model.py).
 - Next / open: rest of M2 (numbers change once, at a single freeze), M3 UI restyle (tell Yash first).
 
 ## 13 Nov 2026 · Yash (Claude Opus) · branch main

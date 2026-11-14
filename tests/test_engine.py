@@ -305,3 +305,13 @@ def test_topup_fit_recovers_a_known_value_from_visit_counts():
     value, (lo, hi) = fit_topup_value(pd.DataFrame(rows), baskets)
     assert value == pytest.approx(0.3, abs=0.03)
     assert lo <= value <= hi
+
+
+def test_bigger_discount_never_lowers_the_predicted_chance(small_trained):
+    """WP-24: with monotone constraints, more rupees off never predicts fewer orders."""
+    x = small_trained.train.sample(300, random_state=0).reset_index(drop=True)
+    model = small_trained.model
+    preds = np.column_stack([model.p1(x, np.full(len(x), d), np.zeros(len(x))) for d in (20, 40, 60, 90, 150)])
+    assert (np.diff(preds, axis=1) >= -1e-12).all()
+    rewards = np.column_stack([model.p0(x.assign(reward=r)) for r in (0, 10, 30)])
+    assert (np.diff(rewards, axis=1) >= -1e-12).all()

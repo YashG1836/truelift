@@ -70,6 +70,7 @@ class HistoryFeatures:
         po, pv = hist.pair_orders[-ever_weeks:], hist.pair_visits[-ever_weeks:]
         co, cd = hist.cust_orders[-ever_weeks:], hist.cust_disc_orders[-ever_weeks:]
         cs = hist.cust_sessions[-ever_weeks:]
+        seen = hist.cust_offers_seen[-ever_weeks:]
         n, L = market.n_cust, market.per_loc
         recent = slice(max(0, len(po) - recent_weeks), len(po))
         self.n_weeks = len(po)
@@ -87,6 +88,10 @@ class HistoryFeatures:
         self.co4 = _total(co[recent], n)
         self.cd4 = _total(cd[recent], n)
         self.cs4 = _total(cs[recent], n)
+        # competition: share of the menus a customer opened recently that showed them an offer
+        # (monitoring only; not a model input, see the note in model.py)
+        menus = self.cs4 * market.cfg.menus_per_occasion
+        self.offer_share4 = np.divide(_total(seen[recent], n), menus, out=np.zeros(n), where=menus > 0)
         self.c_all = _total(co, n)
         self.new_account = market.c_joiner.astype(float)
         self.rating = market.rating
@@ -100,6 +105,7 @@ class HistoryFeatures:
             "c_disc_share": self.cd4[cust] / np.maximum(self.co4[cust], 1),
             "c_weeks_since": self.weeks_since_c[cust],
             "c_sessions_pw": self.cs4[cust] / self.n4,
+            "c_offer_share_4w": self.offer_share4[cust],
             "c_no_order_8w": (self.c_all[cust] == 0).astype(float),
             "c_new_account": self.new_account[cust],
             "cr_orders_4w": self.p4[cust, local],
