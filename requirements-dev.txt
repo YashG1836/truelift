@@ -1,0 +1,247 @@
+# Pinned versions (runtime + tests and tools), exported from uv.lock; edit pyproject.toml, not this file:
+#   uv export --format requirements-txt --no-hashes --no-emit-project --no-header -o requirements-dev.txt
+annotated-doc==0.0.6
+    # via fastapi
+annotated-types==0.8.0
+    # via pydantic
+anyio==4.16.0
+    # via
+    #   httpx
+    #   schemathesis
+    #   starlette
+bidict==0.24.1
+    # via python-socketio
+blinker==1.9.0
+    # via flask
+brotli==1.2.1
+    # via geventhttpclient
+certifi==2026.10.23
+    # via
+    #   geventhttpclient
+    #   httpcore
+    #   httpx
+    #   requests
+cffi==2.1.1 ; (implementation_name == 'pypy' and platform_python_implementation != 'CPython') or (implementation_name == 'pypy' and sys_platform != 'win32') or (platform_python_implementation == 'CPython' and sys_platform == 'win32')
+    # via
+    #   gevent
+    #   pyzmq
+cfgv==3.5.0
+    # via pre-commit
+charset-normalizer==3.5.2
+    # via requests
+click==8.5.1
+    # via
+    #   flask
+    #   schemathesis
+    #   uvicorn
+cloudpickle==3.1.2
+    # via joblib
+colorama==0.4.6 ; sys_platform == 'win32'
+    # via pytest
+configargparse==1.9.0
+    # via locust
+coverage==7.17.3
+    # via pytest-cov
+distlib==0.4.4
+    # via virtualenv
+fastapi==0.139.2
+    # via truelift
+filelock==4.2.10
+    # via
+    #   python-discovery
+    #   virtualenv
+flask==3.1.3
+    # via
+    #   flask-cors
+    #   flask-login
+    #   locust
+flask-cors==6.0.5
+    # via locust
+flask-login==0.6.3
+    # via locust
+gevent==26.9.0
+    # via
+    #   geventhttpclient
+    #   locust
+geventhttpclient==2.6.1
+    # via locust
+graphql-core==3.3.2
+    # via hypothesis-graphql
+greenlet==3.5.6 ; platform_python_implementation == 'CPython'
+    # via gevent
+h11==0.16.0
+    # via
+    #   httpcore
+    #   uvicorn
+    #   wsproto
+harfile==0.6.0
+    # via schemathesis
+httpcore==1.0.9
+    # via httpx
+httpx==0.27.2
+    # via truelift
+hypothesis==6.170.15
+    # via
+    #   hypothesis-graphql
+    #   schemathesis
+hypothesis-graphql==0.13.6
+    # via schemathesis
+identify==2.6.20
+    # via pre-commit
+idna==3.20
+    # via
+    #   anyio
+    #   httpx
+    #   requests
+iniconfig==2.3.1
+    # via pytest
+itsdangerous==2.2.0
+    # via flask
+jinja2==3.1.6
+    # via flask
+joblib==1.6.0
+    # via scikit-learn
+jsonschema-rs==0.61.2
+    # via schemathesis
+locust==2.47.0
+markdown-it-py==4.3.0
+    # via rich
+markupsafe==3.0.4
+    # via
+    #   flask
+    #   jinja2
+    #   werkzeug
+mdurl==0.1.2
+    # via markdown-it-py
+msgpack==1.2.4
+    # via locust
+nodeenv==1.12.0
+    # via
+    #   pre-commit
+    #   pyright
+numpy==2.2.6
+    # via
+    #   pandas
+    #   scikit-learn
+    #   scipy
+    #   truelift
+packaging==26.3
+    # via
+    #   pytest
+    #   virtualenv
+pandas==3.0.5
+    # via truelift
+platformdirs==4.14.5
+    # via virtualenv
+pluggy==1.7.0
+    # via
+    #   pytest
+    #   pytest-cov
+pre-commit==4.7.0
+prometheus-client==0.26.0
+    # via truelift
+psutil==7.2.2
+    # via locust
+pycparser==3.12 ; (implementation_name == 'pypy' and platform_python_implementation != 'CPython') or (implementation_name != 'PyPy' and platform_python_implementation == 'CPython' and sys_platform == 'win32') or (implementation_name == 'pypy' and sys_platform != 'win32')
+    # via cffi
+pydantic==2.9.2
+    # via
+    #   fastapi
+    #   truelift
+pydantic-core==2.23.4
+    # via pydantic
+pygments==2.21.0
+    # via
+    #   pytest
+    #   rich
+pyrate-limiter==4.5.1
+    # via schemathesis
+pyright==1.1.414
+pytest==9.2.0
+    # via
+    #   locust
+    #   pytest-cov
+    #   schemathesis
+pytest-cov==7.1.0
+python-dateutil==4.0.0
+    # via pandas
+python-discovery==1.9.5
+    # via virtualenv
+python-engineio==4.15.1
+    # via
+    #   locust
+    #   python-socketio
+python-socketio==5.18.1
+    # via locust
+pywin32==312 ; sys_platform == 'win32'
+    # via locust
+pyyaml==6.0.3
+    # via
+    #   pre-commit
+    #   schemathesis
+pyzmq==27.3.0
+    # via locust
+requests==2.34.2
+    # via
+    #   locust
+    #   python-socketio
+    #   schemathesis
+rich==15.0.0
+    # via schemathesis
+ruff==0.17.5
+schemathesis==4.33.4
+scikit-learn==1.5.2
+    # via truelift
+scipy==1.14.1
+    # via
+    #   scikit-learn
+    #   truelift
+simple-websocket==1.1.0
+    # via python-engineio
+sniffio==1.3.1
+    # via httpx
+sortedcontainers==2.4.0
+    # via hypothesis
+starlette==1.10.0
+    # via fastapi
+threadpoolctl==3.8.0
+    # via scikit-learn
+typing-extensions==4.16.0
+    # via
+    #   anyio
+    #   bidict
+    #   fastapi
+    #   locust
+    #   pydantic
+    #   pydantic-core
+    #   pyright
+    #   schemathesis
+    #   starlette
+    #   typing-inspection
+typing-inspection==0.4.5
+    # via fastapi
+tzdata==2026.6
+    # via
+    #   pandas
+    #   python-dateutil
+urllib3==2.8.0
+    # via requests
+uvicorn==0.51.0
+    # via truelift
+virtualenv==21.15.6
+    # via pre-commit
+websocket-client==1.9.2
+    # via python-socketio
+werkzeug==3.1.9
+    # via
+    #   flask
+    #   flask-cors
+    #   flask-login
+    #   locust
+    #   schemathesis
+wsproto==1.3.2
+    # via simple-websocket
+zope-event==6.2
+    # via gevent
+zope-interface==8.7
+    # via gevent

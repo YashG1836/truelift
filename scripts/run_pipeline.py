@@ -21,11 +21,10 @@ from __future__ import annotations
 
 import argparse
 import json
-import math
-import pickle
+import subprocess
 import sys
 import time
-from dataclasses import asdict, replace
+from dataclasses import replace
 from pathlib import Path
 
 import numpy as np
@@ -35,10 +34,10 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from truelift.economics import Terms  # noqa: E402
-from truelift.engine import Design, Engine, fit_topup_value  # noqa: E402
-from truelift.model import UpliftModel, qini_coefficient  # noqa: E402
-from truelift.sim import (Config, Market, Policy, build_history, display_name, recent_visits,  # noqa: E402
-                          restaurant_baskets)
+from truelift.engine import Design, Engine  # noqa: E402
+from truelift.model import file_sha256, qini_coefficient, save_bundle  # noqa: E402
+from truelift.sim import Config, Market, Policy, display_name, recent_visits  # noqa: E402
+from truelift.training import train as train_model  # noqa: E402
 
 EVAL_WEEKS = (1, 2, 3, 4)
 
@@ -47,41 +46,14 @@ def log(msg: str) -> None:
     print(f"[{time.strftime('%H:%M:%S')}] {msg}", flush=True)
 
 
-def shadow_offers(rows: pd.DataFrame, engine: Engine, baskets, aov) -> pd.DataFrame:
-    """One row per shadow-phase offer (restaurant-week): own holdout estimate and model prior."""
-    out = []
-    el = rows[rows["eligible"]]
-    for (r, w), g in el.groupby(["rest", "week"]):
-        t, c = g["shown"].to_numpy(), g["holdout"].to_numpy()
-        if t.sum() < 20 or c.sum() < 5:
-            continue
-        d = Design(float(g["offer_discount"].iloc[0]), float(g["min_order"].iloc[0]),
-                   str(g["audience"].iloc[0]), bool(g["offpeak_only"].iloc[0]),
-                   float(g["offer_reward"].iloc[0]))
-        v = engine.design_values(g, d, aov[r], baskets[r])
-        yp = g["chosen"].to_numpy() * g["profit"].to_numpy()
-        yo = g["chosen"].to_numpy().astype(float)
-        # the whole offer, and the subset a targeted version would show (selection is on features
-        # only, so shown vs held-out stays random inside it); targeted offers are where errors grow
-        for subset, keep in (("all", np.ones(len(g), bool)), ("targeted", v["gain"] > 0)):
-            tt, cc = t & keep, c & keep
-            if tt.sum() < 20 or cc.sum() < 5:
-                continue
-            se = lambda y: math.sqrt(y[tt].var(ddof=1) / tt.sum() + y[cc].var(ddof=1) / cc.sum())  # noqa: E731
-            out.append({"rest": r, "week": w, "aov": aov[r], "subset": subset,
-                        "own_profit": yp[tt].mean() - yp[cc].mean(), "se_profit": se(yp),
-                        "prior_profit": float(v["gain"][keep].mean()),
-                        "own_orders": yo[tt].mean() - yo[cc].mean(), "se_orders": se(yo),
-                        "prior_orders": float((v["p1"] - v["p0"])[keep].mean())})
-    return pd.DataFrame(out)
-
-
-def minimum_order_offers(train: pd.DataFrame) -> pd.DataFrame:
-    """Past minimum-order offers: how many of their orders actually used the offer."""
-    sh = train[train["shown"] & train["chosen"] & (train["min_order"] > 0)]
-    g = sh.groupby(["rest", "week"]).agg(discount=("offer_discount", "first"), min_order=("min_order", "first"),
-                                         use_rate=("takes", "mean"), orders=("takes", "size")).reset_index()
-    return g[g["orders"] >= 5]
+def code_version() -> str:
+    """Date and git commit of the code that produced a result (\"nogit\" outside a checkout)."""
+    try:
+        sha = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True,
+                             text=True, check=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        sha = "nogit"
+    return f"{time.strftime('%Y-%m-%d')}+{sha}"
 
 
 def run_world(market: Market, hist, policy: Policy, keep_rows: bool = False) -> dict:
@@ -125,7 +97,8 @@ def summarise(world: dict, base: dict) -> dict:
     return {
         "orders_per_week": round(t["orders"]), "extra_orders_vs_no_offer": round(extra),
         "restaurant_profit": round(t["profit"]), "restaurant_profit_change": round(t["profit"] - b["profit"]),
-        "zomato_commission": round(t["commission"]), "zomato_commission_change": round(t["commission"] - b["commission"]),
+        "zomato_commission": round(t["commission"]),
+        "zomato_commission_change": round(t["commission"] - b["commission"]),
         "zomato_contribution_change": round(t["contribution"] - b["contribution"]),
         "zomato_funded_discount": round(t["zfund"]),
         "customer_savings": round(t["spend"]),
@@ -161,30 +134,15 @@ def policy_from_designs(designs: list[Design], engine: Engine, mixes: np.ndarray
     return pol
 
 
-def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
+def evaluate(cfg: Config, quick: bool, with_details: bool, out_dir: Path = ROOT / "reports",
+             model_out: Path = ROOT / "data/processed/model.pkl") -> dict:
     t0 = time.time()
     R = pd.read_csv(ROOT / "data/processed/restaurants.csv")
     market = Market(R, cfg, Terms())
     n = market.n_rest
-    hist, train = build_history(market)
-    log(f"history: {len(train):,} shadow-phase visits, {int(train['chosen'].sum()):,} orders")
-    baskets = restaurant_baskets(train, n)
     aov = market.aov
-
-    topup = fit_topup_value(minimum_order_offers(train), baskets)
-    log(f"learned top-up value from past minimum-order offers: {topup:.3f}")
-    # cross-fitted calibration of model error
-    fold = train["rest"] % 2
-    priors = []
-    for f in (0, 1):
-        m_f = UpliftModel.fit(train[fold != f], seed=f)
-        priors.append(shadow_offers(train[fold == f], Engine(m_f, topup_value=topup), baskets, aov))
-    offers = pd.concat(priors, ignore_index=True)
-    model = UpliftModel.fit(train, seed=7)
-    engine = Engine(model, topup_value=topup)
-    sig = engine.calibrate(offers)
-    log(f"model trained; calibrated error: profit {sig[0]:.4f} x AOV per visit, orders {sig[1]:.4f} per visit "
-        f"({len(offers)} shadow-offer checks)")
+    trained = train_model(market, log)
+    hist, baskets, engine, offers = trained.hist, trained.baskets, trained.engine, trained.offers
 
     # policies
     zero = Policy.none(n)
@@ -213,8 +171,9 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
     mixes = {k: np.array([engine.mix(baskets[r], designs[k][r], aov[r]) for r in range(n)]) for k in designs}
     pols = {"no_offer": zero, "today_blanket": blanket, "rule_new_customers": rule,
             "truelift": policy_from_designs(designs["truelift"], engine, mixes["truelift"], "TrueLift"),
-            "zomato_cofund_naive": policy_from_designs(designs["truelift_cofund"], engine, mixes["truelift_cofund"],
-                                                       "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured")}
+            "zomato_cofund_naive": policy_from_designs(
+                designs["truelift_cofund"], engine, mixes["truelift_cofund"],
+                "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured")}
     worlds = {}
     for k, pol in pols.items():
         worlds[k] = run_world(market, hist, pol, keep_rows=(with_details and k == "truelift"))
@@ -232,7 +191,8 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
         "audience": pd.Series([d.audience for d in ds if d.discount > 0]).value_counts().to_dict(),
         "with_min_order": sum(d.min_order > 0 for d in ds if d.discount > 0),
         "offpeak_only": sum(d.offpeak_only for d in ds if d.discount > 0),
-        "depth_share_of_aov": round(float(np.mean([d.discount / aov[i] for i, d in enumerate(ds) if d.discount > 0])), 3),
+        "depth_share_of_aov": round(float(np.mean([d.discount / aov[i] for i, d in enumerate(ds)
+                                                   if d.discount > 0])), 3),
     }
 
     # measurement accuracy in the TrueLift world (cumulative after 1, 2 and 4 weeks)
@@ -265,7 +225,8 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
         acc[f"after_{upto}_weeks"] = {
             "offers": len(g),
             "coverage_80": round(float(((g["true_profit"] >= g["low"]) & (g["true_profit"] <= g["high"])).mean()), 3),
-            "coverage_80_orders": round(float(((g["true_orders"] >= g["orders_low"]) & (g["true_orders"] <= g["orders_high"])).mean()), 3),
+            "coverage_80_orders": round(float(((g["true_orders"] >= g["orders_low"])
+                                               & (g["true_orders"] <= g["orders_high"])).mean()), 3),
             "mae_combined": round(float((g["est_profit"] - g["true_profit"]).abs().mean())),
             "mae_own_holdout_only": round(float((g["own_only"] - g["true_profit"]).abs().mean())),
             "mae_model_only": round(float((g["model_only"] - g["true_profit"]).abs().mean())),
@@ -288,13 +249,15 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
     up = v["p1"] - v["p0"]
     results["uplift_quality"] = {
         "qini_model": round(qini_coefficient(up, el["shown"].to_numpy(), el["chosen"].to_numpy()), 3),
-        "corr_with_true_uplift": round(float(np.corrcoef(up[el["shown"]], (el["p"] - el["p_cf"])[el["shown"]])[0, 1]), 3),
+        "corr_with_true_uplift": round(float(np.corrcoef(up[el["shown"]],
+                                                         (el["p"] - el["p_cf"])[el["shown"]])[0, 1]), 3),
     }
 
     # per-restaurant table and the demo restaurant
     pr = {k: worlds[k]["per_rest"] for k in ("no_offer", "today_blanket", "truelift")}
     tab = pd.DataFrame({
-        "restaurant_id": range(n), "name": [display_name(r) for _, r in R.iterrows()], "locality": R["locality"], "aov": aov,
+        "restaurant_id": range(n), "name": [display_name(r) for _, r in R.iterrows()],
+        "locality": R["locality"], "aov": aov,
         "orders_no_offer": pr["no_offer"]["orders"].round(1),
         "blanket_profit_change": (pr["today_blanket"]["profit"] - pr["no_offer"]["profit"]).round(0),
         "blanket_redemptions": pr["today_blanket"]["redemptions"].round(1),
@@ -302,39 +265,45 @@ def evaluate(cfg: Config, quick: bool, with_details: bool) -> dict:
         "truelift_profit_change": (pr["truelift"]["profit"] - pr["no_offer"]["profit"]).round(0),
         "truelift_design": [d.label() for d in ds],
     })
-    tab.to_csv(ROOT / "reports/restaurants_results.csv", index=False)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    tab.to_csv(out_dir / "restaurants_results.csv", index=False)
     cand = tab[(tab["aov"].between(350, 450)) & (tab["blanket_profit_change"] < 0)
                & (tab["truelift_profit_change"] > 0) & (tab["orders_no_offer"] >= 40)]
-    demo = int(cand.sort_values("orders_no_offer", ascending=False)["restaurant_id"].iloc[0]) if len(cand) else int(tab["orders_no_offer"].idxmax())
+    if len(cand):
+        demo = int(cand.sort_values("orders_no_offer", ascending=False)["restaurant_id"].iloc[0])
+    else:
+        demo = int(tab["orders_no_offer"].idxmax())
     results["demo_restaurant"] = tab.loc[demo].to_dict()
     results["blanket_restaurants_losing"] = int((tab["blanket_profit_change"] < 0).sum())
     results["calibration"] = {"topup_value": round(engine.topup_value, 3),
                               "sigma_profit_share_of_aov": round(engine.sigma_rel, 4),
                               "sigma_orders_per_visit": round(engine.sigma_orders, 5),
                               "shadow_offers": len(offers)}
-    meas.to_csv(ROOT / "reports/measurement_check.csv", index=False)
-    with open(ROOT / "data/processed/model.pkl", "wb") as fh:
-        pickle.dump({"model": model, "sigma_rel": engine.sigma_rel, "sigma_orders": engine.sigma_orders,
-                     "topup_value": engine.topup_value,
-                     "config": asdict(cfg), "demo_restaurant": demo,
-                     "truelift_designs": [asdict(d) for d in ds]}, fh)
+    meas.to_csv(out_dir / "measurement_check.csv", index=False)
+    save_bundle(trained.bundle(demo, ds, version=code_version(),
+                               data_sha256=file_sha256(ROOT / "data/processed/restaurants.csv")), model_out)
     log(f"done in {time.time() - t0:.0f}s")
     return results
 
 
 def main() -> int:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--quick", action="store_true")
+    ap.add_argument("--quick", action="store_true", help="fewer customers, no sensitivity runs (about a minute)")
+    ap.add_argument("--out", type=Path, default=ROOT / "reports", help="directory for the report files")
+    ap.add_argument("--model-out", type=Path, default=ROOT / "data/processed/model.pkl",
+                    help="where to write the model bundle")
+    ap.add_argument("--seed", type=int, default=7, help="market seed (customers, tastes, offers, draws)")
     args = ap.parse_args()
-    base_cfg = Config(customers_per_locality=2000) if args.quick else Config()
-    report = {"main": evaluate(base_cfg, args.quick, with_details=True)}
+    base_cfg = Config(customers_per_locality=2000, seed=args.seed) if args.quick else Config(seed=args.seed)
+    report = {"main": evaluate(base_cfg, args.quick, with_details=True, out_dir=args.out,
+                               model_out=args.model_out)}
     if not args.quick:
         for label, f in (("less_price_sensitive", 0.7), ("more_price_sensitive", 1.3)):
             cfg = replace(base_cfg, price_sensitivity=tuple(round(s * f, 3) for s in base_cfg.price_sensitivity))
             log(f"sensitivity: {label}")
-            report[label] = evaluate(cfg, False, with_details=False)
-    (ROOT / "reports").mkdir(exist_ok=True)
-    with open(ROOT / "reports/evaluation.json", "w") as fh:
+            report[label] = evaluate(cfg, False, with_details=False, out_dir=args.out, model_out=args.model_out)
+    args.out.mkdir(parents=True, exist_ok=True)
+    with open(args.out / "evaluation.json", "w", encoding="utf-8") as fh:
         json.dump(report, fh, indent=2, default=lambda o: o.item() if hasattr(o, "item") else str(o))
     print(json.dumps(report["main"]["policies"], indent=1, default=str)[:4000])
     return 0

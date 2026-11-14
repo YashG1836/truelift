@@ -20,13 +20,22 @@ const n0 = (x) => (x === null || x === undefined ? "–" : Math.round(x).toLocal
 const pct = (x) => (x === null || x === undefined ? "–" : Math.round(x * 100) + "%");
 const cls = (x) => (x > 0 ? "pos" : x < 0 ? "neg" : "");
 const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+const when = (iso) => { // "14 Nov, 4:05 pm" from an ISO 8601 time with its zone
+  if (!iso) return "";
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? String(iso) : d.toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+};
 
 // ---------------- data layer ----------------
 // On GitHub Pages there is no server: STATIC points to precomputed answers from the real service
 // (scripts/export_static.py), and offers are replayed week by week in the browser.
 const STATIC = window.TRUELIFT_STATIC || null;
 const LOCAL = { offers: {}, next: 1 };
-const dkey = (d) => `${Math.round(d.discount)}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`;
+// One file per design. With no discount, minimum order, audience and time make no difference, so
+// those designs share one key (the export writes exactly these keys; scripts/export_static.py key()).
+const dkey = (d) => (d.discount > 0
+  ? `${Math.round(d.discount)}-${Math.round(d.min_order)}-${d.audience}-${d.offpeak_only ? 1 : 0}-${Math.round(d.reward)}`
+  : `0-0-all-0-${Math.round(d.reward)}`);
 
 async function sget(file) {
   // one retry: a freshly published site can briefly miss files while the CDN catches up
@@ -43,52 +52,78 @@ async function sget(file) {
 
 function localView(id) {
   const o = LOCAL.offers[id];
-  if (!o) throw new Error("no such offer");
-  return { ...o.full, offer_id: +id, status: o.status, consent: o.status === "awaiting_otp" ? null : o.full.consent,
-           weeks: o.full.weeks.slice(0, o.shown) };
+  if (!o) throw new Error("There is no such offer in this demo session.");
+  // the consent record carries the moment this visitor approved, not the moment the demo was built (TL-022)
+  const consent = o.status === "awaiting_otp" ? null : { ...o.full.consent, approved_at: o.approvedAt };
+  return { ...o.full, offer_id: +id, status: o.status, consent, weeks: o.full.weeks.slice(0, o.shown) };
 }
 
 async function staticApi(path, body) {
   let m;
-  if (path === "/api/restaurants") return sget("restaurants.json");
-  if ((m = path.match(/^\/api\/restaurants\/(\d+)$/))) return sget(`${m[1]}/card.json`);
-  if (path === "/api/quote") return (await sget(`${body.restaurant_id}/${dkey(body.design)}.json`)).quote;
-  if (path === "/api/customers") return (await sget(`${body.restaurant_id}/${dkey(body.design)}.json`)).customers;
-  if (path === "/api/offers") {
+  if (path === "/api/v1/restaurants") return sget("restaurants.json");
+  if ((m = path.match(/^\/api\/v1\/restaurants\/(\d+)$/))) return sget(`${m[1]}/card.json`);
+  if (path === "/api/v1/quote") return (await sget(`${body.restaurant_id}/${dkey(body.design)}.json`)).quote;
+  if (path === "/api/v1/customers") return (await sget(`${body.restaurant_id}/${dkey(body.design)}.json`)).customers;
+  if (path === "/api/v1/offers") {
     const f = await sget(`${body.restaurant_id}/${dkey(body.design)}.json`);
     if (!f.offer) throw new Error("Nothing to approve: this design has no discount.");
     const id = LOCAL.next++;
-    LOCAL.offers[id] = { full: f.offer, otp: String(1000 + Math.floor(Math.random() * 9000)), shown: 0, status: "awaiting_otp" };
+    LOCAL.offers[id] = { full: f.offer, otp: String(1000 + Math.floor(Math.random() * 9000)), shown: 0, status: "awaiting_otp", attempts: 0 };
     return { offer_id: id, demo_otp: LOCAL.offers[id].otp };
   }
-  if ((m = path.match(/^\/api\/offers\/(\d+)$/))) return localView(m[1]);
-  if ((m = path.match(/^\/api\/offers\/(\d+)\/approve$/))) {
+  if ((m = path.match(/^\/api\/v1\/offers\/(\d+)$/))) return localView(m[1]);
+  if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/approve$/))) {
     const o = LOCAL.offers[m[1]];
-    if (String(body.otp).trim() !== o.otp) throw new Error("Wrong OTP. Check the code and try again.");
+    if (o.status !== "awaiting_otp") throw new Error("This offer can't be approved again.");
+    if (o.attempts >= 5) throw new Error("Too many wrong codes. Create the offer again to get a new OTP.");
+    if (String(body.otp).trim() !== o.otp) {
+      o.attempts += 1;
+      const left = 5 - o.attempts;
+      throw new Error(left > 0 ? `Wrong OTP. Check the code and try again (${left} attempt${left === 1 ? "" : "s"} left).`
+        : "Too many wrong codes. Create the offer again to get a new OTP.");
+    }
     o.status = "active";
+    o.approvedAt = new Date().toISOString();
     return localView(m[1]);
   }
-  if ((m = path.match(/^\/api\/offers\/(\d+)\/run_week$/))) {
+  if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/run_week$/))) {
     const o = LOCAL.offers[m[1]];
     if (o.status !== "active") throw new Error("This offer is not running.");
     o.shown = Math.min(o.shown + 1, o.full.weeks.length);
     if (o.shown >= o.full.weeks.length) o.status = o.full.status === "active" ? "consent_expired" : o.full.status;
     return localView(m[1]);
   }
-  if ((m = path.match(/^\/api\/offers\/(\d+)\/decision$/))) { LOCAL.offers[m[1]].status = "stopped"; return localView(m[1]); }
-  if (path === "/api/calls") return sget("calls.json");
-  if (path === "/api/evidence") return sget("evidence.json");
-  if (path === "/api/example") return sget("example.json");
-  if (path === "/api/reset") { LOCAL.offers = {}; return { ok: true }; }
+  if ((m = path.match(/^\/api\/v1\/offers\/(\d+)\/decision$/))) { // honour keep and stop, like the service
+    const o = LOCAL.offers[m[1]];
+    if (body.action === "stop") {
+      if (["stopped", "replaced"].includes(o.status)) throw new Error("This offer has already ended.");
+      o.status = "stopped";
+    } else if (o.status !== "active") throw new Error("Renewing a paused or expired offer needs a fresh quote and a new OTP.");
+    return localView(m[1]);
+  }
+  if (path === "/api/v1/calls") return sget("calls.json");
+  if (path === "/api/v1/evidence") return sget("evidence.json");
+  if (path === "/api/v1/example") return sget("example.json");
+  if (path === "/api/v1/reset") { LOCAL.offers = {}; return { ok: true }; }
   throw new Error("Not available in the static demo: " + path);
 }
 
+// Each browser tab is its own demo session, so one visitor can never reset another's offers.
+const SESSION = (() => {
+  try {
+    let id = sessionStorage.getItem("truelift-session");
+    if (!id) { id = Math.random().toString(36).slice(2, 12) + Date.now().toString(36); sessionStorage.setItem("truelift-session", id); }
+    return id;
+  } catch (e) { return Math.random().toString(36).slice(2, 14); }
+})();
+
 async function api(path, body) {
   if (STATIC) return staticApi(path, body);
-  const opt = body === undefined ? {} : { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) };
+  const headers = { "X-Session": SESSION };
+  const opt = body === undefined ? { headers } : { method: "POST", headers: { ...headers, "Content-Type": "application/json" }, body: JSON.stringify(body) };
   const r = await fetch(path, opt);
   const j = await r.json().catch(() => ({}));
-  if (!r.ok) throw new Error(j.detail ? (typeof j.detail === "string" ? j.detail : "Please check the inputs.") : r.statusText);
+  if (!r.ok) throw new Error(typeof j.detail === "string" && j.detail ? j.detail : `The service answered ${r.status}. Please try again.`);
   return j;
 }
 
@@ -103,15 +138,14 @@ const STATUS = {
   stopped: ["Stopped", ""], consent_expired: ["4-week approval over", "red"],
 };
 
-function defaultDesign(aov) {
-  return { discount: Math.max(20, Math.round((aov * 0.15) / 10) * 10), min_order: 0, audience: "all", offpeak_only: false, reward: 0, zomato_share: 0 };
+// The create screen offers exactly the options the server lists on the restaurant's card, so the
+// page can never ask for a design the static export did not write (audit TL-002).
+function defaultDesign(card) {
+  return { discount: card.design_options.default_depth, min_order: 0, audience: "all", offpeak_only: false, reward: 0, zomato_share: 0 };
 }
-function designOptions(aov) {
-  return {
-    depths: [...new Set([0.1, 0.15, 0.2, 0.25].map((f) => Math.max(20, Math.round((aov * f) / 10) * 10)))],
-    mov: Math.ceil((aov * 1.15) / 50) * 50 - 1,
-    reward: Math.max(5, Math.round((aov * 0.05) / 5) * 5),
-  };
+function designOptions(card) {
+  const o = card.design_options;
+  return { depths: o.depths, mov: o.min_order, reward: o.reward };
 }
 
 // ---------------- boot and navigation ----------------
@@ -130,7 +164,7 @@ async function boot() {
   const now = new Date();
   $("#clock").textContent = now.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" });
   $("#screen").innerHTML = `<div class="empty">Loading the market…</div>`;
-  const data = await api("/api/restaurants");
+  const data = await api("/api/v1/restaurants");
   const sel = $("#rest");
   const list = data.restaurants.filter((r) => r.menu_visits_per_week > 0)
     .sort((a, b) => (b.restaurant_id === data.demo_restaurant) - (a.restaurant_id === data.demo_restaurant) || a.name.localeCompare(b.name));
@@ -154,10 +188,10 @@ function showTab(t) {
 }
 
 async function openRestaurant(rid) {
-  await api("/api/reset", {});
+  await api("/api/v1/reset", {});
   Object.assign(S, { rid, offer: null, quote: null, err: "" });
-  S.card = await api(`/api/restaurants/${rid}`);
-  S.design = defaultDesign(S.card.aov);
+  S.card = await api(`/api/v1/restaurants/${rid}`);
+  S.design = defaultDesign(S.card);
   $("#rest").value = rid;
   go("home");
   refreshInside();
@@ -198,7 +232,7 @@ function homeHTML() {
 }
 
 function createHTML() {
-  const d = S.design, o = designOptions(S.card.aov);
+  const d = S.design, o = designOptions(S.card);
   const chip = (field, val, label) => `<button class="chip ${d[field] === val ? "on" : ""}" data-set="${field}" data-val='${JSON.stringify(val)}'>${label}</button>`;
   return `<button class="back" data-go="home">← Back</button>
   <div class="field"><span class="lab">Discount</span><div class="chips">${o.depths.map((v) => chip("discount", v, "₹" + v + " off")).join("")}</div></div>
@@ -273,7 +307,7 @@ function liveHTML() {
   return `<button class="back" data-go="home">← Offers</button>
   <div class="card"><div class="eyebrow">Your offer</div><h4>${esc(off.label)}</h4>
     <span class="tag ${st[1]}">${st[0]}</span>
-    <div class="row" style="margin-top:6px"><span class="k">Approved by OTP</span><span class="v">${esc(off.consent?.approved_at || "")}</span></div>
+    <div class="row" style="margin-top:6px"><span class="k">Approved by OTP</span><span class="v">${esc(when(off.consent?.approved_at))}</span></div>
     <div class="row"><span class="k">Forecast at approval</span><span class="v">${inr(off.quote.profit_change, true)} a week</span></div></div>
   ${canRun ? `<button class="btn" id="runBtn" data-act="runWeek" ${S.busy ? "disabled" : ""}>${S.busy ? "Simulating…" : off.weeks.length ? `Simulate week ${off.weeks.length + 1}` : "Simulate the first week"}</button>
     <p class="note" style="text-align:center">${off.weeks.length ? `${4 - off.weeks.length} of 4 approved weeks left` : "Runs a week of simulated customers through the offer."}</p>` : ""}
@@ -284,8 +318,8 @@ function liveHTML() {
   ${off.weeks.length && canRun ? `<button class="btn ghost" data-act="stop">Stop offer</button>` : ""}`;
 }
 
-const verdictTag = (w) => (w.measurement.verdict.startsWith("making") ? "good" : w.measurement.verdict.startsWith("losing") ? "bad" : "");
-const shortVerdict = (w) => (w.measurement.verdict.startsWith("making") ? "Making money" : w.measurement.verdict.startsWith("losing") ? "Losing money" : "Too early");
+const verdictTag = (w) => ({ keep: "good", pause: "bad" }[w.measurement.verdict_code] || "");
+const shortVerdict = (w) => ({ keep: "Making money", pause: "Losing money" }[w.measurement.verdict_code] || "Too early");
 
 function weekHTML(w, off) {
   const m = w.measurement, p = m.profit, o = m.orders, r = m.report_today, pay = w.payout;
@@ -307,8 +341,8 @@ function weekHTML(w, off) {
       <div class="row"><span class="k">Discount paid by you</span><span class="v">−${inr(pay.discount_paid_by_you)}</span></div>
       <div class="row"><span class="k">Brand Pack rewards paid by you</span><span class="v">−${inr(pay.brand_pack_rewards_paid_by_you)}</span></div>
       <div class="row"><span class="k">Discount paid by Zomato</span><span class="v">${inr(pay.discount_paid_by_zomato)}</span></div>
-      <div class="row"><span class="k">Commission (25%)</span><span class="v">−${inr(pay.commission_25pct)}</span></div>
-      <div class="row"><span class="k">GST on commission (18%)</span><span class="v">−${inr(pay.gst_on_commission_18pct)}</span></div>
+      <div class="row"><span class="k">Commission (${pct(pay.commission_rate)})</span><span class="v">−${inr(pay.commission)}</span></div>
+      <div class="row"><span class="k">GST on commission (${pct(pay.gst_rate)})</span><span class="v">−${inr(pay.gst_on_commission)}</span></div>
       <div class="row"><span class="k"><b>Net payout</b></span><span class="v">${inr(pay.net_payout)}</span></div></details></div>`;
 }
 
@@ -333,7 +367,7 @@ function bind() {
 let quoteSeq = 0;
 function requestQuote() {
   const seq = ++quoteSeq;
-  return api("/api/quote", { restaurant_id: S.rid, design: S.design }).then((q) => {
+  return api("/api/v1/quote", { restaurant_id: S.rid, design: S.design }).then((q) => {
     if (seq !== quoteSeq) return q;
     S.quote = q;
     if (S.screen === "create") {
@@ -349,25 +383,25 @@ function requestQuote() {
 const ACT = {
   useBetter() { if (S.quote?.better) { S.design = { ...S.quote.better.design }; S.quote = null; render(); } },
   async toOtp() {
-    const r = await api("/api/offers", { restaurant_id: S.rid, design: S.design });
+    const r = await api("/api/v1/offers", { restaurant_id: S.rid, design: S.design });
     S.otp = r.demo_otp; S.err = "";
-    S.offer = await api(`/api/offers/${r.offer_id}`);
+    S.offer = await api(`/api/v1/offers/${r.offer_id}`);
     go("otp");
   },
   async approve(code) {
     const otp = code ?? [...document.querySelectorAll("[data-otp]")].map((b) => b.value).join("");
     try {
-      S.offer = await api(`/api/offers/${S.offer.offer_id}/approve`, { otp });
+      S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/approve`, { otp });
       S.err = ""; go("live"); refreshInside();
     } catch (e) { S.err = e.message; const el = $("#otperr"); if (el) el.textContent = e.message; }
   },
   async runWeek() {
     if (S.busy) return;
     S.busy = true; render();
-    try { S.offer = await api(`/api/offers/${S.offer.offer_id}/run_week`, {}); }
+    try { S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/run_week`, {}); }
     finally { S.busy = false; render(); refreshInside(); }
   },
-  async stop() { S.offer = await api(`/api/offers/${S.offer.offer_id}/decision`, { action: "stop" }); render(); refreshInside(); },
+  async stop() { S.offer = await api(`/api/v1/offers/${S.offer.offer_id}/decision`, { action: "stop" }); render(); refreshInside(); },
 };
 
 // ---------------- inside Zomato ----------------
@@ -375,14 +409,14 @@ async function refreshInside() {
   const design = S.offer?.design || S.design;
   try {
     const [c, q] = await Promise.all([
-      api("/api/customers", { restaurant_id: S.rid, design }),
-      S.offer ? Promise.resolve({ owner: S.offer.quote }) : (S.quote && sameDesign(S.quote.owner.design, design) ? Promise.resolve(S.quote) : api("/api/quote", { restaurant_id: S.rid, design })),
+      api("/api/v1/customers", { restaurant_id: S.rid, design }),
+      S.offer ? Promise.resolve({ owner: S.offer.quote }) : (S.quote && sameDesign(S.quote.owner.design, design) ? Promise.resolve(S.quote) : api("/api/v1/quote", { restaurant_id: S.rid, design })),
     ]);
     $("#who").innerHTML = whoHTML(c, q.owner);
   } catch (e) { $("#who").innerHTML = `<p class="neg">${esc(e.message)}</p>`; }
   renderTruth();
   try {
-    const calls = await api("/api/calls");
+    const calls = await api("/api/v1/calls");
     $("#calls").innerHTML = (STATIC ? `<p class="note">Measured when this demo was built:</p>` : "") +
       (calls.calls.map((c) => `${esc(c.hook)} · ${c.ms} ms${c.customer !== undefined ? ` · customer ${c.customer} · ${c.show ? "show" : "don't show"}` : ""}`).join("<br>") || "No calls yet.");
   } catch (e) { /* optional panel */ }
@@ -472,7 +506,7 @@ const Tour = {
   async start() {
     showTab("demo");
     await openRestaurant(S.rid);
-    try { this.ev = await once("evidence", () => api("/api/evidence")); } catch (e) { this.ev = null; }
+    try { this.ev = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { this.ev = null; }
     this.steps = tourSteps();
     this.i = -1;
     $("#tour").classList.add("on");
@@ -503,7 +537,7 @@ function tourSteps() {
     { title: `Meet ${c.name}, ${c.locality}`, spot: "#phead",
       text: () => `This is the restaurant's partner app. It gets about <b>${n0(c.orders_per_week)} orders a week</b> at <b>${inr(c.aov)}</b> on average, and ${pct(c.regulars_share_of_orders)} of orders come from ${c.regular_customers} regulars. (Real listing; simulated customers and money.)` },
     { title: "The owner sets up today's usual offer", spot: "#ownerCard",
-      run: async () => { S.design = defaultDesign(c.aov); S.quote = null; go("create"); await requestQuote(); await wait(150); },
+      run: async () => { S.design = defaultDesign(c); S.quote = null; go("create"); await requestQuote(); await wait(150); },
       text: () => q() ? `<b>${esc(q().label)}</b>. Before approving, TrueLift forecasts it: about ${n0(q().redemptions)} orders a week would use it, but <b>${pct(q().anyway_share)} of them would have come anyway</b>. Expected extra profit: <b>${inr(q().profit_change, true)}</b> a week (likely ${inr(q().profit_low, true)} to ${inr(q().profit_high, true)}). Today's report would only show the orders that used it.` : "Calculating…" },
     { title: "TrueLift suggests a better version", spot: "#betterCard",
       run: async () => { await wait(50); },
@@ -541,7 +575,7 @@ async function renderHow() {
   const el = $("#how");
   if (el.dataset.done) return;
   let E = null;
-  try { E = await once("evidence", () => api("/api/evidence")); } catch (e) { /* page still works without numbers */ }
+  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { /* page still works without numbers */ }
   const P = E?.main?.policies, v = E?.real_data_criteo?.results?.find((r) => r.label === "visit");
   const waffle = Array.from({ length: 100 }, (_, k) => `<i class="${k >= 70 ? "x" : ""}"></i>`).join("");
   el.innerHTML = `<h1>How TrueLift works</h1>
@@ -601,7 +635,7 @@ async function renderEvidence() {
   const el = $("#evidence");
   if (el.dataset.done) return;
   let E;
-  try { E = await once("evidence", () => api("/api/evidence")); } catch (e) { el.innerHTML = `<p class="neg">${esc(e.message)}</p>`; return; }
+  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { el.innerHTML = `<p class="neg">${esc(e.message)}</p>`; return; }
   const M = E.main, P = M.policies, A = M.measurement;
   const keys = ["today_blanket", "rule_new_customers", "truelift", "zomato_cofund_naive"], main3 = keys.slice(0, 3);
   const row = (label, f, fmt = (v) => v, hl = false) => `<tr class="${hl ? "hl" : ""}"><td>${label}</td>${keys.map((k) => `<td>${fmt(f(P[k]))}</td>`).join("")}</tr>`;
@@ -724,7 +758,7 @@ function bindTips(root) {
 async function renderMoney() {
   const el = $("#money");
   if (el.dataset.done) return;
-  const e = await once("example", () => api("/api/example"));
+  const e = await once("example", () => api("/api/v1/example"));
   const f = e.per_order_full, d = e.per_order_discounted, b = e.blanket, t = e.truelift, n = e.no_offer;
   const line = (k, v, total) => `<div class="row ${total ? "total" : ""}"><span class="k">${k}</span><span class="v">${v}</span></div>`;
   el.innerHTML = `<h1>The money, step by step</h1>

@@ -24,16 +24,18 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
+from .assignment import in_control_group, stable_uniform  # noqa: F401  (stable_uniform re-exported)
 from .economics import Terms, split
+from .features import HistoryFeatures
 
 TYPES = ("loyal", "casual", "deal_seeker", "infrequent")
+SLOTS = ("lunch", "3-6 pm", "dinner")
 
 
 def display_name(r) -> str:
     """How a restaurant is shown: its real public listing name. Its orders and profits here are
     simulated, and every screen that shows numbers says so."""
     return str(r["name"])
-SLOTS = ("lunch", "3-6 pm", "dinner")
 
 
 @dataclass(frozen=True)
@@ -67,9 +69,13 @@ class Policy:
     holdout: float = 0.10  # random share of eligible customers who don't see the offer
     scorer: object = None  # for "targeted": callable(features, policy) -> bool array
     name: str = ""
+    # When set (one id per restaurant), the holdout is the shared (customer, offer) assignment that
+    # serving uses, so the simulated weeks hold out exactly the customers `serve` holds out.
+    # Evaluation policies leave it unset and keep their own salts.
+    offer_id: np.ndarray | None = None
 
     @classmethod
-    def none(cls, n: int, name: str = "no offer") -> "Policy":
+    def none(cls, n: int, name: str = "no offer") -> Policy:
         return cls(np.zeros(n), np.zeros(n), np.zeros(n, bool), np.zeros(n), np.zeros(n),
                    np.array(["all"] * n, dtype=object), 0.0, None, name)
 
@@ -84,22 +90,18 @@ class History:
     cust_sessions: list = field(default_factory=list)
 
 
-def stable_uniform(a: np.ndarray, b: np.ndarray, salt: int) -> np.ndarray:
-    """Deterministic U(0,1) per (a, b) pair: the hashed holdout assignment."""
-    x = (a.astype(np.uint64) * np.uint64(2654435761) + b.astype(np.uint64) * np.uint64(40503)
-         + np.uint64(salt % 4294967296) * np.uint64(97531)) & np.uint64(0xFFFFFFFF)
-    x ^= x >> np.uint64(16)
-    x = (x * np.uint64(0x45D9F3B)) & np.uint64(0xFFFFFFFF)
-    x ^= x >> np.uint64(16)
-    return x.astype(np.float64) / 4294967296.0
-
-
 class Market:
     def __init__(self, restaurants: pd.DataFrame, cfg: Config = Config(), terms: Terms = Terms()):
         self.cfg, self.terms = cfg, terms
         r = restaurants.sort_values("restaurant_id").reset_index(drop=True).copy()
+        # restaurant_id is used as an array index and localities as equal blocks: check, don't assume
+        if not np.array_equal(r["restaurant_id"].to_numpy(), np.arange(len(r))):
+            raise ValueError("restaurant_id must run 0, 1, ..., n-1 with no gaps")
+        sizes = r.groupby("locality", sort=False).size()
+        if sizes.nunique() != 1:
+            raise ValueError(f"every locality needs the same number of restaurants; got {sizes.to_dict()}")
         self.localities = list(dict.fromkeys(r["locality"]))
-        r["loc"] = r["locality"].map({l: i for i, l in enumerate(self.localities)})
+        r["loc"] = r["locality"].map({name: i for i, name in enumerate(self.localities)})
         r["local"] = r.groupby("loc").cumcount()
         r["aov"] = (cfg.aov_factor * r["cost_for_two"]).clip(150, 1000).round(-1)
         r["pop"] = np.sqrt(r["votes"].astype(float))
@@ -117,7 +119,7 @@ class Market:
         self.c_joiner = rng.random(n) < cfg.joiner_share
         w = r["pop"].to_numpy().reshape(len(self.localities), self.per_loc)
         self.pop_local = w / w.sum(1, keepdims=True)
-        self.c_fav = np.array([rng.choice(self.per_loc, p=self.pop_local[l]) for l in self.c_loc])
+        self.c_fav = np.array([rng.choice(self.per_loc, p=self.pop_local[loc]) for loc in self.c_loc])
         self.taste = rng.normal(0, cfg.taste_sd, (n, self.per_loc))
         self.bmult = rng.lognormal(0, 0.2, (n, self.per_loc))
         self.aov = r["aov"].to_numpy(float)
@@ -146,36 +148,7 @@ class Market:
     # ---------- observable features at a snapshot ----------
     def features(self, hist: History, cust: np.ndarray, local: np.ndarray, rest: np.ndarray) -> dict:
         """Features for (customer, restaurant) exposures, computed only from observed history."""
-        po, pv = hist.pair_orders, hist.pair_visits
-        last4 = slice(max(0, len(po) - 4), len(po))
-        n4 = max(1, len(po[last4]))
-        p4 = sum(po[last4]).astype(float) if po else np.zeros((self.n_cust, self.per_loc))
-        v4 = sum(pv[last4]).astype(float) if pv else np.zeros((self.n_cust, self.per_loc))
-        p_all = sum(po).astype(float) if po else np.zeros((self.n_cust, self.per_loc))
-        weeks_since_r = np.full((self.n_cust, self.per_loc), 8.0)
-        weeks_since_c = np.full(self.n_cust, 8.0)
-        for i, arr in enumerate(po):  # most recent week wins
-            ago = len(po) - i
-            weeks_since_r[arr > 0] = min(ago, 8)
-            weeks_since_c[hist.cust_orders[i] > 0] = min(ago, 8)
-        co4 = sum(hist.cust_orders[last4]).astype(float) if po else np.zeros(self.n_cust)
-        cd4 = sum(hist.cust_disc_orders[last4]).astype(float) if po else np.zeros(self.n_cust)
-        cs4 = sum(hist.cust_sessions[last4]).astype(float) if po else np.zeros(self.n_cust)
-        c_all = sum(hist.cust_orders).astype(float) if po else np.zeros(self.n_cust)
-        return {
-            "c_orders_pw": co4[cust] / n4,
-            "c_disc_share": cd4[cust] / np.maximum(co4[cust], 1),
-            "c_weeks_since": weeks_since_c[cust],
-            "c_sessions_pw": cs4[cust] / n4,
-            "c_new_to_zomato": (c_all[cust] == 0).astype(float),
-            "cr_orders_4w": p4[cust, local],
-            "cr_orders_all": p_all[cust, local],
-            "cr_visits_4w": v4[cust, local],
-            "cr_weeks_since": weeks_since_r[cust, local],
-            "r_rating": self.rating[rest],
-            "r_aov": self.aov[rest],
-            "r_logvotes": np.log1p(self.R["votes"].to_numpy(float))[rest],
-        }
+        return HistoryFeatures(self, hist).for_exposures(cust, local, rest)
 
     # ---------- run one week under a policy ----------
     def run_week(self, occ: dict, policy: Policy, feats: dict, salt: int = 0,
@@ -204,9 +177,12 @@ class Market:
         rule[aud == "lapsed"] = lapsed[aud == "lapsed"]
         if policy.scorer is not None and (aud == "targeted").any():
             tg = aud == "targeted"
-            rule[tg] = policy.scorer({**feats, "rest": rest, "slot": slot}, policy, tg)
+            rule[tg] = policy.scorer({**feats, "rest": rest, "slot": slot, "cust": c}, policy, tg)
         elig &= rule
-        hold = elig & (stable_uniform(c, rest, salt + 1) < policy.holdout)
+        if policy.offer_id is not None:  # the same (customer, offer) assignment serving uses
+            hold = elig & in_control_group(c, policy.offer_id[rest], policy.holdout)
+        else:
+            hold = elig & (stable_uniform(c, rest, salt + 1) < policy.holdout)
         shown = elig & ~hold
 
         mov = policy.min_order[rest]
@@ -318,9 +294,12 @@ def status_quo_policy(market: Market, rng: np.random.Generator, holdout: float =
     return Policy(discount, mov, offpeak, np.zeros(n), reward, aud, holdout, None, name)
 
 
-def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4):
+def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4, light: bool = False):
     """Simulate history: `weeks_quo` weeks of today's market, then `weeks_explore` weeks of
     TrueLift's shadow phase (random designs, 10% random holdout). Returns (history, training rows).
+
+    light=True is for the service: the same history, but instead of the million-row training
+    table it keeps only the orders `restaurant_baskets` needs (a fraction of the memory).
     """
     hist = History()
     rng = np.random.default_rng(market.cfg.seed + 99)
@@ -337,7 +316,13 @@ def build_history(market: Market, weeks_quo: int = 4, weeks_explore: int = 4):
         occ = market.occasions(w)
         pol = status_quo_policy(market, rng, holdout=0.10, share_active=0.6, explore=True, name="shadow")
         # holdout salt is fixed for the whole phase: a held-out customer stays held out
-        res = market.run_week(occ, pol, market.flat_features(snapshot, occ), salt=2, truth=True)
+        res = market.run_week(occ, pol, market.flat_features(snapshot, occ), salt=2, truth=not light)
+        if light:
+            keep = res["chosen"] & ~res["shown"] & (res["reward"] == 0)
+            train.append(pd.DataFrame({"rest": res["rest"][keep], "basket": res["basket"][keep],
+                                       "chosen": True, "shown": False, "reward": 0.0}))
+            market.record(hist, res)
+            continue
         for key in ("min_order", "offpeak_only"):
             res[key] = getattr(pol, key)[res["rest"]]
         res["offer_discount"] = pol.discount[res["rest"]]

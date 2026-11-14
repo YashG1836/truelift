@@ -12,10 +12,15 @@ a discount actually moves (higher than a random ranking = better).
 """
 from __future__ import annotations
 
+import hashlib
+import pickle
+import platform
 from dataclasses import dataclass
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.ensemble import HistGradientBoostingClassifier
 
 BASE_FEATURES = [
@@ -47,7 +52,7 @@ class UpliftModel:
     m1: HistGradientBoostingClassifier
 
     @classmethod
-    def fit(cls, rows: pd.DataFrame, seed: int = 0) -> "UpliftModel":
+    def fit(cls, rows: pd.DataFrame, seed: int = 0) -> UpliftModel:
         """rows: exposures from a period with random holdouts. Needs columns BASE_FEATURES,
         offer_discount, min_order, shown, chosen."""
         ctrl = rows[~rows["shown"]]
@@ -64,6 +69,59 @@ class UpliftModel:
         d = pd.DataFrame({"offer_discount": discount, "min_order": min_order, "r_aov": x["r_aov"]},
                          index=x.index)
         return self.m1.predict_proba(pd.concat([x[BASE_FEATURES], design_columns(d)], axis=1))[:, 1]
+
+
+class BundleError(RuntimeError):
+    """The model bundle is missing, altered, or was built with different library versions."""
+
+
+def library_versions() -> dict:
+    return {"python": platform.python_version(), "numpy": np.__version__, "pandas": pd.__version__,
+            "scikit-learn": sklearn.__version__}
+
+
+def file_sha256(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def save_bundle(bundle: dict, path: Path) -> str:
+    """Write the bundle and, beside it, `<name>.sha256` holding its checksum. Returns the checksum."""
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = pickle.dumps(bundle, protocol=pickle.HIGHEST_PROTOCOL)
+    path.write_bytes(data)
+    digest = hashlib.sha256(data).hexdigest()
+    path.with_name(path.name + ".sha256").write_text(f"{digest}  {path.name}\n", encoding="utf-8")
+    return digest
+
+
+def load_bundle(path: Path, check_versions: bool = True) -> dict:
+    """Load a model bundle only after checking it.
+
+    Unpickling runs code from the file, so the file must match the checksum committed beside it
+    (audit TL-044); and a pickled scikit-learn model is only guaranteed to load in the version that
+    wrote it, so a mismatch is refused with instructions instead of failing later (TL-021).
+    """
+    path = Path(path)
+    if not path.exists():
+        raise BundleError(f"No model at {path}. Run `python scripts/run_pipeline.py --quick` (about a minute), "
+                          "or check out the committed data/processed/model.pkl.")
+    sidecar = path.with_name(path.name + ".sha256")
+    if not sidecar.exists():
+        raise BundleError(f"{sidecar.name} is missing, so the model file cannot be verified. "
+                          "Rebuild it with `python scripts/run_pipeline.py`.")
+    data = path.read_bytes()
+    expected = sidecar.read_text(encoding="utf-8").split()[0]
+    actual = hashlib.sha256(data).hexdigest()
+    if actual != expected:
+        raise BundleError(f"{path.name} does not match its checksum ({actual[:12]} vs {expected[:12]}); "
+                          "refusing to load it.")
+    art = pickle.loads(data)
+    built = art.get("library_versions", {}).get("scikit-learn")
+    if check_versions and built and built != sklearn.__version__:
+        raise BundleError(f"The model was trained with scikit-learn {built} but {sklearn.__version__} is installed. "
+                          "Install the pinned versions (`uv sync` or `pip install -r requirements.txt`).")
+    return art
 
 
 def qini_curve(score: np.ndarray, treated: np.ndarray, y: np.ndarray, points: int = 50):

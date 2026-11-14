@@ -47,6 +47,27 @@ class OrderMoney:
         return {k: round(v, 2) for k, v in asdict(self).items()}
 
 
+def fmt_inr(x: float, sign: bool = False) -> str:
+    """Whole rupees with Indian digit grouping and a true minus sign: "−₹1,23,456", "+₹2,101".
+
+    The page formats money the same way (`inr` in app.js), so the WhatsApp text and the screens
+    never disagree (audit TL-032).
+    """
+    v = int(round(float(x)))
+    digits = str(abs(v))
+    if len(digits) > 3:
+        head, tail = digits[:-3], digits[-3:]
+        groups = []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            groups.insert(0, head)
+        digits = ",".join(groups + [tail])
+    prefix = "−₹" if v < 0 else ("+₹" if sign and v > 0 else "₹")
+    return prefix + digits
+
+
 def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     """Vectorised money split; works on floats or numpy arrays of equal shape."""
     z_funded = discount * zomato_share
