@@ -9,7 +9,7 @@ into an index (audit TL-005, TL-013).
 
 from __future__ import annotations
 
-from typing import Protocol
+from typing import Any, Protocol
 
 import numpy as np
 import pandas as pd
@@ -137,7 +137,7 @@ def skew_report(train: pd.DataFrame, others: dict[str, pd.DataFrame], features=F
         if f not in train:
             continue
         t = train[f].to_numpy()
-        entry = {"train_quantiles": [round(float(q), 4) for q in np.quantile(t, (0.05, 0.5, 0.95))]}
+        entry: dict[str, Any] = {"train_quantiles": [round(float(q), 4) for q in np.quantile(t, (0.05, 0.5, 0.95))]}
         support = set(np.unique(t).tolist()) if f in DISCRETE else None
         for name, df in others.items():
             v = df[f].to_numpy()
