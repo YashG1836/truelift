@@ -215,3 +215,33 @@ def test_skew_report_flags_unseen_values():
     assert ok["passed"] and ok["worst_share"] == 0
     bad = skew_report(train, {"serve": pd.DataFrame({"cr_weeks_since": [7.0, 9.0], "r_aov": [250.0, 900.0]})})
     assert not bad["passed"] and bad["features"]["cr_weeks_since"]["serve"]["share_outside"] == 0.5
+
+
+def test_brand_pack_has_its_own_control_group(market):
+    """TL-016: a random share of regulars is held out of the Brand Pack reward, on the reward's own
+    hash (independent of the discount's control group), and held-out regulars get no reward."""
+    from truelift.assignment import REWARD_SALT
+
+    n = market.n_rest
+    pol = Policy(
+        np.full(n, 60.0),
+        np.zeros(n),
+        np.zeros(n, bool),
+        np.zeros(n),
+        np.full(n, 20.0),
+        np.array(["all"] * n, dtype=object),
+        0.10,
+        offer_id=np.arange(n) + 700,
+    )
+    occ = market.occasions(1)
+    hist = History()
+    for w in range(-4, 0):  # a few weeks so some customers are regulars
+        o = market.occasions(w)
+        market.record(hist, market.run_week(o, Policy.none(n), market.flat_features(hist, o), salt=1, truth=False))
+    res = market.run_week(occ, pol, market.flat_features(hist, occ), salt=5)
+    offered, held = res["reward_offered"], res["reward_holdout"]
+    assert offered.sum() > 200 and np.array_equal(offered, res["regular"])
+    expected = in_control_group(res["cust"][offered], (np.arange(n) + 700)[res["rest"][offered]], 0.10, REWARD_SALT)
+    assert np.array_equal(held[offered], expected)
+    assert not held[~offered].any()
+    assert np.all(res["reward"][held] == 0) and np.all(res["reward"][offered & ~held] == 20.0)

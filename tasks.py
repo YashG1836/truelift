@@ -6,6 +6,8 @@
     python tasks.py pipeline [--quick] simulate, train, evaluate -> reports/ and the model (~10 min)
     python tasks.py sensitivity        eight assumptions low and high -> reports/sensitivity.json (~5 min)
     python tasks.py benchmark          uplift learners against the truth -> reports/learner_benchmark.json
+    python tasks.py experiments [name] the experiments behind the write-up's claims -> reports/exp_*.json
+    python tasks.py latency            time the live service over HTTP -> reports/latency.json
     python tasks.py serve              live service and page at http://localhost:8000
     python tasks.py export [ids...]    static demo -> site/ (default: the demo restaurants)
     python tasks.py reproduce [--quick]  re-run the pipeline in a temp folder, compare with the
@@ -96,6 +98,14 @@ def benchmark(a) -> int:
     return run([*py(), "scripts/benchmark_learners.py", "--workers", str(a.workers)])
 
 
+def experiments(a) -> int:
+    return run([*py(), "scripts/experiments.py", a.name, *(["--quick"] if a.quick else [])])
+
+
+def latency(a) -> int:
+    return run([*py(), "scripts/bench_latency.py"])
+
+
 def reproduce(a) -> int:
     with tempfile.TemporaryDirectory(prefix="truelift-reproduce-") as tmp:
         out = Path(tmp)
@@ -145,6 +155,11 @@ def main(argv: list[str] | None = None) -> int:
         p = sub.add_parser(name)
         p.add_argument("--workers", type=int, default=3, help="runs at a time (each needs 1-2 GB)")
         p.set_defaults(fn=fn)
+    p = sub.add_parser("experiments")
+    p.add_argument("name", nargs="?", default="all")
+    p.add_argument("--quick", action="store_true")
+    p.set_defaults(fn=experiments)
+    sub.add_parser("latency").set_defaults(fn=latency)
     p = sub.add_parser("serve")
     p.add_argument("--host", default="127.0.0.1")
     p.add_argument("--port", type=int, default=8000)

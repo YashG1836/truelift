@@ -120,11 +120,20 @@ class Store:
                 ),
             )
 
-    def log_week(self, offer_id: int, week: int, rows: pd.DataFrame, model_version: str) -> None:
+    def log_week(
+        self,
+        offer_id: int,
+        week: int,
+        rows: pd.DataFrame,
+        model_version: str,
+        reward_rows: pd.DataFrame | None = None,
+    ) -> None:
         """Log one simulated week: an exposure per eligible visit, an order per visit that ordered.
 
         rows: eligible visits with visit_id, cust, slot, shown, holdout, chosen, takes, basket,
         discount, profit and the model's p0, p1, gain, base_profit for each visit.
+        reward_rows: regulars' visits while a Brand Pack reward runs, with reward_holdout and the
+        same order columns; logged as "reward_show" / "reward_control" exposures (TL-016).
         """
         assign = np.where(rows["holdout"].to_numpy(), "control", "show")
         now = time.time()
@@ -147,7 +156,31 @@ class Store:
                 strict=True,
             )
         )
-        ordered = rows[rows["chosen"].to_numpy()]
+        if reward_rows is not None and len(reward_rows):
+            rr = reward_rows
+            r_assign = np.where(rr["reward_holdout"].to_numpy(), "reward_control", "reward_show")
+            exp += list(
+                zip(
+                    [offer_id] * len(rr),
+                    [week] * len(rr),
+                    rr["visit_id"].astype(int),
+                    rr["cust"].astype(int),
+                    rr["slot"].astype(int),
+                    [0] * len(rr),
+                    r_assign,
+                    [None] * len(rr),
+                    [None] * len(rr),
+                    [None] * len(rr),
+                    [None] * len(rr),
+                    [model_version] * len(rr),
+                    ["simulated_week"] * len(rr),
+                    [now] * len(rr),
+                    strict=True,
+                )
+            )
+            # one order row per visit, whichever exposures it appears in
+            rows = pd.concat([rows, rr[~rr["visit_id"].isin(rows["visit_id"])]], ignore_index=True)
+        ordered = rows[rows["chosen"].to_numpy().astype(bool)]
         ords = list(
             zip(
                 [offer_id] * len(ordered),
@@ -178,7 +211,7 @@ class Store:
                        e.base_profit, o.used_offer, o.basket, o.discount, o.profit
                 FROM exposures e
                 LEFT JOIN orders o ON o.offer_id = e.offer_id AND o.week = e.week AND o.visit_id = e.visit_id
-                WHERE e.offer_id = ? AND e.source = 'simulated_week'
+                WHERE e.offer_id = ? AND e.source = 'simulated_week' AND e.assignment IN ('show', 'control')
                 ORDER BY e.week, e.visit_id""",
                 self.conn,
                 params=(offer_id,),
@@ -189,6 +222,26 @@ class Store:
         df["takes"] = df["used_offer"].fillna(0).astype(bool).to_numpy()
         for col in ("basket", "discount", "profit"):
             df[col] = df[col].fillna(0.0)
+        return df
+
+    def reward_rows(self, offer_id: int) -> pd.DataFrame:
+        """Regulars' visits under the offer's Brand Pack reward, joined to their orders: the input of
+        the reward's own weekly line."""
+        with self.lock:
+            df = pd.read_sql_query(
+                """
+                SELECT e.week, e.visit_id, e.customer_id AS cust, e.assignment, o.profit
+                FROM exposures e
+                LEFT JOIN orders o ON o.offer_id = e.offer_id AND o.week = e.week AND o.visit_id = e.visit_id
+                WHERE e.offer_id = ? AND e.source = 'simulated_week'
+                  AND e.assignment IN ('reward_show', 'reward_control')
+                ORDER BY e.week, e.visit_id""",
+                self.conn,
+                params=(offer_id,),
+            )
+        df["reward_holdout"] = (df["assignment"] == "reward_control").to_numpy()
+        df["chosen"] = df["profit"].notna().to_numpy()
+        df["profit"] = df["profit"].fillna(0.0)
         return df
 
     def exposure_count(self, offer_id: int, source: str | None = None) -> int:

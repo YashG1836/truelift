@@ -223,6 +223,17 @@ def load_bundle(path: Path, check_versions: bool = True) -> dict:
             f"The model was trained with scikit-learn {built} but {sklearn.__version__} is installed. "
             "Install the pinned versions (`uv sync` or `pip install -r requirements.txt`)."
         )
+    # a model trained on other inputs would load and then fail on the first prediction: refuse it
+    # here, where the message can say what to do
+    features = art.get("features")
+    expected_features = BASE_FEATURES + DESIGN_FEATURES
+    if features is not None and list(features) != expected_features:
+        missing = sorted(set(expected_features) - set(features))
+        extra = sorted(set(features) - set(expected_features))
+        raise BundleError(
+            f"The model was trained on other inputs than this code uses (missing {missing}, extra {extra}). "
+            "Rebuild it with `python tasks.py pipeline` (or `--quick` for a test model)."
+        )
     return art
 
 

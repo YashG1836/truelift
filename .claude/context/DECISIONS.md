@@ -16,6 +16,11 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   slot and the Brand Pack (34 versions). Why: past offers vary size only between restaurants, so the size
   effect is weakly learned, and choosing the best of many noisy forecasts favours over-estimates (letting
   the model pick size cut profit to ₹6.48 L vs ₹7.65 L). Changing size needs a randomised depth test.
+  Note (14 Nov, Kshitish): with the shadow phase exploring the create screen's sizes (M2), letting the model pick
+  the size now raises own-offer profit (quick: ₹3.19 L -> ₹4.01 L) but not restaurants' market-wide profit
+  (₹1.95 L -> ₹1.96 L), and losing offers rise 15 -> 38 (`reports/exp_depth_choice.json`). Size stays the owner's
+  call for now; a per-restaurant 4-week depth test picks the better size only 61% of the time
+  (`exp_depth_test.json`), so a size change needs pooled or longer tests. Team to re-decide after the final run.
 - D7. Real restaurant names are shown (looks real), with "Simulated data" on every screen and doc.
   Customers are synthetic; no real customer data anywhere. (Yash, 13 Nov.)
 - D8. Weekly measurement = restaurant's own 10% holdout combined with the model's prior by precision

@@ -264,6 +264,9 @@ class ServeDecision(Schema):
     control_group: bool = False
     reason: str
     brand_pack_reward: float = 0.0
+    brand_pack_control_group: bool = Field(
+        default=False, description="A regular held out of the Brand Pack reward (its own control group, TL-016)"
+    )
     p_order_without: float = 0.0
     p_order_with: float = 0.0
     expected_profit_gain: float = 0.0
@@ -325,10 +328,29 @@ class Experiment(Schema):
     control_orders: int
 
 
+class BrandPackQuantity(Schema):
+    per_visit: float
+    total: float
+    low: float
+    high: float
+
+
+class BrandPackMeasurement(Schema):
+    """The Brand Pack reward measured on its own: regulars who got it against regulars held out."""
+
+    regular_visits: int
+    control_visits: int
+    orders: BrandPackQuantity | None
+    profit: BrandPackQuantity | None
+    verdict_code: Literal["pays", "costs", "unclear", "too_early"]
+    verdict: str
+
+
 class WeekResult(Schema):
     model_config = ConfigDict(extra="allow")
     week: int
     measurement: Measurement
+    brand_pack: BrandPackMeasurement | None = None
     simulator_truth: dict[str, float] = Field(description="Only a simulation knows this: the offer's true effect")
     payout: Payout
     experiment: Experiment

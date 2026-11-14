@@ -25,7 +25,7 @@ from dataclasses import dataclass, field
 import numpy as np
 import pandas as pd
 
-from .assignment import in_control_group, stable_uniform  # noqa: F401  (stable_uniform re-exported)
+from .assignment import DEPTH_SALT, REWARD_SALT, in_control_group, stable_uniform  # noqa: F401  (stable_uniform re-exported)
 from .economics import Terms, split
 from .features import HistoryFeatures
 
@@ -79,6 +79,12 @@ class Policy:
     # A/A test: offers are "shown" and "held out" as usual but change nothing (no saving, no
     # discount), so their true effect is exactly zero (audit A04 M2)
     placebo: bool = False
+    # Brand Pack reward: a random share of the restaurant's regulars is held out of it, on its own
+    # hash (second salt), so its effect is measured apart from the discount's (audit TL-016)
+    reward_holdout: float = 0.10
+    # depth test (A19 4.2): a second discount size per restaurant (0 = none); half the customers who
+    # are shown the offer get it, by the depth test's own hash (scripts/experiments.py depth-test)
+    depth_b: np.ndarray | None = None
 
     @classmethod
     def none(cls, n: int, name: str = "no offer") -> Policy:
@@ -222,16 +228,32 @@ class Market:
             hold = elig & (stable_uniform(c, rest, salt + 1) < share)
         shown = elig & ~hold
 
+        depth = policy.discount[rest]
+        arm_b = np.zeros(len(rest), bool)
+        if policy.depth_b is not None:
+            if policy.offer_id is not None:
+                u = stable_uniform(c, policy.offer_id[rest], DEPTH_SALT)
+            else:
+                u = stable_uniform(c, rest, salt + 13)
+            arm_b = shown & (policy.depth_b[rest] > 0) & (u < 0.5)
+            depth = np.where(arm_b, policy.depth_b[rest], depth)
         mov = policy.min_order[rest]
         topup = np.maximum(0.0, mov - basket0)
-        eff = np.where(shown, policy.discount[rest] - (1 - cfg.topup_value) * topup, 0.0)
+        eff = np.where(shown, depth - (1 - cfg.topup_value) * topup, 0.0)
         if policy.placebo:
             eff = np.zeros_like(eff)
         takes = shown & (eff > 0)
         basket = np.where(takes, np.maximum(basket0, mov), basket0)
-        disc = np.where(takes, policy.discount[rest], 0.0)
+        disc = np.where(takes, depth, 0.0)
         regular = feats["cr_orders_4w"] >= 3
-        reward = np.where(regular & (not policy.placebo), policy.reward[rest], 0.0)
+        reward_offered = regular & (policy.reward[rest] > 0)
+        if policy.offer_id is not None:  # the same hash serving uses, with the reward's own salt
+            reward_held = reward_offered & in_control_group(
+                c, policy.offer_id[rest], policy.reward_holdout, salt=REWARD_SALT
+            )
+        else:
+            reward_held = reward_offered & (stable_uniform(c, rest, salt + 7) < policy.reward_holdout)
+        reward = np.where(reward_offered & ~reward_held & (not policy.placebo), policy.reward[rest], 0.0)
         saving = np.where(takes, eff, 0.0) + reward
         # Zomato co-funds only customers new to Zomato (new accounts), as the engine and every
         # document say; it used to pay for every redemption (audit TL-003)
@@ -270,6 +292,9 @@ class Market:
             "share": share,
             "takes": takes,
             "regular": regular,
+            "arm_b": arm_b,
+            "reward_offered": reward_offered,
+            "reward_holdout": reward_held,
             "discount": disc,
             "reward": reward,
             "saving": saving,

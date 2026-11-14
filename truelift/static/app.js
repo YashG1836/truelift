@@ -322,6 +322,14 @@ const verdictTag = (w) => ({ keep: "good", pause: "bad", probably_losing: "warn"
 const shortVerdict = (w) => ({ keep: "Making money", pause: "Losing money", probably_losing: "Probably losing",
   check_failed: "Check failed" }[w.measurement.verdict_code] || "Too early");
 
+// The Brand Pack reward has its own control group among regulars, so it gets its own line (TL-016)
+function brandPackHTML(bp) {
+  const p = bp.profit;
+  const range = p ? `${inr(p.low, true)} to ${inr(p.high, true)} for you (best estimate ${inr(p.total, true)}). ` : "";
+  return `<div class="note" id="brandPackLine"><b>Brand Pack reward, measured on its own:</b> ${range}${esc(bp.verdict)}
+    ${n0(bp.control_visits)} visits by regulars were held out of the reward to measure it.</div>`;
+}
+
 function weekHTML(w, off) {
   const m = w.measurement, p = m.profit, o = m.orders, r = m.report_today, pay = w.payout;
   const n = w.week;
@@ -333,6 +341,7 @@ function weekHTML(w, off) {
     </div>
     <div class="note">Extra profit, likely between ${inr(p.low, true)} and ${inr(p.high, true)}</div>
     ${rangeHTML(p.low, p.high, p.total)}
+    ${w.brand_pack ? brandPackHTML(w.brand_pack) : ""}
     <div class="card" style="background:var(--bg);box-shadow:none;margin:10px 0 4px;padding:10px 12px">
       <div class="note"><b>Today's offer report would show ${n0(r.orders_with_offer)} orders</b> using the offer (${inr(r.sales_from_offer)} of sales). TrueLift's measurement says about ${n0(Math.max(o.total, 0))} of them would not have happened without it.</div></div>
     <details><summary>WhatsApp summary sent to the owner</summary><div class="wa">${esc(w.whatsapp)}</div></details>

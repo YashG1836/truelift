@@ -484,3 +484,25 @@ def test_quote_states_the_smallest_detectable_effect():
     q = eng.quote(_x(1000), Design(60), aov=400, baskets=np.full(50, 400.0))
     assert q["detectable_effect_4w"] is not None and q["detectable_effect_4w"] > 0
     assert Engine(_FlatModel()).quote(_x(1000), Design(60), 400, np.full(50, 400.0))["detectable_effect_4w"] is None
+
+
+def test_brand_pack_line_recovers_a_known_effect():
+    """TL-016: regulars who get the reward against regulars held out of it, per visit and in total."""
+    from truelift.engine import measure_reward
+
+    rng = np.random.default_rng(12)
+    n = 60000
+    cust = rng.integers(0, 20000, n)
+    from truelift.assignment import stable_uniform
+
+    held = stable_uniform(cust, np.full(n, 3), 3) < 0.10
+    chosen = rng.random(n) < np.where(held, 0.30, 0.36)
+    rows = pd.DataFrame(
+        {"cust": cust, "reward_holdout": held, "chosen": chosen, "profit": np.where(held, 120.0, 100.0)}
+    )
+    bp = measure_reward(rows)
+    o = bp["orders"]
+    assert o["low"] <= 0.06 * (~held).sum() <= o["high"]
+    assert bp["control_visits"] == int(held.sum()) and bp["verdict_code"] in {"pays", "costs", "unclear"}
+    assert measure_reward(rows.iloc[:30])["verdict_code"] == "too_early"
+    assert measure_reward(rows.iloc[:0]) is None

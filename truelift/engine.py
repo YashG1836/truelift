@@ -25,7 +25,7 @@ from typing import Any
 import numpy as np
 import pandas as pd
 
-from .assignment import in_control_group
+from .assignment import REWARD_SALT, in_control_group
 from .economics import Terms, fmt_inr, split
 from .model import UpliftModel
 
@@ -754,11 +754,16 @@ class Engine:
         """Decision for one customer opening the menu: a table lookup and the shared holdout hash."""
         el, p0, p1, gain, reason = table.lookup(customer_id, slot)
         held = bool(el and in_control_group(customer_id, table.offer_id, self.holdout)[0])
+        # the Brand Pack has its own control group among regulars (second salt, TL-016)
+        reward_held = bool(
+            regular and reward > 0 and in_control_group(customer_id, table.offer_id, self.holdout, salt=REWARD_SALT)[0]
+        )
         return {
             "show_offer": bool(el and not held),
             "control_group": held,
             "reason": reason,
-            "brand_pack_reward": float(reward) if regular else 0.0,
+            "brand_pack_reward": float(reward) if regular and not reward_held else 0.0,
+            "brand_pack_control_group": reward_held,
             "p_order_without": round(p0, 4),
             "p_order_with": round(p1, 4),
             "expected_profit_gain": round(gain, 2),
@@ -957,7 +962,51 @@ VERDICT_SENTENCES = {
 }
 
 
-def weekly_message(name: str, week: int, m: dict, d: Design, holdout: float = 0.10) -> str:
+BRAND_PACK_SENTENCES = {
+    "pays": "The Brand Pack reward brings in more profit from your regulars than it costs.",
+    "costs": "The Brand Pack reward costs more than the extra orders it brings from your regulars.",
+    "unclear": "Not yet clear whether the Brand Pack reward pays for itself.",
+    "too_early": "Too early to tell whether the Brand Pack reward pays: too few orders from regulars so far.",
+}
+
+
+def measure_reward(rows: pd.DataFrame | None) -> dict | None:
+    """The Brand Pack reward's own effect: regulars who get it against regulars held out of it (a
+    random share on the reward's own hash, TL-016), per regular visit and in total so far.
+
+    rows: the restaurant's regulars' visits while the reward ran, with reward_holdout, chosen,
+    profit (restaurant profit of the order, after the reward) and cust. Customer-level noise from
+    each group's own data; each group needs MIN_EVENTS orders before anything is claimed.
+    """
+    if rows is None or len(rows) == 0:
+        return None
+    held = rows["reward_holdout"].to_numpy().astype(bool)
+    got = ~held
+    cust = rows["cust"].to_numpy()
+    chosen = rows["chosen"].to_numpy().astype(float)
+    out: dict = {"regular_visits": int(got.sum()), "control_visits": int(held.sum())}
+    for key, y in (("orders", chosen), ("profit", chosen * rows["profit"].to_numpy(float))):
+        est, se = effect_and_se(y, got, held, cust)
+        if not math.isfinite(se):
+            out[key] = None
+            continue
+        n = float(got.sum())
+        out[key] = {
+            "per_visit": round(est, 5),
+            "total": round(est * n, 1),
+            "low": round((est - Z80 * se) * n, 1),
+            "high": round((est + Z80 * se) * n, 1),
+        }
+    p = out["profit"]
+    code = "too_early" if p is None else "pays" if p["low"] > 0 else "costs" if p["high"] < 0 else "unclear"
+    out["verdict_code"] = code
+    out["verdict"] = BRAND_PACK_SENTENCES[code]
+    return out
+
+
+def weekly_message(
+    name: str, week: int, m: dict, d: Design, holdout: float = 0.10, brand_pack: dict | None = None
+) -> str:
     """The WhatsApp summary to the owner, in plain words, with the same money format as the page."""
     o, p, r = m["orders"], m["profit"], m["report_today"]
     one_in = max(int(round(1 / holdout)), 1) if holdout > 0 else 0
@@ -972,6 +1021,21 @@ def weekly_message(name: str, week: int, m: dict, d: Design, holdout: float = 0.
             f"(best estimate {fmt_inr(p['total'], True)})",
             f"How we know: 1 in {one_in} eligible customers did not see the offer, and we compare the two groups.",
             VERDICT_SENTENCES[m.get("verdict_code", "wait")],
+            *brand_pack_lines(brand_pack, one_in),
             "Open the Offers tab in the partner app to keep, change or stop it.",
         ]
     )
+
+
+def brand_pack_lines(bp: dict | None, one_in: int) -> list[str]:
+    """The Brand Pack's own line in the weekly summary (empty when the offer has no reward)."""
+    if not bp:
+        return []
+    p = bp["profit"]
+    if p is None:
+        return [f"Brand Pack reward: {bp['verdict']}"]
+    return [
+        f"Brand Pack reward, measured on its own (1 in {one_in} regulars did not get it): "
+        f"{fmt_inr(p['low'], True)} to {fmt_inr(p['high'], True)} for you (best estimate {fmt_inr(p['total'], True)}). "
+        + bp["verdict"]
+    ]

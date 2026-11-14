@@ -461,3 +461,43 @@ def test_every_audience_and_slot_runs_two_weeks_without_errors(client, session_h
             assert r.status_code == 200, r.text
         m = r.json()["weeks"][-1]["measurement"]["profit"]
         assert all(math.isfinite(m[k]) for k in ("total", "low", "high"))
+
+
+def test_brand_pack_offer_reports_its_own_line(client, session_headers, state):
+    """TL-016: an offer with a Brand Pack reward gets a second weekly line from the reward's own
+    control group, in the API, the WhatsApp summary and the exposure log. (The test market is small:
+    a handful of regular visits a week, so the line says it is too early; the simulator test checks
+    the hold-out itself at scale.)"""
+    from conftest import approved_offer
+
+    h = session_headers
+    rid = client.get("/api/v1/restaurants").json()["demo_restaurant"]
+    off = approved_offer(client, h, rid, {**DESIGN, "reward": 20})
+    for _ in range(2):
+        wk = client.post(f"/api/v1/offers/{off['offer_id']}/run_week", headers=h).json()["weeks"][-1]
+    bp = wk["brand_pack"]
+    logged = state.store.reward_rows(off["offer_id"])
+    assert bp["regular_visits"] + bp["control_visits"] == len(logged) > 0
+    assert bp["control_visits"] == int(logged["reward_holdout"].sum())
+    assert bp["verdict_code"] in {"pays", "costs", "unclear", "too_early"}
+    assert "Brand Pack reward" in wk["whatsapp"]
+    # the discount's measurement never sees the reward's exposures
+    assert set(state.store.measurement_rows(off["offer_id"])["assignment"]) <= {"show", "control"}
+    h2 = {"X-Session": h["X-Session"][:-1] + ("b" if h["X-Session"][-1] != "b" else "c")}
+    plain = approved_offer(client, h2, rid)
+    wk2 = client.post(f"/api/v1/offers/{plain['offer_id']}/run_week", headers=h2).json()["weeks"][-1]
+    assert wk2.get("brand_pack") is None
+
+
+def test_model_trained_on_other_inputs_is_refused_at_load(model_dir, tmp_path):
+    """A bundle whose feature list differs from the code's is refused when it loads, with the fix
+    in the message, instead of failing on the first prediction."""
+    import pickle
+
+    from truelift.model import BundleError, load_bundle, save_bundle
+
+    art = pickle.loads((model_dir / "model.pkl").read_bytes())
+    art["features"] = [f if f != "c_no_order_8w" else "c_new_to_zomato" for f in art["features"]]
+    save_bundle(art, tmp_path / "model.pkl")
+    with pytest.raises(BundleError, match="Rebuild it"):
+        load_bundle(tmp_path / "model.pkl")

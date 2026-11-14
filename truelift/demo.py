@@ -16,7 +16,7 @@ import numpy as np
 import pandas as pd
 
 from .economics import Terms
-from .engine import weekly_message
+from .engine import measure_reward, weekly_message
 from .observability import FORECAST_RATIO, HOLDOUT_SHARE
 from .sim import display_name
 
@@ -58,6 +58,7 @@ def week_rows(state, offer, w: int) -> tuple[pd.DataFrame, pd.DataFrame]:
     for attr in ("discount", "min_order", "offpeak_only", "zomato_share", "reward", "audience"):
         getattr(pol, attr)[rid] = getattr(d, attr)
     pol.holdout = engine.holdout
+    pol.reward_holdout = engine.holdout  # the reward's own control group, same share (TL-016)
     pol.offer_id = BACKGROUND_OFFER_BASE + np.arange(m.n_rest)
     pol.offer_id[rid] = offer.id
     table = offer.table
@@ -84,7 +85,8 @@ def simulate_week(state, offer) -> dict:
     rid, d = offer.restaurant_id, offer.design
     aov = float(state.market.aov[rid])
     df, el = week_rows(state, offer, w)
-    state.store.log_week(offer.id, w, el, engine.model_version)
+    regulars = df[df["reward_offered"]] if d.reward > 0 else None
+    state.store.log_week(offer.id, w, el, engine.model_version, reward_rows=regulars)
 
     rows = state.store.measurement_rows(offer.id)
     has_rows = len(rows) > 0  # a narrow design can have no eligible visit yet
@@ -121,8 +123,10 @@ def simulate_week(state, offer) -> dict:
         "simulator_truth": truth,
         "payout": payout,
         "experiment": experiment,
-        "whatsapp": weekly_message(name, w, meas, d, engine.holdout),
     }
+    if d.reward > 0:
+        week["brand_pack"] = measure_reward(state.store.reward_rows(offer.id))
+    week["whatsapp"] = weekly_message(name, w, meas, d, engine.holdout, week.get("brand_pack"))
 
     eligible = experiment["shown_visits"] + experiment["control_visits"]
     if eligible:

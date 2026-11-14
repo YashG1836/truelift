@@ -37,9 +37,10 @@ targets and measures each offer by the extra orders and profit it creates, insid
 | `truelift/schemas.py`, `settings.py` | Typed request/response models (the OpenAPI contract); configuration from `TRUELIFT_*` env vars |
 | `truelift/state.py`, `store.py`, `demo.py` | Sessions and offers; SQLite consent ledger (hash-chained) and exposure log; simulated weeks and payout |
 | `truelift/observability.py` | JSON request logs, Prometheus metrics, security headers |
+| `truelift/monitoring.py` | Input drift (PSI per feature, drift.html) and weekly guardrails with thresholds |
 | `truelift/static/` | Partner-app UI (index.html, app.js, style.css): guided demo, How it works, Evidence, Money maths |
-| `scripts/` | build_restaurants, run_pipeline (+ measurement_study), sensitivity, benchmark_learners, export_static (static site), validate_uplift (Criteo), compare_reports |
-| `tests/` | pytest by area (economics, simulator, engine, api, consistency, statistics, market, fairness), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests; `ui_check.js` (older browser check) |
+| `scripts/` | build_restaurants, run_pipeline (+ measurement_study), sensitivity, benchmark_learners, experiments, bench_latency, export_static (static site), validate_uplift (Criteo), compare_reports |
+| `tests/` | pytest by area (economics, simulator, engine, api, consistency, statistics, market, fairness, monitoring), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests; `tests/load/` Locust; `ui_check.js` (older browser check) |
 | `tasks.py`, `Makefile` | One entry point for setup, test, lint, pipeline, serve, export, reproduce, golden, docker |
 | `Dockerfile`, `compose.yaml` | The service in a container (non-root, health check) |
 | `.github/workflows/` | CI (lint, tests on Linux and Windows, golden + fuzz, browser tests, Docker, gated deploy), CodeQL |
@@ -56,6 +57,8 @@ uv sync                                  # pinned environment from uv.lock (or: 
 python tasks.py pipeline                 # ~10 min: simulate, train, evaluate, scenarios and 5 seeds -> reports/, model.pkl
 python tasks.py sensitivity              # ~5 min: eight assumptions low/high -> reports/sensitivity.json
 python tasks.py benchmark                # ~1 min: uplift learners vs the truth -> reports/learner_benchmark.json
+python tasks.py experiments              # ~15 min: oracle, depth choice, noise, holdout draws, retraining, depth test
+python tasks.py latency                  # starts the service, times serve and quote over HTTP -> reports/latency.json
 python tasks.py serve                    # full service + UI at http://localhost:8000 (API docs at /docs)
 python tasks.py test                     # fast tests (~20 s), must pass before any push; --all adds golden + fuzz
 python tasks.py lint                     # ruff check, ruff format --check, pyright

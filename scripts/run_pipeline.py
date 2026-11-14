@@ -19,7 +19,8 @@ Steps
  6. Scenarios (full run, in parallel): customers 30% less and 30% more price-sensitive,
     commission on the price before the discount, and four more market seeds for the spread.
 Outputs: data/processed/model.pkl (+ .sha256), reports/evaluation.json, restaurants_results.csv,
-measurement_check.csv, skew_check.json. The eight-assumption sweep is scripts/sensitivity.py.
+measurement_check.csv, skew_check.json, drift.json and drift.html, guardrails.json.
+The eight-assumption sweep is scripts/sensitivity.py; the learner benchmark scripts/benchmark_learners.py.
 """
 
 from __future__ import annotations
@@ -47,6 +48,7 @@ from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine, design_options  # noqa: E402
 from truelift.features import FEATURE_NAMES, skew_report  # noqa: E402
 from truelift.model import UpliftModel, file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
+from truelift.monitoring import drift_html, drift_report, guardrails  # noqa: E402
 from truelift.sim import (  # noqa: E402
     TYPES,
     Config,
@@ -119,6 +121,8 @@ KEPT = (
     "slot",
     "type",
     "regular",
+    "reward_holdout",
+    "arm_b",
     "eligible",
     "holdout",
     "shown",
@@ -145,6 +149,7 @@ def run_world(
     holdout_by_week=None,
     segments: bool = False,
     moving: bool = False,
+    salt: int = 3,
 ) -> dict:
     """Evaluation weeks under one policy. Returns true expected totals (and eligible rows if asked).
 
@@ -152,13 +157,14 @@ def run_world(
     segments: also sum visits, offers shown, discount received and orders by customer segment.
     moving: features follow the history as the weeks pass (each week is added to it), instead of
     staying at the snapshot taken when the period starts (A06 S6).
+    salt: the holdout draw (every policy uses the same one unless an experiment asks for another).
     """
     per_rest, swiggy, kept, segs = [], [], [], []
     now = History(*(list(getattr(hist, f)) for f in History.__dataclass_fields__)) if moving else hist
     for w in weeks:
         occ = market.occasions(w)
         pol = replace(policy, holdout=holdout_by_week[w]) if holdout_by_week and w in holdout_by_week else policy
-        res = market.run_week(occ, pol, market.flat_features(now, occ), salt=3, truth=True)
+        res = market.run_week(occ, pol, market.flat_features(now, occ), salt=salt, truth=True)
         if moving:
             market.record(now, res)
         if segments:
@@ -523,6 +529,14 @@ def evaluate(
     }
     if not skew["passed"]:
         raise SystemExit(f"training-serving skew above {skew['limit']:.1%}: see skew_check.json")
+    # input drift (A16 O7): PSI of every model input against the training rows; fails like the skew check
+    drift = drift_report(trained.train, {"quote_input": visits, "evaluation": evaluation_feats})
+    if with_details:
+        (out_dir / "drift.json").write_text(json.dumps(drift, indent=1), encoding="utf-8")
+        (out_dir / "drift.html").write_text(drift_html(drift), encoding="utf-8")
+    results["drift_check"] = {"passed": drift["passed"], "worst_psi": drift["worst_psi"], "limit": drift["psi_fail"]}
+    if not drift["passed"]:
+        raise SystemExit(f"an input drifted (PSI above {drift['psi_fail']}): see drift.html")
     designs = {}
     quotes: dict[str, list] = {}
     for key, zshare in (("truelift", 0.0), ("truelift_cofund", 0.5)):
@@ -609,6 +623,13 @@ def evaluate(
     weekly_el = {r: q["eligible_visits"] for r, q in enumerate(tl_quotes) if q is not None}
     meas = measure_offers(engine, rows, ds, aov, baskets, EVAL_WEEKS, weekly_el)
     results["measurement"] = coverage(meas)
+    # the weekly guardrails an on-call person would watch (A16 O4)
+    guard = guardrails(meas, {r: q["profit_change"] for r, q in enumerate(tl_quotes) if q is not None})
+    (out_dir / "guardrails.json").write_text(json.dumps(guard, indent=1), encoding="utf-8")
+    results["guardrails"] = {
+        "passed": guard["passed"],
+        "failed": [c["check"] for c in guard["checks"] if not c["passed"]],
+    }
     results["detection"] = {"truelift_offers": detection(meas)}
     log("measurement checked against the truth")
 

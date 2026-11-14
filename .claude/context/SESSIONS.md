@@ -13,6 +13,22 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (M2 Brand Pack, monitoring, experiments)
+- Did: Brand Pack reward gets its own control group among regulars (REWARD_SALT; sim, serving, exposure log,
+  `measure_reward`, second weekly line in API/WhatsApp/page; TL-016). `truelift/monitoring.py`: drift report
+  (PSI per input, drift.json/drift.html, fails the pipeline above 0.25; a test brings back the TL-007 window
+  fault and sees it fail) and weekly guardrails with thresholds (guardrails.json). `scripts/experiments.py`
+  (oracle, depth-choice, variance-reduction, holdout-draws, retrain-loop, depth-test; sim has depth arms),
+  `scripts/bench_latency.py` (real HTTP), `tests/load/locustfile.py`. A model trained on other inputs is now
+  refused at load (the service used to report ready, then fail on the first prediction).
+- Checked: fast + slow tests, golden re-recorded (Brand Pack hold-out changes the shadow history). Experiments
+  run on the quick market only so far.
+- Findings (quick): oracle captured 70% (docs say ~60%); letting the model pick the size now RAISES own-offer
+  profit (3.19 -> 4.01 L) but not market profit (1.95 -> 1.96 L), losing offers 15 -> 38 (D6 note); noise cut
+  from the adjustment ~6% (docs say 27%); holdout draws centred (mean error Rs 1, se 103), coverage 75%;
+  retraining on two live weeks would be promoted; a 4-week size test picks the better size 61% (52% small).
+- Next / open: final full run of everything, then update README/DEVLOG/plan numbers together (rule 5).
+
 ## 14 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (M2 market analyses)
 - Did: pipeline gains Zomato-weight frontier (lambda 0.5/1/2), OTP-consent attrition (blind and informed
   declines, break-even share), Zomato's ledger (platform-incremental share of extra orders; unmeasured
