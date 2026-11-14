@@ -19,7 +19,7 @@ FEATURE_NAMES = (
     "c_disc_share",
     "c_weeks_since",
     "c_sessions_pw",
-    "c_new_to_zomato",
+    "c_no_order_8w",
     "cr_orders_4w",
     "cr_orders_all",
     "cr_visits_4w",
@@ -28,6 +28,10 @@ FEATURE_NAMES = (
     "r_aov",
     "r_logvotes",
 )
+# Not a model input: Zomato knows each account's age, so "new to Zomato" (an account opened in the
+# offer's period, no order ever) is observable. Co-funding uses it; the model uses c_no_order_8w,
+# which also flags dormant customers and so must not decide who Zomato pays for (audit TL-042).
+FUNDING_FEATURES = ("c_new_account",)
 
 
 class FeatureSource(Protocol):
@@ -74,6 +78,7 @@ class HistoryFeatures:
         self.cd4 = _total(hist.cust_disc_orders[last4], n)
         self.cs4 = _total(hist.cust_sessions[last4], n)
         self.c_all = _total(hist.cust_orders, n)
+        self.new_account = market.c_joiner.astype(float)
         self.rating = market.rating
         self.aov = market.aov
         self.logvotes = np.log1p(market.R["votes"].to_numpy(float))
@@ -85,7 +90,8 @@ class HistoryFeatures:
             "c_disc_share": self.cd4[cust] / np.maximum(self.co4[cust], 1),
             "c_weeks_since": self.weeks_since_c[cust],
             "c_sessions_pw": self.cs4[cust] / self.n4,
-            "c_new_to_zomato": (self.c_all[cust] == 0).astype(float),
+            "c_no_order_8w": (self.c_all[cust] == 0).astype(float),
+            "c_new_account": self.new_account[cust],
             "cr_orders_4w": self.p4[cust, local],
             "cr_orders_all": self.p_all[cust, local],
             "cr_visits_4w": self.v4[cust, local],

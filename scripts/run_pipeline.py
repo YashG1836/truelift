@@ -22,10 +22,11 @@ from __future__ import annotations
 
 import argparse
 import json
+import platform
 import subprocess
 import sys
 import time
-from dataclasses import replace
+from dataclasses import asdict, replace
 from pathlib import Path
 
 import numpy as np
@@ -36,7 +37,7 @@ sys.path.insert(0, str(ROOT))
 
 from truelift.economics import Terms  # noqa: E402
 from truelift.engine import Design, Engine  # noqa: E402
-from truelift.model import file_sha256, qini_coefficient, save_bundle  # noqa: E402
+from truelift.model import file_sha256, library_versions, qini_coefficient, save_bundle  # noqa: E402
 from truelift.sim import Config, Market, Policy, display_name, recent_visits  # noqa: E402
 from truelift.training import train as train_model  # noqa: E402
 
@@ -56,6 +57,35 @@ def code_version() -> str:
     except (OSError, subprocess.CalledProcessError):
         sha = "nogit"
     return f"{time.strftime('%Y-%m-%d')}+{sha}"
+
+
+def run_meta(args: argparse.Namespace, cfg: Config, started: float) -> dict:
+    """Where a report came from: code, environment, inputs, settings, time (audit A07 R3)."""
+    try:
+        dirty = subprocess.run(
+            ["git", "status", "--porcelain", "--untracked-files=no"], cwd=ROOT, capture_output=True, text=True
+        ).stdout.strip()
+        commit = subprocess.run(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, capture_output=True, text=True, check=True
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        commit, dirty = "nogit", ""
+    return {
+        "commit": commit,
+        "uncommitted_changes": bool(dirty),
+        "command": "python scripts/run_pipeline.py " + " ".join(sys.argv[1:]),
+        "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)),
+        "wall_seconds": round(time.time() - started),
+        "python": platform.python_version(),
+        "libraries": library_versions(),
+        "platform": platform.platform(),
+        "processor": platform.processor() or platform.machine(),
+        "seed": cfg.seed,
+        "quick": bool(args.quick),
+        "config": asdict(cfg),
+        "terms": asdict(Terms()),
+        "restaurants_csv_sha256": file_sha256(ROOT / "data/processed/restaurants.csv"),
+    }
 
 
 def run_world(market: Market, hist, policy: Policy, keep_rows: bool = False) -> dict:
@@ -375,6 +405,7 @@ def main() -> int:
     )
     ap.add_argument("--seed", type=int, default=7, help="market seed (customers, tastes, offers, draws)")
     args = ap.parse_args()
+    started = time.time()
     base_cfg = Config(customers_per_locality=2000, seed=args.seed) if args.quick else Config(seed=args.seed)
     report = {"main": evaluate(base_cfg, args.quick, with_details=True, out_dir=args.out, model_out=args.model_out)}
     if not args.quick:
@@ -383,6 +414,7 @@ def main() -> int:
             log(f"sensitivity: {label}")
             report[label] = evaluate(cfg, False, with_details=False, out_dir=args.out, model_out=args.model_out)
     args.out.mkdir(parents=True, exist_ok=True)
+    report = {"meta": run_meta(args, base_cfg, started), **report}
     with open(args.out / "evaluation.json", "w", encoding="utf-8") as fh:
         json.dump(report, fh, indent=2, default=lambda o: o.item() if hasattr(o, "item") else str(o))
     print(json.dumps(report["main"]["policies"], indent=1, default=str)[:4000])

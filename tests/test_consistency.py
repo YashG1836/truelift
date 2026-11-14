@@ -122,6 +122,6 @@ def test_quote_input_and_serving_rows_have_the_same_features(state):
     v = state.visits[rid].iloc[:20]
     for _, r in v.iterrows():
         row = state.customer_row(int(r["cust"]), rid, int(r["slot"]))
-        for col in ("c_orders_pw", "cr_orders_4w", "cr_orders_all", "cr_weeks_since", "c_new_to_zomato"):
+        for col in ("c_orders_pw", "cr_orders_4w", "cr_orders_all", "cr_weeks_since", "c_no_order_8w"):
             assert row[col].iloc[0] == pytest.approx(float(r[col]))
     assert np.isfinite(v.select_dtypes("number").to_numpy()).all()

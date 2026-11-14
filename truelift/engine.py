@@ -224,7 +224,7 @@ class Engine:
             )
         elif has.any():
             p1[has] = self.model.p1(xr.loc[has], discount[has], min_order[has])
-        new_z = x["c_new_to_zomato"].to_numpy() == 1
+        new_z = x["c_new_account"].to_numpy() == 1  # account opened recently: no order ever
         tot = discount + rw
         zs = np.where(new_z & (tot > 0), zomato_share * discount / np.maximum(tot, 1e-9), 0.0)
         use = np.where(has, use, 0.0)

@@ -115,3 +115,50 @@ def test_features_depend_only_on_history(market):
     f2 = market.flat_features(History(), occ)
     assert all(np.array_equal(f1[k], f2[k]) for k in f1)
     assert isinstance(pd.DataFrame(f1), pd.DataFrame)
+
+
+def _cofund_policy(n):
+    return Policy(
+        np.full(n, 60.0),
+        np.zeros(n),
+        np.zeros(n, bool),
+        np.full(n, 0.5),
+        np.zeros(n),
+        np.array(["all"] * n, dtype=object),
+        0.10,
+    )
+
+
+def test_cofunding_only_for_new_to_zomato(market):
+    """TL-003: Zomato's half of the discount goes only to customers new to Zomato (new accounts)."""
+    res = _week(market, _cofund_policy(market.n_rest))
+    new = res["c_new_account"] == 1
+    assert (res["zomato_funded"][~new] == 0).all()
+    assert (res["zomato_funded"][new & res["takes"]] == 30.0).all()
+    assert (new & res["takes"]).any()
+
+
+def test_engine_and_simulator_agree_on_funding(market):
+    """The engine's expected Zomato-funded amount per order equals what the simulator pays."""
+    from truelift.engine import Engine
+
+    class _Flat:
+        def p0(self, x):
+            return np.full(len(x), 0.1)
+
+        def p1(self, x, discount, min_order):
+            return np.full(len(x), 0.2)
+
+    res = _week(market, _cofund_policy(market.n_rest))
+    took = res["takes"]
+    x = pd.DataFrame({k: res[k][took] for k in ("c_new_account", "cr_orders_4w", "slot")})
+    v = Engine(_Flat()).row_values(x, 60.0, 0.0, 0.0, 0.5, (1.0, 400.0, 400.0, 400.0))
+    assert np.allclose(v["zfund1"], res["zomato_funded"][took])
+
+
+def test_new_to_zomato_matches_first_order(market):
+    """TL-042: the funding flag marks accounts with no order ever, not dormant customers."""
+    feats = market.flat_features(History(), market.occasions(1))
+    k = market.cfg.menus_per_occasion
+    cust = np.repeat(market.occasions(1)["cust"], k)
+    assert np.array_equal(feats["c_new_account"] == 1, market.c_joiner[cust])

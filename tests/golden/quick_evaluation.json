@@ -1,4 +1,82 @@
 {
+  "meta": {
+    "commit": "0459ec528f222ca2afadbe90c0dbbf4046a095cc",
+    "uncommitted_changes": true,
+    "command": "python scripts/run_pipeline.py --quick --out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q2 --model-out C:/Users/kshit/AppData/Local/Temp/claude/6fe0d0c00a80eb80/7ab34011-f188-45e4-941c-1998f53087b2/scratchpad/q2/model.pkl",
+    "started_utc": "2026-11-14T03:26:03Z",
+    "wall_seconds": 40,
+    "python": "3.12.10",
+    "libraries": {
+      "python": "3.12.10",
+      "numpy": "2.2.6",
+      "pandas": "3.0.5",
+      "scikit-learn": "1.5.2"
+    },
+    "platform": "Windows-11-10.0.26300-SP0",
+    "processor": "AMD64 Family 25 Model 116 Stepping 1, AuthenticAMD",
+    "seed": 7,
+    "quick": true,
+    "config": {
+      "customers_per_locality": 2000,
+      "type_share": [
+        0.25,
+        0.4,
+        0.2,
+        0.15
+      ],
+      "occasions_per_week": [
+        2.0,
+        0.9,
+        1.0,
+        0.5
+      ],
+      "base_utility": [
+        -2.3,
+        -2.5,
+        -3.3,
+        -3.0
+      ],
+      "favourite_bonus": [
+        2.8,
+        1.4,
+        0.3,
+        0.0
+      ],
+      "price_sensitivity": [
+        0.45,
+        1.2,
+        2.6,
+        1.6
+      ],
+      "swiggy_base": [
+        -1.1,
+        -0.7,
+        -0.1,
+        -1.3
+      ],
+      "swiggy_saving": 40.0,
+      "taste_sd": 1.0,
+      "menus_per_occasion": 8,
+      "topup_value": 0.5,
+      "slot_share": [
+        0.35,
+        0.15,
+        0.5
+      ],
+      "joiner_share": 0.08,
+      "aov_factor": 0.7,
+      "seed": 7
+    },
+    "terms": {
+      "commission_rate": 0.25,
+      "gst_on_commission": 0.18,
+      "food_cost_share": 0.37,
+      "commission_on": "post_discount",
+      "zomato_contribution_share": 0.085,
+      "zomato_ebitda_share": 0.055
+    },
+    "restaurants_csv_sha256": "45a176ac4bf8b3c2788d5a4b352305e9a195f7613f9a5d8370ba1c80a94cb7d1"
+  },
   "main": {
     "policies": {
       "no_offer": {
@@ -107,28 +185,28 @@
       },
       "zomato_cofund_naive": {
         "name": "TrueLift + Zomato pays 50% for new-to-Zomato customers, unmeasured",
-        "orders_per_week": 8087,
-        "extra_orders_vs_no_offer": 1700,
-        "restaurant_profit": 1391833,
-        "restaurant_profit_change": 411164,
-        "zomato_commission": 997237,
-        "zomato_commission_change": 265395,
-        "zomato_contribution_change": -123425,
-        "zomato_funded_discount": 213659,
-        "customer_savings": 427362,
-        "savings_per_extra_order": 251,
-        "redemptions": 4524,
+        "orders_per_week": 8075,
+        "extra_orders_vs_no_offer": 1688,
+        "restaurant_profit": 1201295,
+        "restaurant_profit_change": 220626,
+        "zomato_commission": 997262,
+        "zomato_commission_change": 265419,
+        "zomato_contribution_change": 67700,
+        "zomato_funded_discount": 22543,
+        "customer_savings": 425888,
+        "savings_per_extra_order": 252,
+        "redemptions": 4489,
         "anyway_share_of_redemptions": 0.465,
-        "order_value": 546,
+        "order_value": 547,
         "restaurants_with_offer": 300,
-        "own_offer_profit_effect": 527427,
-        "own_offer_extra_orders": 2419,
-        "offers_that_pay": 300,
-        "offers_that_lose": 0,
-        "platform_extra_orders": 1276,
-        "restaurants_better_off_vs_no_offers": 160,
-        "restaurants_worse_off_vs_no_offers": 137,
-        "swiggy_share_of_occasions": 0.1848,
+        "own_offer_profit_effect": 336169,
+        "own_offer_extra_orders": 2402,
+        "offers_that_pay": 271,
+        "offers_that_lose": 29,
+        "platform_extra_orders": 1268,
+        "restaurants_better_off_vs_no_offers": 102,
+        "restaurants_worse_off_vs_no_offers": 198,
+        "swiggy_share_of_occasions": 0.1853,
         "swiggy_share_loyal": 0.0877
       }
     },

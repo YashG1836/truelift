@@ -32,7 +32,8 @@ def _x(n):
             "cr_orders_all": np.r_[np.zeros(n // 2), np.ones(n - n // 2)],
             "cr_weeks_since": np.full(n, 6.0),
             "cr_orders_4w": np.zeros(n),
-            "c_new_to_zomato": np.zeros(n),
+            "c_no_order_8w": np.zeros(n),
+            "c_new_account": np.zeros(n),
             "reward": np.zeros(n),
         }
     )

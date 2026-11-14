@@ -25,6 +25,9 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   own-offer profit. Market-wide numbers are shown too but mix in competitors' offers.
 - D10. Zomato co-funding is presented as a caution, not a feature: unmeasured co-funding cost ~₹5 L a week
   for ~70 extra orders in the simulator.
+  Note (14 Nov, Kshitish): the ~₹5 L came from a simulator bug: Zomato's share was paid on every redemption,
+  not only for customers new to Zomato (audit TL-003). Fixed on `kshitish`; in the quick configuration the
+  co-funding cost falls about tenfold and Zomato's contribution turns positive. Re-read D10 after the final run.
 - D11. Holdout assignment = stable hash of (customer, offer), 10%. Eligibility never uses device, payment
   method or inferred income (CCPA notices to ride-hailing apps over phone-based pricing, Jan 2025).
 - D12. No AI attribution in git history or PRs; shared Claude context lives in `CLAUDE.md` + `.claude/context/`

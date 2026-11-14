@@ -29,7 +29,7 @@ BASE_FEATURES = [
     "c_disc_share",
     "c_weeks_since",
     "c_sessions_pw",
-    "c_new_to_zomato",
+    "c_no_order_8w",
     "cr_orders_4w",
     "cr_orders_all",
     "cr_visits_4w",

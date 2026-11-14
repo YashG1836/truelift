@@ -604,11 +604,14 @@ def sample_customers(q: QuoteIn, sess: Session = Depends(session_of)):
     rid = check_restaurant(s, q.restaurant_id)
     aov = float(s.market.aov[rid])
     x = s.visits[rid].drop_duplicates("cust")
+    # customers new to Zomato have no visits in the history yet: take them from the locality's
+    # new accounts (account age is something Zomato knows)
+    joiners = np.flatnonzero(s.market.c_joiner & (s.market.c_loc == s.market.R.loc[rid, "loc"]))[:2]
     groups = [
-        ("regular", x[x["cr_orders_4w"] >= 3]),
-        ("stopped ordering", x[(x["cr_orders_all"] > 0) & (x["cr_weeks_since"] >= 4)]),
-        ("new to you", x[(x["cr_orders_all"] == 0) & (x["c_new_to_zomato"] == 0)]),
-        ("new to Zomato", x[x["c_new_to_zomato"] == 1]),
+        ("regular", x.loc[x["cr_orders_4w"] >= 3, "cust"]),
+        ("stopped ordering", x.loc[(x["cr_orders_all"] > 0) & (x["cr_weeks_since"] >= 4), "cust"]),
+        ("new to you", x.loc[(x["cr_orders_all"] == 0) & (x["c_new_account"] == 0), "cust"]),
+        ("new to Zomato", pd.Series(joiners)),
     ]
     active = [o for o in sess.offers.values() if o.restaurant_id == rid and o.status == "active"]
     off = active[-1] if active else None
@@ -618,15 +621,16 @@ def sample_customers(q: QuoteIn, sess: Session = Depends(session_of)):
         d = Design(**q.design.model_dump())
         check_design(d, aov)
     slot = 1 if d.offpeak_only else 2  # show customers at a time the offer is valid (audit TL-011)
-    picked = [(label, row) for label, g in groups for _, row in g.head(2).iterrows()]
+    picked = [(label, int(cid)) for label, ids in groups for cid in ids.head(2)]
     local = int(s.market.R.loc[rid, "local"])
+    rows = [s.customer_row(cid, rid, slot) for _, cid in picked]  # today's features of each customer
     if off is None and picked:
-        xr = pd.concat([s.customer_row(int(r["cust"]), rid, slot) for _, r in picked], ignore_index=True)
+        xr = pd.concat(rows, ignore_index=True)
         v = s.engine.design_values(xr, d, aov, s.baskets[rid])
         reasons = s.engine._reasons(xr, d, v["eligible"])
     out = []
-    for i, (label, row) in enumerate(picked):
-        cid = int(row["cust"])
+    for i, (label, cid) in enumerate(picked):
+        row = rows[i].iloc[0]
         regular = bool(s.features.p4[cid, local] >= 3)
         if off is not None:
             dec = s.engine.serve(off.table, cid, slot, regular, d.reward)

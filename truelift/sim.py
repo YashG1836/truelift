@@ -211,7 +211,9 @@ class Market:
         regular = feats["cr_orders_4w"] >= 3
         reward = np.where(regular, policy.reward[rest], 0.0)
         saving = np.where(takes, eff, 0.0) + reward
-        zshare = np.where(takes, policy.zomato_share[rest], 0.0)
+        # Zomato co-funds only customers new to Zomato (new accounts), as the engine and every
+        # document say; it used to pay for every redemption (audit TL-003)
+        zshare = np.where(takes & (feats["c_new_account"] == 1), policy.zomato_share[rest], 0.0)
         # Brand Pack reward is a restaurant-funded discount; Zomato share applies to the offer only
         total_disc = disc + reward
         zs_eff = np.where(total_disc > 0, zshare * disc / np.maximum(total_disc, 1e-9), 0.0)
