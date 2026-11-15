@@ -278,6 +278,9 @@ function showTab(t) {
 }
 
 async function openRestaurant(rid) {
+  // nothing on the old restaurant's screen stays clickable while the new one loads (a slow network
+  // otherwise lets a click on the old screen be overwritten by the new restaurant's home)
+  $("#screen").innerHTML = skeleton(5);
   await api("/api/v1/reset", {});
   Object.assign(S, { rid, offer: null, quote: null, err: "", original: null, alt: {}, whatIf: {} });
   S.card = await api(`/api/v1/restaurants/${rid}`);
