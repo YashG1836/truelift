@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 15 Nov 2026 by Kshitish (Claude), freeze of branch `kshitish`. Overwrite lines that become wrong;
+Last updated: 15 Nov 2026 by Kshitish (Claude), release v2.0.0 of branch `kshitish`. Overwrite lines that become wrong;
 do not append history here (history goes in SESSIONS.md).
 
 ## Status
@@ -11,6 +11,9 @@ do not append history here (history goes in SESSIONS.md).
 - Public demo https://yashg1836.github.io/truelift/ is published by CI from `kshitish` (`build.json` names the commit);
   15 Nov: 32 restaurants, browser tests pass against the public URL. Fresh clone: installs, tests pass, quick run
   reproduces the golden snapshot.
+- Release v2.0.0 https://github.com/YashG1836/truelift/releases/tag/v2.0.0: annotated tag on `8ac3ca4`, the commit
+  the public demo is built from. Files: `truelift-offline.zip` (made from that deployed site; offline browser tests
+  8 of 8), `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`; SHA-256 in the notes. Tag `round2-submission` unchanged.
 - Numbers are frozen on `kshitish` (one final run, 14 Nov night): `reports/` and the committed model
   `data/processed/model.pkl` (+ `.sha256`). Any later change that moves a number needs a new full run and must
   update README, DEVLOG, docs and this file together; `scripts/check_claims.py` and `render_tables.py --check` fail
@@ -55,8 +58,8 @@ do not append history here (history goes in SESSIONS.md).
 3. [team] Send Eternal the questions in `docs/method_and_evidence.md` §10.
 4. [team] Rehearse with `docs/pitch/runbook.md` (three runs) and own ten questions each from `docs/pitch/questions.md`.
 5. [Yash] Review the restyle of `truelift/static/` (his last area) before `kshitish` is merged into `main`.
-6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); steps, release and repository
-   settings in `docs/handoff.md`.
+6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); steps and repository
+   settings in `docs/handoff.md` (use a merge commit, not a squash).
 
 ## Known limits (say these if asked)
 - All outcomes are simulated; only the real-data checks (ads, e-mail) are real, and neither is about restaurant offers.
@@ -67,7 +70,7 @@ do not append history here (history goes in SESSIONS.md).
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle since 13 Nov; to review the `truelift/static/` restyle on `kshitish`.
-- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check). Remaining
+- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check), release v2.0.0. Remaining
   items are the team's: `docs/handoff.md`.
   Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

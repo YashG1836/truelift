@@ -12,8 +12,10 @@ touches the laptop. The third answers questions on the method and keeps time.
 
 ## Thirty minutes before
 
-1. Build or copy the offline bundle and start it:
-   `python dist/truelift-offline/serve.py` (or open `dist/truelift-offline/index.html` directly).
+1. Get the offline bundle: download `truelift-offline.zip` from the
+   [v2.0.0 release](https://github.com/YashG1836/truelift/releases/tag/v2.0.0) and unzip it into `dist/`
+   (or build it). Start it with `python dist/truelift-offline/serve.py`, or open
+   `dist/truelift-offline/index.html` directly.
    It needs no internet: every answer was computed by the service and saved.
 2. Open three browser tabs: the offline demo, the deck PDF, and the public demo
    (`https://yashg1836.github.io/truelift/`) as a spare.

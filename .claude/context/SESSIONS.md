@@ -13,6 +13,18 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (release v2.0.0)
+- Did: owner's go-ahead, so annotated tag `v2.0.0` on `8ac3ca4` (the deployed commit) and the GitHub release with
+  the CHANGELOG 2.0.0 notes and three files: `truelift-offline.zip`, `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`.
+  The zip was rebuilt from the deployed `gh-pages` site (`git -c core.autocrlf=false archive`; plain `git archive`
+  on Windows turns LF into CRLF), so its `build.json` names `8ac3ca4`. README and runbook link the download;
+  handoff step 7 marked done, step 6 asks for a merge commit, not a squash.
+- Files: `README.md`, `docs/handoff.md`, `docs/pitch/runbook.md`, `.claude/context/`.
+- Checked: offline browser tests 8 of 8 on the new bundle; the zip's contents equal the folder; the three files
+  downloaded back from the release match the SHA-256 in the notes and GitHub's digests.
+- Numbers changed: none.
+- Next / open: the team's items in `docs/handoff.md`.
+
 ## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (deploy verified, page race fixed)
 - Did: CI deploy of `c8a873b` published the 32-restaurant demo; its public-URL browser test failed because a click on
   "Create an offer" during a restaurant switch landed on the old screen over a real network. Fix: the screen shows a

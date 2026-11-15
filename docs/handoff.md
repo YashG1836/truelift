@@ -27,13 +27,19 @@ do. Each says why it matters and when it is done.
    `TRUELIFT_LANGUAGES=1` for the live service, and the same variable in the export step's `env` in
    `.github/workflows/ci.yml` before the next `[deploy]`, so the public demo offers them.
 6. **Merge `kshitish` into `main`** through a pull request; decision D13 replaces D5 at the merge.
-   Never merge the history from before the 13 November rewrite. After the merge, if `main` should
+   Use a merge commit, not a squash: a squash drops the individual commits and their authors, and
+   leaves the tag `v2.0.0` outside `main`'s history. Never merge the history from before the
+   13 November rewrite. After the merge, if `main` should
    publish the demo, change `refs/heads/kshitish` to `refs/heads/main` in the deploy job of
    `.github/workflows/ci.yml`.
-7. **Tag a release** (owner's go-ahead): `v2.0.0` with the notes of `CHANGELOG.md` 2.0.0 and three
-   assets: `dist/truelift-offline.zip` (build with `python tasks.py export` and
-   `python scripts/build_offline.py`), `docs/pitch/TrueLift_deck.pdf` and
-   `docs/pitch/TrueLift_one_page.pdf`. The tag `round2-submission` stays where it is.
+7. **Release: done on 15 November.** `v2.0.0` is an annotated tag on `8ac3ca4`, the commit the
+   public demo is built from: https://github.com/YashG1836/truelift/releases/tag/v2.0.0. It has the
+   notes of `CHANGELOG.md` 2.0.0 and three files: `truelift-offline.zip`, `TrueLift_deck.pdf` and
+   `TrueLift_one_page.pdf`, with SHA-256 checksums in the notes. The tag `round2-submission` stays
+   where it is. For a later release, make the offline zip from the deployed site of the tagged
+   commit, so that its `build.json` names that commit: extract the `gh-pages` branch into `site/`
+   with `git -c core.autocrlf=false archive origin/gh-pages`, then run
+   `python scripts/build_offline.py`.
 
 ## Repository settings (needs admin on `YashG1836/truelift`)
 

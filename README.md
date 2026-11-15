@@ -77,7 +77,7 @@ TrueLift adds four calls to the offer flow Zomato already has
 | | How | What you get |
 |---|---|---|
 | Public demo | Open the link above | The service's own answers for 32 restaurants and every design the create screen offers |
-| Offline | `python tasks.py export` then `python scripts/build_offline.py`; open `dist/truelift-offline/index.html` or run `serve.py` inside it | The same demo with no internet |
+| Offline | Download `truelift-offline.zip` from the [v2.0.0 release](https://github.com/YashG1836/truelift/releases/tag/v2.0.0) and unzip it, or build it with `python tasks.py export` then `python scripts/build_offline.py`; open `index.html` or run `serve.py` inside it | The same demo with no internet |
 | Live service | `uv sync`, `python tasks.py pipeline`, `python tasks.py serve` → http://localhost:8000 (API docs at `/docs`), or `docker compose up --build` | Any design, any restaurant, the real engine |
 
 ```bash
