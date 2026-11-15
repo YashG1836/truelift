@@ -211,3 +211,9 @@ claims:
   - {id: q30_inflation, expr: "ev.main.selection.forecast_advantage_total / ev.main.selection.true_advantage_total", format: word, text: "about {} times its true one (though", docs: [docs/pitch/questions.md]}
   - {id: q30_better, expr: "ev.main.selection.share_truly_better_than_owner", format: pct0, text: "(though {} truly beat the owner's)", docs: [docs/pitch/questions.md]}
   - {id: q30_bias, expr: "exp('holdout_draws').mean_error_rs", format: inr, text: "over-states the truth by {} an offer. A shadow", docs: [docs/pitch/questions.md]}
+
+  # ---- architecture capacity table (docs/architecture.md)
+  - {id: arch_serve_p95, expr: "lat.serve_sequential.p95_ms", format: f1, text: "| {} ms (0.27 ms inside the service) |", docs: [docs/architecture.md]}
+  - {id: arch_serve_inside, expr: "lat.serve_sequential.server_side.p95_ms", format: f2, text: "({} ms inside the service) |", docs: [docs/architecture.md]}
+  - {id: arch_throughput, expr: "lat.serve_8_threads.throughput_per_second", format: int, text: "one process | {} |", docs: [docs/architecture.md]}
+  - {id: arch_quote_p95, expr: "lat.quote_sequential.p95_ms", format: plain, text: "95th percentile | {} ms |", docs: [docs/architecture.md]}

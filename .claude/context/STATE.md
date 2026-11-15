@@ -8,6 +8,9 @@ do not append history here (history goes in SESSIONS.md).
   (service v1, measurement, market analyses, real-data checks, restyle, docs); not merged into `main` yet.
 - Branches: `main` (shared), `kshitish` (Kshitish's work, CI publishes the demo from it on `[deploy]`), `gh-pages`
   (generated demo site, do not edit).
+- Public demo https://yashg1836.github.io/truelift/ is published by CI from `kshitish` (`build.json` names the commit);
+  15 Nov: 32 restaurants, browser tests pass against the public URL. Fresh clone: installs, tests pass, quick run
+  reproduces the golden snapshot.
 - Numbers are frozen on `kshitish` (one final run, 14 Nov night): `reports/` and the committed model
   `data/processed/model.pkl` (+ `.sha256`). Any later change that moves a number needs a new full run and must
   update README, DEVLOG, docs and this file together; `scripts/check_claims.py` and `render_tables.py --check` fail
@@ -64,7 +67,7 @@ do not append history here (history goes in SESSIONS.md).
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle since 13 Nov; to review the `truelift/static/` restyle on `kshitish`.
-- Kshitish: branch `kshitish`. M1-M3 and the M4 documents and field kit done; finishing export, deploy, pitch
-  (`docs/pitch/`) and M5 checks.
+- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check). Remaining
+  items are the team's: `docs/handoff.md`.
   Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

@@ -13,7 +13,8 @@ measures each offer by the extra orders and profit it creates, inside that OTP f
 Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi. IITGN × Eternal hackathon, Round 2.
 
 **Live demo: https://yashg1836.github.io/truelift/** · press **▶ Guided demo** for the ten-step story,
-or open the evidence directly: https://yashg1836.github.io/truelift/#tab=evidence
+or open the evidence directly: https://yashg1836.github.io/truelift/#tab=evidence · a captioned
+recording of the guided demo: [`docs/pitch/demo.mp4`](docs/pitch/demo.mp4)
 
 ![Creating an offer: forecast, better version and who sees the discount](docs/demo_create_offer.png)
 

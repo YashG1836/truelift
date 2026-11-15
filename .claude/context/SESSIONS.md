@@ -13,6 +13,16 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (deploy verified, page race fixed)
+- Did: CI deploy of `c8a873b` published the 32-restaurant demo; its public-URL browser test failed because a click on
+  "Create an offer" during a restaurant switch landed on the old screen over a real network. Fix: the screen shows a
+  loading placeholder while a restaurant loads (`openRestaurant`), and the test waits for the new restaurant.
+  Architecture: request sequence, capacity table (4 new claims), demo modes; README links the video.
+- Checked: Playwright 20 of 20 locally and 4 of 4 against the public URL; fresh clone from GitHub installs, passes the
+  tests and reproduces the golden snapshot; claims 187 of 187.
+- Numbers changed: none.
+- Next / open: the team's items in `docs/handoff.md`; release tag needs the owner's go-ahead.
+
 ## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (pitch, video, export, handoff)
 - Did: pitch in `docs/pitch/` generated from reports by `scripts/make_deck.py` (12 + 8 slides as HTML, PDF and
   editable PPTX; speaker notes with timing, five-minute cut and three registers; one-pager with QR), `runbook.md`,

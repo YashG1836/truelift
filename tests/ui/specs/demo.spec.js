@@ -83,6 +83,9 @@ test("manual offer: wrong OTP refused, right OTP approves, a week is measured", 
   await openHome(page);
   const options = await page.$$eval("#rest option", (os) => os.map((o) => /** @type {HTMLOptionElement} */ (o).value));
   await page.selectOption("#rest", options[options.length - 1]);
+  // wait until the chosen restaurant's home is on screen (over a real network it takes a moment)
+  const label = await page.$eval("#rest", (s) => /** @type {HTMLSelectElement} */ (s).selectedOptions[0].textContent || "");
+  await expect(page.locator("#phead h1")).toHaveText(label.split(" · ")[0], { timeout: 60_000 });
   await page.click('#screen [data-go="create"]');
   await page.waitForSelector("#ownerCard", { timeout: 60_000 });
   await page.click("#screen [data-val='\"targeted\"']");
