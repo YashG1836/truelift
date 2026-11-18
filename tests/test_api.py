@@ -455,9 +455,9 @@ def test_csp_allows_every_external_resource_the_page_loads(client):
         if 'rel="preconnect"' in html and url.endswith(".com"):  # preconnect hints load nothing
             continue
         origin = "{0.scheme}://{0.netloc}".format(urlsplit(url))
-        assert origin in sources, f"{origin} is linked from index.html but blocked by the CSP"
+        assert {origin} <= sources, f"{origin} is linked from index.html but blocked by the CSP"
     if "fonts.googleapis.com/css" in html:
-        assert "https://fonts.gstatic.com" in sources  # the stylesheet's font files come from here
+        assert {"https://fonts.gstatic.com"} <= sources  # the stylesheet's font files come from here
 
 
 @pytest.mark.parametrize("audience", ["all", "new_to_restaurant", "lapsed", "targeted"])

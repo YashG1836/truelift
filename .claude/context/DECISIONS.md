@@ -45,6 +45,8 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   Python 3.11 to 3.13; `requirements*.txt` are exported from the lock. Why: the committed numbers reproduce
   exactly with these versions (full pipeline re-run on 14 Nov equals `reports/` to 1e-6), and a pickled model
   loads only in the scikit-learn that wrote it. (Kshitish, 14 Nov.)
+  Amended 18 Nov (Yash): Dependabot proposes no `uv` version updates (it cannot resolve the lock's per-platform
+  pins); a library bump is a deliberate change with a pipeline re-run. Security alerts still cover the libraries.
 - D15. CI publishes the demo to `gh-pages` from `kshitish` only after lint, tests (Linux and Windows), golden
   numbers, fuzzing, browser tests (static and live) and the Docker check pass, and only for a commit marked
   `[deploy]` or a manual run. It refuses a site built without the committed model. Why: no untested or

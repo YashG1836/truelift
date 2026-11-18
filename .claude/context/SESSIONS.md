@@ -17,7 +17,9 @@ Template:
 - Did: reviewed pull request #1 (CI green; locally lint 0 errors, 185 tests, 194 claims, tables, photos have no
   metadata and bystanders blurred) and merged it with a merge commit (`02ff475a`). Deploy moved to `main` (both
   branch names in `ci.yml`; changing only the deploy job, as handoff 6 said, would have published 2 restaurants).
-  CodeQL's one alert (test_api CSP substring) fixed by comparing the policy's sources whole. README rewritten:
+  CodeQL's alert on the test_api CSP check: comparing against a set still matched its substring pattern (alert
+  #3); the follow-up commit compares sets (`{x} <= sources`). Dependabot's `uv` job removed (it cannot resolve
+  uv.lock's per-platform pins and failed weekly; D14). README rewritten:
   shorter, "Start here" links to demo, report, slides, video, offline copy, `submission/`. New `submission/`:
   SUBMISSION.md, IEEE-format report (tectonic, IEEEtran), 14 Zomato-style slides (PDF + browser copy with arrow
   keys), demo video; built by `submission/src/build.py` from the claims ledger and generated tables. STATE said the

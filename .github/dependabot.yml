@@ -9,16 +9,9 @@ updates:
       interval: weekly
     open-pull-requests-limit: 3
 
-  - package-ecosystem: uv
-    directory: /
-    schedule:
-      interval: weekly
-    open-pull-requests-limit: 3
-    ignore:
-      - dependency-name: numpy
-      - dependency-name: pandas
-      - dependency-name: scikit-learn
-      - dependency-name: scipy
+  # No `uv` entry: uv.lock pins some libraries per platform (httpx and uvicorn differ on Windows with
+  # Python 3.13), which Dependabot's uv updater cannot resolve, so its weekly job failed (18 Nov).
+  # Library versions change only on purpose anyway (DECISIONS D14). Security alerts still cover them.
 
   - package-ecosystem: npm
     directory: /tests/ui
