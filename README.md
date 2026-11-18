@@ -45,10 +45,10 @@ maths page.
 ## What the owner sees
 
 <p>
-  <img src="docs/img/owner_forecast.png" width="200" alt="The forecast of the owner's offer before approval">
-  <img src="docs/img/owner_better.png" width="200" alt="TrueLift's better version of the same discount">
-  <img src="docs/img/owner_otp.png" width="200" alt="The OTP approval with the forecast, its range and the four-week period">
-  <img src="docs/img/owner_result.png" width="200" alt="What the offer really added after four weeks">
+  <img src="docs/img/owner_forecast.png" width="160" alt="The forecast of the owner's offer before approval">
+  <img src="docs/img/owner_better.png" width="160" alt="TrueLift's better version of the same discount">
+  <img src="docs/img/owner_otp.png" width="160" alt="The OTP approval with the forecast, its range and the four-week period">
+  <img src="docs/img/owner_result.png" width="160" alt="What the offer really added after four weeks">
 </p>
 
 1. **Before approval.** The owner's usual offer, ₹60 off for everyone, with its forecast: the extra
@@ -204,8 +204,8 @@ flowchart LR
 ## Talking to restaurant owners
 
 <p>
-  <img src="docs/field_research/photos/interview_01_a.jpg" width="400" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
-  <img src="docs/field_research/photos/interview_01_b.jpg" width="400" alt="The manager watches the TrueLift demo on the team member's phone">
+  <img src="docs/field_research/photos/interview_01_a.jpg" width="320" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
+  <img src="docs/field_research/photos/interview_01_b.jpg" width="320" alt="The manager watches the TrueLift demo on the team member's phone">
 </p>
 
 Every rupee above is simulated, so the team is also asking restaurant owners and managers what

@@ -6,8 +6,8 @@ are still empty. This page holds the method and the tables the findings will go 
 is a finding until a row is filled from a written interview note.
 
 <p>
-  <img src="field_research/photos/interview_01_a.jpg" width="400" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
-  <img src="field_research/photos/interview_01_b.jpg" width="400" alt="The manager watches the TrueLift demo on the team member's phone">
+  <img src="field_research/photos/interview_01_a.jpg" width="320" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
+  <img src="field_research/photos/interview_01_b.jpg" width="320" alt="The manager watches the TrueLift demo on the team member's phone">
 </p>
 
 The first interview, 17 November 2026: a team member talks the manager through TrueLift, then shows

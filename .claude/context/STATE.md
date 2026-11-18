@@ -8,6 +8,7 @@ do not append history here (history goes in SESSIONS.md).
   (service v1, measurement, market analyses, real-data checks, restyle, docs); not merged into `main` yet.
 - 18 Nov: README rewritten (animated guided demo, phone screens, problem picture, Zomato's side, evidence, first
   interview); its images live in `docs/img/` and are retaken by `python tasks.py screenshots` from `site/`.
+- 18 Nov: pull request `kshitish` -> `main` opened for the team's merge (merge commit, not a squash; handoff step 6).
 - Branches: `main` (shared), `kshitish` (Kshitish's work, CI publishes the demo from it on `[deploy]`), `gh-pages`
   (generated demo site, do not edit).
 - Public demo https://yashg1836.github.io/truelift/ is published by CI from `kshitish` (`build.json` names the commit);
