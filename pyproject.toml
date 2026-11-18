@@ -42,7 +42,7 @@ validation = [
 ]
 # optional error tracking for a hosted service (TRUELIFT_SENTRY_DSN, plan D9); never used by the demos
 ops = [
-  "sentry-sdk>=2.0,<2.70",
+  "sentry-sdk>=2.0,<2.76",
 ]
 
 [tool.uv]
