@@ -46,7 +46,7 @@ pydantic==2.9.2
     # via
     #   fastapi
     #   truelift
-pydantic-core==2.23.4
+pydantic-core==2.50.4
     # via pydantic
 python-dateutil==4.0.0
     # via pandas
