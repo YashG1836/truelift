@@ -146,9 +146,10 @@ documents is checked against the reports by `scripts/check_claims.py`.
 
 ## Talking to restaurant owners
 
-<p>
-  <img src="docs/field_research/photos/interview_01_a.jpg" width="320" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
-  <img src="docs/field_research/photos/interview_01_b.jpg" width="320" alt="The manager watches the TrueLift demo on the team member's phone">
+<p align="center">
+  <img src="docs/field_research/photos/interview_01_a.jpg" width="220" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
+  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="docs/field_research/photos/interview_01_b.jpg" width="220" alt="The manager watches the TrueLift demo on the team member's phone">
 </p>
 
 Every rupee above is simulated, so we are also asking owners and managers what they see today and
