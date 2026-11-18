@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>TrueLift: presentation</title>
+<!-- Template: python submission/src/build.py deck fills every placeholder from reports/ and inlines the
+     fonts and images, then prints TrueLift_Presentation.pdf. In a browser: arrow keys, F for full screen. -->
+<style>
+@font-face { font-family: "Figtree"; font-weight: 400; src: url({{font:figtree-latin-400}}) format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 500; src: url({{font:figtree-latin-500}}) format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 600; src: url({{font:figtree-latin-600}}) format("woff2"); }
+@font-face { font-family: "Figtree"; font-weight: 700; src: url({{font:figtree-latin-700}}) format("woff2"); }
+@page { size: 1280px 720px; margin: 0; }
+:root {
+  --red: #e23744; --red-dark: #cb202d; --red-soft: #fff0f1;
+  --ink: #1c1c1c; --ink-2: #4f4f4f; --muted: #696969;
+  --bg: #f8f8f8; --card: #ffffff; --line: #e8e8e8;
+  --green: #267e3e; --green-soft: #ecf7ef;
+  --series: #2a78d6; --series-mute: #c9c7bf;
+  --shadow: 0 1px 2px rgba(54,54,54,.06), 0 2px 8px rgba(28,28,28,.08);
+  --shadow-lg: 0 8px 12px rgba(28,28,28,.08), 0 12px 32px rgba(28,28,28,.10);
+}
+* { box-sizing: border-box; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+html, body { margin: 0; padding: 0; font-family: "Figtree", system-ui, sans-serif; color: var(--ink); }
+body { background: #d9d9d9; }
+.slide { width: 1280px; height: 720px; position: relative; overflow: hidden; background: var(--bg);
+  page-break-after: always; break-after: page; }
+.slide:last-child { page-break-after: auto; break-after: auto; }
+
+/* the demo's header strip */
+.top { position: absolute; left: 0; right: 0; top: 0; height: 64px; background: #fff; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; padding: 0 56px; gap: 14px; }
+.wordmark { font-weight: 700; font-style: italic; font-size: 26px; letter-spacing: -0.03em; line-height: 1; }
+.top small { color: var(--muted); font-size: 12.5px; line-height: 1.3; }
+.steps { margin-left: auto; display: flex; gap: 5px; }
+.steps i { display: block; width: 22px; height: 4px; border-radius: 2px; background: #e3e3e3; }
+.steps i.on { background: var(--red); }
+.foot { position: absolute; left: 56px; right: 56px; bottom: 22px; display: flex; gap: 16px; font-size: 12.5px; color: var(--muted); }
+.foot .n { margin-left: auto; color: var(--ink-2); }
+
+.body { position: absolute; left: 56px; right: 56px; top: 96px; bottom: 60px; }
+h1 { font-size: 38px; line-height: 1.15; letter-spacing: -0.02em; margin: 0 0 22px; font-weight: 700; max-width: 1100px; }
+h1 em { font-style: normal; color: var(--red); }
+p { margin: 0 0 14px; font-size: 21px; line-height: 1.45; color: var(--ink-2); }
+b, strong { color: var(--ink); font-weight: 700; }
+.small { font-size: 15px; color: var(--muted); line-height: 1.45; }
+.cols { display: flex; gap: 36px; align-items: flex-start; }
+.card { background: var(--card); border-radius: 14px; box-shadow: var(--shadow); padding: 22px 24px; }
+.card h3 { margin: 0 0 6px; font-size: 21px; }
+.card p { font-size: 17px; margin: 0; }
+.num-badge { width: 34px; height: 34px; border-radius: 50%; background: var(--red); color: #fff; font-weight: 700;
+  display: flex; align-items: center; justify-content: center; font-size: 17px; margin-bottom: 14px; }
+.big { font-size: 64px; font-weight: 700; letter-spacing: -0.03em; line-height: 1; color: var(--ink); }
+.green { color: var(--green); }
+.chip { display: inline-block; font-size: 14px; padding: 3px 10px; border-radius: 999px; background: var(--green-soft);
+  color: var(--green); border: 1px solid #bfe3c9; font-weight: 500; }
+
+/* phone frame, as in the demo */
+.phone { width: 300px; border-radius: 34px; background: #1c1c1c; padding: 10px; box-shadow: var(--shadow-lg); flex: none; }
+.phone .scr { border-radius: 25px; overflow: hidden; background: #fff; height: 515px; }
+.phone img { width: 100%; display: block; }
+.phone-cap { margin-top: 10px; font-size: 15px; color: var(--muted); text-align: center; width: 300px; }
+
+/* the guided demo's caption card */
+.tour { background: #1c1c1c; color: #fff; border-radius: 16px; padding: 22px 26px 24px; box-shadow: var(--shadow-lg); }
+.tour .seg { display: flex; gap: 5px; margin-bottom: 14px; }
+.tour .seg i { flex: 1; height: 4px; border-radius: 2px; background: #4a4a4a; }
+.tour .seg i.on { background: var(--red); }
+.tour .stepno { font-size: 13px; color: #b9b9b9; margin-bottom: 4px; }
+.tour h4 { margin: 0 0 10px; font-size: 24px; letter-spacing: -0.01em; }
+.tour p { color: #e9e9e9; font-size: 18px; line-height: 1.5; margin: 0 0 10px; }
+.tour p b { color: #fff; }
+.tour .next { display: inline-block; margin-top: 6px; background: var(--red); color: #fff; font-weight: 600; font-size: 15px;
+  padding: 9px 18px; border-radius: 10px; }
+
+/* bars: blue for TrueLift, grey for the baselines (never brand red for data) */
+.chart { margin-bottom: 22px; }
+.chart .t { font-size: 15px; color: var(--muted); font-weight: 500; margin-bottom: 10px; }
+.bar { display: flex; align-items: center; gap: 14px; margin: 9px 0; }
+.bar .l { width: 190px; font-size: 17px; color: var(--ink-2); flex: none; }
+.bar .track { flex: 1; display: flex; align-items: center; gap: 10px; }
+.bar .fill { height: 26px; border-radius: 6px; background: var(--series-mute); }
+.bar.tl .fill { background: var(--series); }
+.bar .v { font-size: 17px; color: var(--ink-2); white-space: nowrap; }
+.bar.tl .v { color: var(--ink); font-weight: 700; }
+
+table.money { border-collapse: collapse; font-size: 18px; width: 560px; }
+table.money td, table.money th { padding: 9px 10px; border-bottom: 1px solid var(--line); text-align: right; }
+table.money th { font-size: 14px; color: var(--muted); font-weight: 500; }
+table.money td:first-child, table.money th:first-child { text-align: left; }
+table.money tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; font-weight: 700; color: var(--ink); }
+
+/* title slide: Zomato red */
+.title { background: var(--red); color: #fff; }
+.title .wordmark { color: #fff; font-size: 108px; }
+.title h2 { font-size: 40px; line-height: 1.2; margin: 26px 0 18px; font-weight: 700; letter-spacing: -0.02em; max-width: 540px; }
+.title p { color: #ffe3e6; font-size: 21px; max-width: 540px; }
+.title .who { position: absolute; left: 80px; bottom: 56px; color: #fff; font-size: 17px; line-height: 1.55; }
+.title .who span { color: #ffd0d5; }
+.qrbox { background: #fff; border-radius: 16px; padding: 18px 18px 14px; text-align: center; box-shadow: var(--shadow-lg); }
+.qrbox svg.qr { width: 150px; height: 150px; display: block; margin: 0 auto 8px; }
+.qrbox div { font-size: 14px; color: var(--ink-2); }
+.btn { display: inline-block; background: var(--red); color: #fff; font-weight: 600; border-radius: 10px; padding: 10px 18px; font-size: 16px; }
+
+/* screen: one slide at a time, scaled to the window; print: every slide */
+@media screen {
+  body.present { background: #111; overflow: hidden; }
+  body.present .slide { position: absolute; left: 50%; top: 50%; transform-origin: center center; display: none; }
+  body.present .slide.cur { display: block; }
+}
+@media print { body { background: #fff; } }
+</style>
+</head>
+<body>
+
+<!-- 1 -->
+<section class="slide title">
+  <div style="position:absolute; left:80px; top:92px;">
+    <div class="wordmark">truelift</div>
+    <h2>Restaurant discounts, judged by the orders they create.</h2>
+    <p>TrueLift forecasts, targets and measures every restaurant-funded offer on Zomato, inside the owner's OTP approval.</p>
+  </div>
+  <div class="who">Team Banana, IIT Gandhinagar<br>Yash Goyal · Bhavay Goyal · Kshitish Madbhavi<br><span>IITGN × Eternal hackathon, Round 2</span></div>
+  <div style="position:absolute; right:300px; top:70px;">
+    <div class="phone"><div class="scr"><img src="{{img:owner_forecast}}" alt="The forecast screen"></div></div>
+  </div>
+  <div style="position:absolute; right:56px; top:250px; width:210px;">
+    <div class="qrbox">{{qr}}<div>Try the demo on your phone</div></div>
+    <div style="margin-top:14px; font-size:15px; color:#fff; text-align:center;">yashg1836.github.io/truelift</div>
+  </div>
+</section>
+
+<!-- 2 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>Since August 2026, a restaurant-funded offer starts only after the owner's OTP</h1>
+    <div class="cols">
+      <div style="flex:1.3">
+        <div class="card" style="margin-bottom:14px"><h3>July–August 2026</h3><p>Bengaluru restaurant associations object to discounts deducted without clear consent, and ask for approval for a fixed period and itemised payouts.</p></div>
+        <div class="card" style="margin-bottom:14px"><h3>8 August 2026</h3><p>Zomato agrees: restaurant-funded campaigns are opt-in and start only after the owner approves them by OTP.</p></div>
+        <div class="card"><h3>Now</h3><p>An owner who cannot see whether an offer pays has every reason to stop approving it.</p></div>
+      </div>
+      <div style="flex:1">
+        <div class="card" style="padding:28px">
+          <div class="small" style="margin-bottom:8px">Eternal's advertising and sales promotion spend, Q2 FY27</div>
+          <div class="big">₹1,138 Cr</div>
+          <p style="margin-top:14px; font-size:18px">up 41% from ₹806 Cr a year earlier, while food delivery earns an adjusted EBITDA of 5.5% of order value. Knowing what a discount buys is worth more than ever.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Sources: Angel One (8 Aug 2026), The Week (30 Jul 2026), Eternal Q2 FY27 shareholders' letter</span><span class="n"></span></div>
+</section>
+
+<!-- 3 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>The offer report shows {{readme_problem_used}} orders. {{readme_problem_anyway}} of them would have come anyway</h1>
+    <div class="card" style="padding:18px 20px; margin-bottom:24px"><img src="{{img:problem}}" alt="100 orders used the offer; 70 would have come anyway" style="width:100%; display:block"></div>
+    <p style="max-width:1080px">No report can tell which orders an offer created: only customers who did not see it can show
+      what would have happened without it. So owners approve blind, and under the OTP rule an owner who has lost
+      money on blind approvals can stop approving.</p>
+  </div>
+  <div class="foot"><span>Source: truelift/economics.py. Customers, orders and money are simulated.</span><span class="n"></span></div>
+</section>
+
+<!-- 4 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>₹60 off a ₹400 order pays only if {{break_even_15_row}} of the orders using it are extra</h1>
+    <div class="cols">
+      <div class="card" style="padding:14px 22px">
+        <table class="money">
+          <tr><th>One order</th><th>Full price</th><th>₹60 off</th></tr>
+          <tr><td>Food sales</td><td>{{ord_full_basket}}</td><td>{{ord_disc_basket}}</td></tr>
+          <tr><td>Discount</td><td>–</td><td>−{{ord_disc_discount}}</td></tr>
+          <tr><td>Commission (25% of the bill)</td><td>−{{ord_full_commission}}</td><td>−{{ord_disc_commission}}</td></tr>
+          <tr><td>GST on commission (18%)</td><td>−{{ord_full_gst_on_commission}}</td><td>−{{ord_disc_gst_on_commission}}</td></tr>
+          <tr><td>Food and packaging (37%)</td><td>−{{ord_full_food_cost}}</td><td>−{{ord_disc_food_cost}}</td></tr>
+          <tr class="total"><td>Restaurant keeps</td><td>{{keeps_full}}</td><td>{{keeps_discounted}}</td></tr>
+        </table>
+      </div>
+      <div style="flex:1">
+        <p>The break-even share of extra orders is <span style="white-space:nowrap">1 − {{keeps_discounted}} / {{keeps_full}} = <b>{{break_even_15}}</b></span>.</p>
+        <p>A bigger discount needs more: <b>{{break_even_10}}</b> at 10% off, <b>{{break_even_15_row}}</b> at 15%, <b>{{break_even_20}}</b> at 20%, <b>{{break_even_25}}</b> at 25%.</p>
+        <p>If commission is charged on the bill before the discount, the break-even at ₹60 off rises to <b>{{pre_discount_break_even}}</b>. That is our first question for Eternal.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Source: truelift/economics.py, the code the service and the demo use</span><span class="n"></span></div>
+</section>
+
+<!-- 5 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>TrueLift adds four calls to the offer flow Zomato already has</h1>
+    <div class="cols" style="gap:20px">
+      <div class="card" style="flex:1; min-height:250px"><div class="num-badge">1</div><h3>Quote</h3><div class="small" style="margin-bottom:10px">Before the OTP</div><p>A forecast of extra orders and profit with a range, and a better version of the same discount, or no offer.</p></div>
+      <div class="card" style="flex:1; min-height:250px"><div class="num-badge">2</div><h3>Serve</h3><div class="small" style="margin-bottom:10px">A customer opens the menu</div><p>A table lookup decides who sees the discount; a random 1 in 10 eligible customers is held out.</p></div>
+      <div class="card" style="flex:1; min-height:250px"><div class="num-badge">3</div><h3>Payout</h3><div class="small" style="margin-bottom:10px">Every week</div><p>The restaurant pays for its own offer, itemised. Zomato co-funds only what it measures.</p></div>
+      <div class="card" style="flex:1; min-height:250px"><div class="num-badge">4</div><h3>Measure</h3><div class="small" style="margin-bottom:10px">Every week</div><p>Held-out against shown customers: the extra profit with a range and a verdict, on WhatsApp.</p></div>
+    </div>
+    <p style="margin-top:26px">No new screens: the forecast sits on the OTP screen, the result arrives on WhatsApp, and nothing changes in how customers order.</p>
+  </div>
+  <div class="foot"><span>docs/architecture.md, docs/integration_blueprint.md</span><span class="n"></span></div>
+</section>
+
+<!-- 6 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <div class="cols" style="gap:28px">
+      <div><div class="phone"><div class="scr"><img src="{{img:owner_forecast}}" alt="The forecast of the owner's offer"></div></div><div class="phone-cap">The owner's usual offer</div></div>
+      <div><div class="phone"><div class="scr"><img src="{{img:owner_better}}" alt="TrueLift's better version"></div></div><div class="phone-cap">TrueLift's better version</div></div>
+      <div style="flex:1; padding-top:20px">
+        <div class="tour">
+          <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="stepno">Before approval</div>
+          <h4>A forecast, and a better version of the same discount</h4>
+          <p>Before the OTP, the owner sees the extra orders and profit the offer is likely to bring, with a range, and how many of its orders would have come anyway.</p>
+          <p>TrueLift compares about <b>34 versions</b>: who sees it, the minimum order, the time of day, a Brand Pack reward. The size of the discount stays the owner's choice.</p>
+          <span class="next">Use this version</span>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Screens from the live demo. A real 2019 listing; its customers and money are simulated.</span><span class="n"></span></div>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <div class="cols" style="gap:30px">
+      <div class="card" style="padding:10px; flex:none"><img src="{{img:who_sees}}" alt="Who sees the discount" style="height:530px; display:block; border-radius:8px"></div>
+      <div style="flex:1; padding-top:20px">
+        <div class="tour">
+          <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <div class="stepno">Inside Zomato</div>
+          <h4>Who sees the discount</h4>
+          <p>When a customer opens the menu, a table lookup decides whether to show the discount. Regulars who would order anyway do not get it.</p>
+          <p>A random <b>1 in 10</b> eligible customers is held out and sees normal prices, never higher ones. That control group is what makes the weekly measurement possible.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>The visitors are synthetic people.</span><span class="n"></span></div>
+</section>
+
+<!-- 8 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <div class="cols" style="gap:28px">
+      <div><div class="phone"><div class="scr"><img src="{{img:owner_otp}}" alt="The OTP approval"></div></div><div class="phone-cap">The OTP approval</div></div>
+      <div><div class="phone"><div class="scr"><img src="{{img:owner_result}}" alt="The result after four weeks"></div></div><div class="phone-cap">Four weeks later</div></div>
+      <div style="flex:1; padding-top:20px">
+        <div class="tour">
+          <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <div class="stepno">Approval and every week</div>
+          <h4>The owner approves what was shown, then sees what it really added</h4>
+          <p>The OTP stores the forecast, its range, who pays and the four-week period in a hash-chained ledger, so every deduction can be checked.</p>
+          <p>Every week: the extra profit with a range and a verdict, <span class="chip">keep</span>, change or stop, beside what today's report would show. Renewing needs a new OTP.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Screens from the live demo. A real 2019 listing; its customers and money are simulated.</span><span class="n"></span></div>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>For restaurants: {{tl_pay}} of {{tl_with}} TrueLift offers pay, against {{bl_pay}} of {{bl_with}} blanket offers</h1>
+    <div class="cols" style="gap:48px">
+      <div style="flex:1.25">
+        <div class="chart"><div class="t">Offers that pay for themselves</div>
+          <div class="bar"><span class="l">Same for everyone</span><span class="track"><span class="fill" style="width:{{w_bl_pay}}%"></span><span class="v">{{bl_pay}} of {{bl_with}}</span></span></div>
+          <div class="bar"><span class="l">New customers only</span><span class="track"><span class="fill" style="width:{{w_rule_pay}}%"></span><span class="v">{{rule_pay}} of {{rule_with}}</span></span></div>
+          <div class="bar tl"><span class="l">TrueLift</span><span class="track"><span class="fill" style="width:{{w_tl_pay}}%"></span><span class="v">{{tl_pay}} of {{tl_with}}</span></span></div>
+        </div>
+        <div class="chart"><div class="t">Restaurant profit against no offers, a week</div>
+          <div class="bar"><span class="l">Same for everyone</span><span class="track"><span class="fill" style="width:calc({{w_bl_restaurant_profit_change}}% * 0.72)"></span><span class="v">{{bl_market}}</span></span></div>
+          <div class="bar"><span class="l">New customers only</span><span class="track"><span class="fill" style="width:calc({{w_rule_restaurant_profit_change}}% * 0.72)"></span><span class="v">{{rule_market}}</span></span></div>
+          <div class="bar tl"><span class="l">TrueLift</span><span class="track"><span class="fill" style="width:calc({{w_tl_restaurant_profit_change}}% * 0.72)"></span><span class="v">{{tl_market}}</span></span></div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <p>Restaurants make <b>{{tl_market}}</b> against no offers, with <b>{{readme_less_discount}} less discount</b> than blanket offers.</p>
+        <p>Of the orders using a blanket offer, <b>{{bl_anyway}}</b> would have come anyway; with TrueLift, {{tl_anyway}}.</p>
+        <p>At {{tl_no_offer}} restaurants no version pays, and TrueLift says so: no offer.</p>
+        <p class="small">TrueLift's figures include the cost of its own control group.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Source: reports/evaluation.json; five market seeds agree. Simulated market of 300 real 2019 Bengaluru listings.</span><span class="n"></span></div>
+</section>
+
+<!-- 10 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>For Zomato: commission is higher too, because offers that pay keep being approved</h1>
+    <div class="cols" style="gap:48px">
+      <div style="flex:1.25">
+        <div class="chart"><div class="t">Zomato commission against no offers, a week</div>
+          <div class="bar"><span class="l">Same for everyone</span><span class="track"><span class="fill" style="width:calc({{w_bl_zomato_commission_change}}% * 0.72)"></span><span class="v">{{bl_commission}}</span></span></div>
+          <div class="bar"><span class="l">New customers only</span><span class="track"><span class="fill" style="width:calc({{w_rule_zomato_commission_change}}% * 0.72)"></span><span class="v">{{rule_commission}}</span></span></div>
+          <div class="bar tl"><span class="l">TrueLift</span><span class="track"><span class="fill" style="width:calc({{w_tl_zomato_commission_change}}% * 0.72)"></span><span class="v">{{tl_commission}}</span></span></div>
+        </div>
+        <div class="chart"><div class="t">Discount given, a week</div>
+          <div class="bar"><span class="l">Same for everyone</span><span class="track"><span class="fill" style="width:calc({{w_bl_customer_savings}}% * 0.72)"></span><span class="v">{{bl_discount}}</span></span></div>
+          <div class="bar"><span class="l">New customers only</span><span class="track"><span class="fill" style="width:calc({{w_rule_customer_savings}}% * 0.72)"></span><span class="v">{{rule_discount}}</span></span></div>
+          <div class="bar tl"><span class="l">TrueLift</span><span class="track"><span class="fill" style="width:calc({{w_tl_customer_savings}}% * 0.72)"></span><span class="v">{{tl_discount}}</span></span></div>
+        </div>
+      </div>
+      <div style="flex:1">
+        <p>Zomato's commission is higher than with blanket offers in every one of {{method_seeds_count}} market seeds.</p>
+        <p>Under the OTP rule this matters more: <b>{{bl_lose}} of 300</b> blanket offers lose their restaurant money, and an owner who sees that declines the next OTP.</p>
+        <p><b>{{tl_platform_share}}</b> of TrueLift's extra orders are new to Zomato, not taken from another restaurant.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Source: reports/evaluation.json. Simulated market of 300 real 2019 Bengaluru listings.</span><span class="n"></span></div>
+</section>
+
+<!-- 11 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>The simulator knows the truth, so every estimate is checked against it</h1>
+    <div class="cols" style="gap:20px">
+      <div class="card" style="flex:1">
+        <div class="small" style="margin-bottom:12px">Weekly result: truth inside the 80% range</div>
+        <div style="display:flex; gap:14px; align-items:flex-end; height:180px; border-bottom:1px solid var(--line); padding:0 8px;">
+          <div style="flex:1; text-align:center"><div style="font-weight:700; font-size:20px; margin-bottom:6px">{{devlog_cov_1}}</div><div style="height:calc({{h_cov_1}} * 1.6px); background:var(--series); border-radius:6px 6px 0 0"></div></div>
+          <div style="flex:1; text-align:center"><div style="font-weight:700; font-size:20px; margin-bottom:6px">{{devlog_cov_2}}</div><div style="height:calc({{h_cov_2}} * 1.6px); background:var(--series); border-radius:6px 6px 0 0"></div></div>
+          <div style="flex:1; text-align:center"><div style="font-weight:700; font-size:20px; margin-bottom:6px">{{devlog_cov_4}}</div><div style="height:calc({{h_cov_4}} * 1.6px); background:var(--series); border-radius:6px 6px 0 0"></div></div>
+        </div>
+        <div style="display:flex; gap:14px; padding:8px 8px 0; font-size:15px; color:var(--muted); text-align:center"><div style="flex:1">after 1 week</div><div style="flex:1">2 weeks</div><div style="flex:1">4 weeks</div></div>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="small" style="margin-bottom:8px">"Keep" verdicts that are truly positive</div>
+        <div class="big" style="font-size:52px">{{keep_1_text}}</div>
+        <p style="margin:6px 0 18px; font-size:17px">after one week; {{keep_4_text}} after four.</p>
+        <div class="small" style="margin-bottom:8px">Placebo offers paused over four weekly looks</div>
+        <div class="big" style="font-size:52px">{{aa_4_looks}}</div>
+        <p style="margin:6px 0 0; font-size:17px">against {{aa_4_looks_before}} with the rule "pause when the range is below zero".</p>
+      </div>
+      <div class="card" style="flex:1">
+        <div class="small" style="margin-bottom:8px">Real randomised data (ads and e-mail, not food)</div>
+        <p style="font-size:17px">On Hillstrom's women's e-mail, the uplift models beat the "likely to act anyway" shortcut in all five splits.</p>
+        <p style="font-size:17px">On Criteo's rare purchases the shortcut wins ({{devlog_criteo_conv_r}} against {{devlog_criteo_conv_t}} in the top 30%).</p>
+        <p style="font-size:17px; margin:0">We report both.</p>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span>Sources: reports/evaluation.json, reports/uplift_validation_*.json</span><span class="n"></span></div>
+</section>
+
+<!-- 12 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>What is still not right, and we say so</h1>
+    <div class="cols" style="gap:20px">
+      <div class="card" style="flex:1"><h3>Everything is simulated</h3><p>Customers, orders and profits are simulated on real 2019 listings. Real numbers need Zomato's data; the first step inside Zomato is a shadow holdout.</p></div>
+      <div class="card" style="flex:1"><h3>Suggestions look better than they are</h3><p>A suggested version's stated advantage is about {{selection_inflation}} times its true one, though {{selection_truly_better}} truly beat the owner's. The page says so next to every suggestion.</p></div>
+      <div class="card" style="flex:1"><h3>Small restaurants lean on the model</h3><p>The four-week estimate over-states the truth by {{draws_bias}} an offer on average, inherited from the model while a restaurant's own control group is small.</p></div>
+    </div>
+    <p style="margin-top:26px">An audit of our own work found 50 issues; each is fixed and guarded by a test. Every number in our documents is checked against the reports by a ledger of {{claims_count}} claims.</p>
+  </div>
+  <div class="foot"><span>docs/what_we_tested.md, docs/method_and_evidence.md §12</span><span class="n"></span></div>
+</section>
+
+<!-- 13 -->
+<section class="slide">
+  <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
+  <div class="body">
+    <h1>From prototype to pilot: measure first, change who sees offers later</h1>
+    <div class="cols" style="gap:20px">
+      <div class="card" style="flex:1; min-height:230px"><div class="num-badge">1</div><h3>Shadow holdout</h3><p>2% of eligible customers held out of offers owners already run, in one city. Nothing changes for owners.</p></div>
+      <div class="card" style="flex:1; min-height:230px"><div class="num-badge">2</div><h3>Measure</h3><p>The forecast and weekly result for a random half of the pilot restaurants: {{pilot_per_arm}} in each half, {{pilot_total}} in all.</p></div>
+      <div class="card" style="flex:1; min-height:230px"><div class="num-badge">3</div><h3>Target</h3><p>Owners in that half may let TrueLift choose who sees the offer.</p></div>
+      <div class="card" style="flex:1; min-height:230px"><div class="num-badge">4</div><h3>Scale</h3><p>City by city, with the same guardrails: sample-ratio checks, placebo offers, renewal rate.</p></div>
+    </div>
+    <p style="margin-top:26px">Each phase starts only when the one before has passed its checks. The service answers a menu decision in {{lat_serve_p95}} ms (95th percentile) over HTTP on a laptop.</p>
+  </div>
+  <div class="foot"><span>docs/integration_blueprint.md, reports/pilot_sample_size.json, reports/latency.json</span><span class="n"></span></div>
+</section>
+
+<!-- 14 -->
+<section class="slide title">
+  <div style="position:absolute; left:80px; top:80px; width:700px;">
+    <div class="wordmark" style="font-size:64px">truelift</div>
+    <h2 style="font-size:36px; margin-top:22px">Try it: you own a restaurant. Create an offer.</h2>
+    <p>Open the demo and press <b style="color:#fff">▶ Guided demo</b> for the ten-step story, or pick a restaurant, create an offer, approve it with the OTP on screen and run the weeks.</p>
+    <p style="margin-top:22px; color:#fff; font-size:19px; line-height:1.7">
+      Demo: yashg1836.github.io/truelift<br>
+      Code: github.com/YashG1836/truelift<br>
+      Report and video: the repository's submission folder</p>
+  </div>
+  <div style="position:absolute; right:80px; top:120px; width:300px;">
+    <div class="qrbox">{{qr}}<div>Scan to open the demo</div></div>
+    <div style="margin-top:22px; color:#ffe3e6; font-size:16px; line-height:1.5">Questions for Eternal: is commission charged before or after the discount? Could we run the shadow kit on one city's anonymised offer logs?</div>
+  </div>
+  <div class="who">Team Banana, IIT Gandhinagar · Yash Goyal · Bhavay Goyal · Kshitish Madbhavi</div>
+</section>
+
+<script>
+// Slide numbers and the guided-demo style step bar, then keyboard navigation on screen.
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll(".slide"));
+  var total = slides.length;
+  slides.forEach(function (s, i) {
+    var n = s.querySelector(".foot .n"); if (n) n.textContent = (i + 1) + " / " + total;
+    var st = s.querySelector(".steps");
+    if (st) for (var k = 0; k < total; k++) { var b = document.createElement("i"); if (k <= i) b.className = "on"; st.appendChild(b); }
+  });
+  if (window.matchMedia && window.matchMedia("print").matches) return;
+  var cur = 0;
+  function fit() {
+    var k = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+    slides.forEach(function (s) { s.style.transform = "translate(-50%, -50%) scale(" + k + ")"; });
+  }
+  function show(i) {
+    cur = Math.max(0, Math.min(total - 1, i));
+    slides.forEach(function (s, j) { s.classList.toggle("cur", j === cur); });
+    try { history.replaceState(null, "", "#" + (cur + 1)); } catch (e) {}
+  }
+  if (!/HeadlessChrome/.test(navigator.userAgent)) {
+    document.body.classList.add("present");
+    fit(); show((parseInt(location.hash.slice(1), 10) || 1) - 1);
+    window.addEventListener("resize", fit);
+    document.addEventListener("keydown", function (e) {
+      if (["ArrowRight", "PageDown", " ", "Enter"].indexOf(e.key) >= 0) { e.preventDefault(); show(cur + 1); }
+      if (["ArrowLeft", "PageUp", "Backspace"].indexOf(e.key) >= 0) { e.preventDefault(); show(cur - 1); }
+      if (e.key === "Home") show(0);
+      if (e.key === "End") show(total - 1);
+      if (e.key === "f" || e.key === "F") { if (!document.fullscreenElement) document.documentElement.requestFullscreen(); else document.exitFullscreen(); }
+    });
+    document.addEventListener("click", function (e) { show(cur + (e.clientX > window.innerWidth / 3 ? 1 : -1)); });
+    window.addEventListener("beforeprint", function () { document.body.classList.remove("present"); });
+    window.addEventListener("afterprint", function () { document.body.classList.add("present"); fit(); show(cur); });
+  }
+})();
+</script>
+</body>
+</html>

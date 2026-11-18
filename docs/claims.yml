@@ -106,6 +106,12 @@ claims:
   - {id: readme_seeds_commission, expr: "len(ev.seeds.seeds) if ev.seeds.differences.truelift_minus_today_blanket.zomato_commission_change.same_sign_every_seed else -1", format: word, text: "in every one of {} market seeds", docs: [README.md]}
   - {id: method_seeds_count, expr: "len(ev.seeds.seeds) if all(v['same_sign_every_seed'] for k, v in ev.seeds.differences.truelift_minus_today_blanket.items() if k != 'customer_savings') else -1", format: word, text: "across {} market seeds TrueLift beats blanket offers", docs: [docs/method_and_evidence.md]}
 
+  # ---- the short description in submission/SUBMISSION.md (the report and slides are generated)
+  - {id: submission_tl_pay, expr: "ev.main.policies.truelift.offers_that_pay", text: "{} of 228 TrueLift offers pay for themselves", docs: [submission/SUBMISSION.md]}
+  - {id: submission_tl_offers, expr: "ev.main.policies.truelift.restaurants_with_offer", text: "218 of {} TrueLift offers pay", docs: [submission/SUBMISSION.md]}
+  - {id: submission_bl_pay, expr: "ev.main.policies.today_blanket.offers_that_pay", text: "against {} of 300 blanket offers, restaurants make", docs: [submission/SUBMISSION.md]}
+  - {id: submission_tl_market, expr: "ev.main.policies.truelift.restaurant_profit_change", format: lakh2, text: "restaurants make {} a week more than with no offers", docs: [submission/SUBMISSION.md]}
+
   # ---- the README's problem picture: the money example of truelift/economics.py, the same one the
   # How it works page draws (100 orders used a ₹60-off offer; 70 were regulars who came anyway)
   - {id: readme_problem_discount, expr: "ex.discount", format: inr, text: "Take a {}-off offer", docs: [README.md]}

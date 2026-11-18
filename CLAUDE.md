@@ -48,6 +48,7 @@ targets and measures each offer by the extra orders and profit it creates, insid
 | `.github/workflows/` | CI (lint, tests on Linux and Windows, golden + fuzz, browser tests, Docker, gated deploy), CodeQL |
 | `reports/` | Pipeline outputs. Every number in docs and UI must trace to a file here |
 | `data/processed/restaurants.csv` | The 300 restaurants (public listing fields only) |
+| `submission/` | What we submit: `SUBMISSION.md` (all links), IEEE-format report, Zomato-style slides (PDF + HTML), demo video; `src/` builds them |
 
 Not in git (each person builds locally): `.venv/`, `data/raw/`, `data/processed/model.pkl` (+ `.sha256`),
 `data/processed/serving_*.npz` (start-up cache), `site/`, `LOG.md` (Yash's private log).
@@ -72,12 +73,14 @@ python tasks.py deck                     # pitch deck, notes, one-pager (PDF + P
 python tasks.py video                    # captioned guided-demo recording -> docs/pitch/demo.mp4 (after export)
 python tasks.py screenshots              # ~30 s: the README images -> docs/img/ (animated tour, phone screens; after export)
 python scripts/check_claims.py           # every number in the docs against reports/ (docs/claims.yml)
+python submission/src/build.py           # report (tectonic) and slides (Chrome) from the ledger -> submission/; rerun after any number changes
 cd tests/ui && npm ci && npx playwright install chromium && npx playwright test   # browser tests, static + live
 ```
 
-Publish the demo: CI publishes from branch `kshitish` after every check passes, for a commit whose
-message contains `[deploy]` (or a manual run with deploy=true); it refuses a site built without the
-committed model (DECISIONS D15). By hand: clone branch `gh-pages` into a temp folder,
+Publish the demo: CI publishes from branch `main` (since the 18 Nov merge) after every check passes,
+for a commit whose message contains `[deploy]` (or a manual run with deploy=true); it refuses a site
+built without the committed model (DECISIONS D15). The branch is named twice in `ci.yml` (site job
+`DEPLOYING`, deploy job `if`); change both or neither. By hand: clone branch `gh-pages` into a temp folder,
 `rsync -a --delete --exclude .git site/ <temp>/`, commit, normal `git push`, then run the browser tests
 with `UI_PROJECTS=public TRUELIFT_PUBLIC_URL=<url>`.
 UI must keep `/static/app.js` and `/static/style.css` paths in index.html (export_static rewrites them).

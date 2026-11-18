@@ -1,46 +1,41 @@
 # TrueLift
 
-[![CI](https://github.com/YashG1836/truelift/actions/workflows/ci.yml/badge.svg?branch=kshitish)](https://github.com/YashG1836/truelift/actions/workflows/ci.yml)
+[![CI](https://github.com/YashG1836/truelift/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/YashG1836/truelift/actions/workflows/ci.yml)
 [![Licence: MIT](https://img.shields.io/badge/licence-MIT-blue)](LICENSE)
-![Coverage at least 85%](https://img.shields.io/badge/coverage-%E2%89%A585%25%20enforced-brightgreen)
-![Outcomes: simulated](https://img.shields.io/badge/customers%20and%20profits-simulated-lightgrey)
+![Customers and profits: simulated](https://img.shields.io/badge/customers%20and%20profits-simulated-lightgrey)
 
-Restaurant discounts on Zomato are judged by the orders that **use** them, not the orders they
-**create**. Since August 2026 a restaurant-funded offer starts only after the owner's OTP, so an
-owner who cannot see whether an offer pays will stop approving it. TrueLift forecasts, targets and
-measures each offer by the extra orders and profit it creates, inside that OTP flow.
+**Restaurant discounts on Zomato are judged by the orders that use them, not the orders they create.**
+TrueLift forecasts, targets and measures every restaurant-funded offer by the extra orders and profit
+it creates, inside the OTP approval that Zomato already asks owners for.
 
-Before the owner approves, TrueLift shows how many extra orders and how much profit the offer is
-likely to bring, with a range, and suggests a better version of the same discount. While the offer
-runs, it shows the discount only to customers it is likely to bring in, and holds out a random one
-in ten of them so that the offer can be measured. Every week it reports what the offer really added
-and advises the owner to keep, change or stop it.
+## Start here
 
-**[Open the live demo](https://yashg1836.github.io/truelift/)** and press **▶ Guided demo** for the
-ten-step story · [Evidence page](https://yashg1836.github.io/truelift/#tab=evidence) ·
-[recording of the guided demo](docs/pitch/demo.mp4) ·
-[offline copy](https://github.com/YashG1836/truelift/releases/tag/v2.0.0) ·
-[pitch deck (PDF)](docs/pitch/TrueLift_deck.pdf)
+- **[Live demo](https://yashg1836.github.io/truelift/)**: press **▶ Guided demo** for the ten-step story
+  (→ next, ← back, Esc to leave), or pick a restaurant and create your own offer.
+- **[Report](submission/TrueLift_Report.pdf)** (IEEE format, PDF): the problem, the method, the evidence
+  and the limits, end to end.
+- **[Presentation](submission/TrueLift_Presentation.pdf)** (PDF): the guided demo's story as slides.
+- **[Demo video](submission/TrueLift_Demo.mp4)**: the guided demo, recorded with captions.
+- **[Offline copy](https://github.com/YashG1836/truelift/releases/tag/v2.0.0)**: the demo as a zip that
+  runs without internet.
+- **[Submission folder](submission/)**: all of the above in one place, with every link.
 
-Team Banana (IIT Gandhinagar): Yash Goyal, Bhavay Goyal, Kshitish Madbhavi. IITGN × Eternal
-hackathon, Round 2. Restaurant names and listing details are real public 2019 data; every customer,
-order and rupee is simulated.
+Team Banana, IIT Gandhinagar: Yash Goyal, Bhavay Goyal, Kshitish Madbhavi. IITGN × Eternal hackathon,
+Round 2. Restaurant names and listing details are real public 2019 data; every customer, order and
+rupee is simulated, and every screen says so.
 
 ![The guided demo, one frame per step: the restaurant, the owner's offer and its forecast, the better version, who sees the discount, the OTP approval, week 1, week 4 and the market](docs/img/tour.gif)
 
-*The guided demo, one frame per step. The restaurant is a real 2019 listing shown with a generic
-name; its customers and money are simulated.*
-
-## The problem in one picture
+## The problem
 
 ![100 orders used a ₹60-off offer, and 70 of them would have come anyway](docs/img/problem.png)
 
-Take a ₹60-off offer on ₹400 orders that 100 orders used in a week. Today's offer report shows those
-100. But 70 of them were regulars who would have ordered anyway at full price, so the restaurant
-gave away ₹4,200 for nothing and ends the week ₹210 worse off than with no offer. An offer like this
-pays for itself only if at least 32 of every 100 orders using it are truly extra. Nobody measures
-that today; TrueLift does. The arithmetic is in `truelift/economics.py` and on the demo's Money
-maths page.
+Since August 2026 a restaurant-funded offer on Zomato starts only after the owner approves it with an
+OTP. Take a ₹60-off offer on ₹400 orders that 100 orders used in a week. Today's offer report shows
+those 100. But 70 of them were regulars who would have ordered anyway at full price, so the
+restaurant gave away ₹4,200 for nothing and ends the week ₹210 worse off than with no offer. An offer
+like this pays for itself only if at least 32 of every 100 orders using it are truly extra. No report
+measures that today, so owners approve blind, or stop approving. TrueLift measures it.
 
 ## What the owner sees
 
@@ -51,24 +46,33 @@ maths page.
   <img src="docs/img/owner_result.png" width="160" alt="What the offer really added after four weeks">
 </p>
 
-1. **Before approval.** The owner's usual offer, ₹60 off for everyone, with its forecast: the extra
-   orders and profit, a likely range, and how many of the orders using it would have come anyway.
-2. **A better version of the same discount.** TrueLift compares about 34 versions (who sees it, the
-   minimum order, the time of day, the Brand Pack reward for regulars) and suggests the one that
-   earns the restaurant the most. The size of the discount stays the owner's choice.
-3. **The OTP approval.** The owner approves exactly what was shown: the forecast, its range, four
-   weeks, and who pays. The approval is stored in a hash-chained ledger, so every deduction can be
-   checked later.
-4. **Every week.** What the offer really added, with a range and a verdict, beside what today's
-   offer report would show. "Show me how you know" compares the customers who saw the offer with
-   those held out.
+1. **A forecast before approval:** the extra orders and profit the offer is likely to bring, with a
+   range, and how many of the orders using it would have come anyway.
+2. **A better version of the same discount:** TrueLift compares about 34 versions (who sees it, the
+   minimum order, the time of day, a Brand Pack reward for regulars) and suggests the one that earns
+   the restaurant the most. The size of the discount stays the owner's choice.
+3. **The OTP approval** records exactly what the owner was shown, for four weeks, in a hash-chained
+   ledger, so every deduction can be checked later.
+4. **Every week:** what the offer really added, with a range and a verdict (keep, change or stop),
+   beside what today's report would show, and on WhatsApp.
+
+## Inside Zomato
 
 ![Zomato's side of the same offer: who sees the discount, who is held out, and why](docs/img/who_sees.png)
 
-Zomato's side of the same offer. Each time a customer opens the menu, a table lookup decides whether
-to show the discount. Regulars who would order anyway do not get it, and a random one in ten
-eligible customers is held out: that control group is what makes the weekly measurement possible.
-The visitors are synthetic people.
+TrueLift adds four calls to the offer flow Zomato already has. No new screens: the forecast sits on
+the OTP screen, the result arrives on WhatsApp, and nothing changes in how customers order.
+
+| Call | When | What it does |
+|---|---|---|
+| `POST /api/v1/quote` | The owner creates an offer | Forecast with a range, and a better version of the same discount, or no offer |
+| `GET /api/v1/serve` | A customer opens the menu | A table lookup decides who sees the discount; a random 1 in 10 eligible customers is held out |
+| Payout lines | Every week | The restaurant pays for its own offer, itemised; Zomato co-funds only what it measures |
+| `GET /api/v1/offers/{id}` | Every week | Held-out against shown customers, combined with the model: extra profit with a range and a verdict |
+
+The held-out customers see normal menu prices, never higher ones. They are the control group that
+makes the weekly measurement possible. Details: [`docs/architecture.md`](docs/architecture.md) and
+[`docs/integration_blueprint.md`](docs/integration_blueprint.md).
 
 ## Results
 
@@ -79,9 +83,6 @@ In a simulated market of 300 real Bengaluru listings, per week:
   while giving **₹5.94 lakh less discount**.
 - Zomato's commission is higher too (+₹6.53 lakh against +₹6.45 lakh), and in every one of five
   market seeds, because offers that pay keep being approved.
-
-The tables are generated from `reports/` by `scripts/render_tables.py`, and every number in the
-documents is checked against the reports by `scripts/check_claims.py` (do not edit them by hand).
 
 <!-- BEGIN:results-table -->
 | | Today: same discount for everyone | Rule: new customers only | TrueLift |
@@ -95,26 +96,11 @@ documents is checked against the reports by `scripts/check_claims.py` (do not ed
 <!-- END:results-table -->
 
 <details>
-<summary>The same results across five market seeds</summary>
+<summary>Are the weekly numbers right? The estimate against the truth</summary>
 
-<!-- BEGIN:seeds-table -->
-| Mean ± sd over 5 market seeds | Today: same discount for everyone | Rule: new customers only | TrueLift |
-|---|---|---|---|
-| Offers that pay for themselves | 132 ± 4 | 210 ± 4 | 223 ± 8 |
-| Restaurants' profit from their own offers | +₹6.90 lakh ± 0.06 | +₹7.20 lakh ± 0.04 | +₹7.84 lakh ± 0.07 |
-| Restaurant profit vs no offers (market) | +₹2.39 lakh ± 0.06 | +₹3.81 lakh ± 0.03 | +₹4.78 lakh ± 0.08 |
-| Zomato commission vs no offers | +₹6.43 lakh ± 0.03 | +₹5.84 lakh ± 0.04 | +₹6.55 lakh ± 0.02 |
-| Discount given | ₹16.84 lakh ± 0.08 | ₹10.83 lakh ± 0.08 | ₹10.79 lakh ± 0.18 |
-<!-- END:seeds-table -->
-
-</details>
-
-<details>
-<summary>The weekly measurement against the truth</summary>
-
-The simulator knows each offer's true effect, so every weekly estimate can be checked. The control
-group alone is too noisy for most restaurants, so TrueLift combines it with the model learned from
-all restaurants, weighted by how noisy each is.
+The simulator knows each offer's true effect, so every weekly estimate can be checked. A restaurant's
+own control group is too small to measure alone, so TrueLift combines it with the model learned from
+all restaurants, each weighted by how precise it is.
 
 <!-- BEGIN:measurement-table -->
 | After | Truth inside the 80% range | Average error: control group only | Model only | TrueLift combined | "Keep" verdicts truly positive |
@@ -126,17 +112,11 @@ all restaurants, weighted by how noisy each is.
 
 </details>
 
-![The Evidence page of the demo: headline results and the profit and commission charts](docs/img/evidence.png)
-
-The demo's [Evidence page](https://yashg1836.github.io/truelift/#tab=evidence) shows the same
-results, with the forecast check, placebo offers, owners declining approval, and Zomato's ledger.
-
-**Real randomised data.** The targeting was also tested on Criteo's advertising tests and
-Hillstrom's e-mail test, against the simple "likely to act anyway" ranking. It wins on some outcomes
-and not on others, and we say so.
-
 <details>
-<summary>Share of all the extra response found in the top 30% of each ranking (90% interval)</summary>
+<summary>Real randomised data: share of all the extra response found in the top 30% of each ranking</summary>
+
+The same method, refitted on two public randomised experiments (Criteo's advertising tests,
+Hillstrom's e-mail test). It wins on some outcomes and not on others, and we say so.
 
 <!-- BEGIN:realdata-table -->
 | Dataset and outcome | Random | Likely to act anyway | S-learner | T-learner (TrueLift) | X-learner |
@@ -153,53 +133,20 @@ and not on others, and we say so.
 
 </details>
 
-The method, every check and the limits are in
-[`docs/method_and_evidence.md`](docs/method_and_evidence.md).
-
-## How it works
-
-TrueLift adds four calls to the offer flow Zomato already has
-([`docs/architecture.md`](docs/architecture.md), [`docs/integration_blueprint.md`](docs/integration_blueprint.md)):
-
-```mermaid
-flowchart LR
-  subgraph Partner app
-    A[Owner creates an offer] --> B[OTP approval]
-  end
-  subgraph Customer app
-    C[Customer opens a menu]
-  end
-  A -- "1. POST /api/v1/quote" --> Q[Forecast and a better version]
-  B -- "consent record (hash-chained)" --> L[(Consent ledger)]
-  C -- "2. GET /api/v1/serve" --> S[Show the discount or not]
-  S -- exposure --> X[(Exposure log)]
-  X --> M["4. weekly measurement"]
-  M -- "GET /api/v1/offers/{id}" --> W[Owner's weekly result and WhatsApp]
-  P["3. payout lines"] --> W
-```
-
-1. **Quote**, on the OTP screen: a forecast of extra orders and profit with a range, and a better
-   version of the same discount (who sees it, minimum order, time, Brand Pack), or no offer.
-2. **Serve**, when a customer opens the menu: a table lookup decides who sees the discount; a random
-   one in ten eligible customers is held out, so the offer can be measured.
-3. **Payout**: the restaurant pays for its own offer, itemised; Zomato co-funds only what it measures.
-4. **Measure**, every week: the held-out customers against the rest, combined with the model, gives
-   the extra profit with a range and a verdict on WhatsApp. A pause needs the offer's own evidence;
-   renewal after four weeks needs a new OTP and shows what was measured.
+Every table is generated from `reports/` by `scripts/render_tables.py`, and every number in the
+documents is checked against the reports by `scripts/check_claims.py`.
 
 ## How we know
 
 - **A market where the truth is known.** The simulator knows every customer's chance of ordering with
   and without each offer, so every forecast, range and verdict is checked against the truth
   ([`docs/simulator_datasheet.md`](docs/simulator_datasheet.md) lists every assumption).
-- **Checks that can fail.** Placebo offers that must not pause, five market seeds, eight assumptions
-  swept low and high, a benchmark of uplift learners, and experiments on what the model should and
-  should not decide.
-- **Real randomised data.** Criteo's advertising tests and Hillstrom's e-mail test, with the
-  "likely to act anyway" baseline and intervals: the method wins on some and not on others, and
-  we say so.
-- **A self-audit.** 50 findings in our own work, each fixed and listed with the test or check that
-  guards it ([`docs/what_we_tested.md`](docs/what_we_tested.md), [`CHANGELOG.md`](CHANGELOG.md)).
+- **Checks that can fail.** Placebo offers that must not be paused, five market seeds, eight
+  assumptions swept low and high, a benchmark of uplift learners, and tests of what the model should
+  and should not decide.
+- **Real randomised data**, with the simple "likely to act anyway" ranking as the baseline (above).
+- **A self-audit.** 50 findings in our own work, each fixed and guarded by a test
+  ([`docs/what_we_tested.md`](docs/what_we_tested.md)).
 
 ## Talking to restaurant owners
 
@@ -208,74 +155,63 @@ flowchart LR
   <img src="docs/field_research/photos/interview_01_b.jpg" width="320" alt="The manager watches the TrueLift demo on the team member's phone">
 </p>
 
-Every rupee above is simulated, so the team is also asking restaurant owners and managers what
-they see today and whether they read TrueLift's numbers as intended, with the kit in
-[`docs/field_research/`](docs/field_research/) (a consent script, question sheets in English with
-Hindi and Gujarati drafts, and comprehension cards). The first interview took place on
-17 November 2026: a team member talked the manager of a chain outlet in Gandhinagar through
-TrueLift and showed the demo on a phone. Its note is not written up yet, so we report no finding
-from it; findings go into [`docs/field_research.md`](docs/field_research.md) as counts, never
-names. The photos are published with the manager's permission; other diners' faces and the
-restaurant's name are blurred.
+Every rupee above is simulated, so we are also asking owners and managers what they see today and
+whether they read TrueLift's numbers as intended ([field kit](docs/field_research/)). The first
+interview took place on 17 November 2026 with the manager of a chain outlet in Gandhinagar. Its note
+is not written up yet, so we report no finding from it ([`docs/field_research.md`](docs/field_research.md)).
+The photos are published with the manager's permission; other diners' faces and the restaurant's
+name are blurred.
 
 ## Run it yourself
 
 | | How | What you get |
 |---|---|---|
-| Public demo | Open the link above | The service's own answers for 32 restaurants and every design the create screen offers |
-| Offline | Download `truelift-offline.zip` from the [v2.0.0 release](https://github.com/YashG1836/truelift/releases/tag/v2.0.0) and unzip it, or build it with `python tasks.py export` then `python scripts/build_offline.py`; open `index.html` or run `serve.py` inside it | The same demo with no internet |
-| Live service | `uv sync`, `python tasks.py pipeline`, `python tasks.py serve` → http://localhost:8000 (API docs at `/docs`), or `docker compose up --build` | Any design, any restaurant, the real engine |
+| Public demo | Open the link above | The service's own answers for 32 restaurants and every offer the create screen allows |
+| Offline | Unzip `truelift-offline.zip` from the [v2.0.0 release](https://github.com/YashG1836/truelift/releases/tag/v2.0.0) and open `index.html` | The same demo with no internet |
+| Live service | The commands below, then http://localhost:8000 (API docs at `/docs`), or `docker compose up --build` | Any restaurant, any offer, the real engine |
 
 ```bash
 uv sync                       # pinned environment (or: pip install -r requirements-dev.txt)
-python tasks.py pipeline      # about 15 minutes on 8 cores: simulate, train, evaluate -> reports/ and the model
+python tasks.py pipeline      # about 15 minutes: simulate, train, evaluate -> reports/ and the model
 python tasks.py serve         # the service and page at http://localhost:8000
 python tasks.py test          # fast tests (about 20 s); --all adds the golden numbers and fuzzing
-python tasks.py reproduce     # re-run the pipeline in a temporary folder and compare with reports/
-python tasks.py realdata      # download Criteo and Hillstrom (checksummed) and rank their customers
-python tasks.py screenshots   # retake the README's images from the exported demo (site/)
 ```
 
-Every command works on Windows, macOS and Linux (`tasks.py` needs only Python). Browser tests:
-`cd tests/ui && npm ci && npx playwright install chromium && npx playwright test`.
+`tasks.py` needs only Python and works on Windows, macOS and Linux. `python tasks.py reproduce`
+re-runs the pipeline and compares it with `reports/`; `python tasks.py realdata` repeats the
+real-data checks.
 
 ## What is in the repository
 
-- `truelift/`: the service (money of an order, simulator, uplift model, engine, API) and the
-  partner-app page in `truelift/static/`.
-- `scripts/`: the pipeline, the experiments, the real-data checks, the static export, the claims
-  check and the pitch files.
-- `tests/`: tests by area, the golden numbers, contract fuzzing, and browser tests in `tests/ui/`.
-- `reports/`: every number in the documents and the demo comes from a file here.
-- `docs/`: the write-up, architecture, integration blueprint, model card, privacy and fairness,
-  decision records, field research, the pitch, and the README's images in `docs/img/`.
-- `data/processed/`: the 300 public listings and the committed model.
-
-## Reading guide
-
-| Start here | Then |
+| Path | What it is |
 |---|---|
-| [`docs/method_and_evidence.md`](docs/method_and_evidence.md): the problem, the method, the evidence, the limits | [`DEVLOG.md`](DEVLOG.md): what failed, what we changed, and the corrections with before and after |
-| [`docs/integration_blueprint.md`](docs/integration_blueprint.md): calls, events, rollout, pilot size | [`docs/decisions/`](docs/decisions/): why each design choice |
-| [`docs/privacy_and_fairness.md`](docs/privacy_and_fairness.md): what the model never reads, who gets discounts | [`docs/model_card.md`](docs/model_card.md), [`SECURITY.md`](SECURITY.md) |
-| [`docs/pitch/`](docs/pitch/): the deck, a one-page summary, thirty questions with answers, the demo runbook | [`docs/field_research.md`](docs/field_research.md): the kit for interviewing restaurant owners, and the first interview |
+| [`truelift/`](truelift/) | The service: money of one order, simulator, uplift model, engine, API; the partner-app page in `static/` |
+| [`scripts/`](scripts/) | The pipeline, experiments, real-data checks, static export, claims check, pitch files |
+| [`tests/`](tests/) | Tests by area, golden numbers, contract fuzzing, browser tests in `tests/ui/` |
+| [`reports/`](reports/) | Every number in the documents and the demo comes from a file here |
+| [`docs/`](docs/) | The write-up and design documents (reading guide below) |
+| [`submission/`](submission/) | Report, presentation, video and links, ready to submit |
+
+Reading guide: [`docs/method_and_evidence.md`](docs/method_and_evidence.md) (the full write-up) ·
+[`DEVLOG.md`](DEVLOG.md) (what failed and what we changed) ·
+[`docs/integration_blueprint.md`](docs/integration_blueprint.md) (calls, events, rollout, pilot size) ·
+[`docs/privacy_and_fairness.md`](docs/privacy_and_fairness.md) (what the model never reads) ·
+[`docs/model_card.md`](docs/model_card.md) · [`docs/decisions/`](docs/decisions/) ·
+[`docs/pitch/`](docs/pitch/) (speaker notes, runbook, thirty questions with answers).
 
 ## Limits
 
-All outcomes are simulated; real numbers need Zomato's data, and the first step inside Zomato is a
-shadow holdout on real offers. The real-data checks are advertising and e-mail, not food discounts.
-One interview with a restaurant manager so far, and no findings from it yet. The suggested
-version's stated advantage runs well above its true advantage, and the weekly estimate leans on the
-model while a restaurant's own control group is small. Not modelled: competitors reacting, kitchen
-capacity, delivery fees, habits that change over months.
+- All outcomes are simulated; real numbers need Zomato's data. The first step inside Zomato is a
+  shadow holdout on offers owners already run.
+- The real-data checks are advertising and e-mail, not food discounts.
+- The suggested version's stated advantage runs well above its true advantage, and the weekly
+  estimate leans on the model while a restaurant's own control group is small.
+- Not modelled: competitors reacting, kitchen capacity, delivery fees, habits that change over months.
 
 ## Data and licence
 
-- Restaurants: Kaggle "Zomato Bangalore Restaurants" (2019), public listing fields only, for 300
-  restaurants (`data/processed/restaurants.csv`, already built).
-- Real-data checks: Criteo uplift v2.1 (CC BY-NC-SA 4.0) and the Hillstrom e-mail test, downloaded by
-  `scripts/get_data.py` and checked against recorded SHA-256 hashes; never committed.
-- Customers are synthetic. No real customer data is used anywhere.
-- Interview photos: published with the manager's permission; bystanders and the restaurant's name
-  blurred, no metadata (`docs/field_research/photos/`).
-- Code: MIT ([`LICENSE`](LICENSE), [`NOTICE`](NOTICE)). Not an official Zomato or Eternal product.
+Restaurants: Kaggle "Zomato Bangalore Restaurants" (2019), public listing fields only, for 300
+restaurants. Real-data checks: Criteo uplift v2.1 (CC BY-NC-SA 4.0) and the Hillstrom e-mail test,
+downloaded by `scripts/get_data.py` and checked against recorded hashes, never committed. Customers
+are synthetic; no real customer data is used anywhere. Code: MIT ([`LICENSE`](LICENSE),
+[`NOTICE`](NOTICE)). Not an official Zomato or Eternal product.

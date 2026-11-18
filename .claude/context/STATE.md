@@ -1,20 +1,21 @@
 # Current state
 
-Last updated: 18 Nov 2026 by Kshitish (Claude), README rewrite and first interview on branch `kshitish`. Overwrite lines that become wrong;
-do not append history here (history goes in SESSIONS.md).
+Last updated: 18 Nov 2026 by Yash (Claude): pull request #1 merged, README rewritten, `submission/` added.
+Overwrite lines that become wrong; do not append history here (history goes in SESSIONS.md).
 
 ## Status
-- Round 2 submission is live from `main` (tag `round2-submission`). Branch `kshitish` holds the audited rebuild
-  (service v1, measurement, market analyses, real-data checks, restyle, docs); not merged into `main` yet.
-- 18 Nov: README rewritten (animated guided demo, phone screens, problem picture, Zomato's side, evidence, first
-  interview); its images live in `docs/img/` and are retaken by `python tasks.py screenshots` from `site/`.
-- 18 Nov: pull request `kshitish` -> `main` opened for the team's merge (merge commit, not a squash; handoff step 6).
-- Branches: `main` (shared), `kshitish` (Kshitish's work, CI publishes the demo from it on `[deploy]`), `gh-pages`
+- 18 Nov: `kshitish` merged into `main` (pull request #1, merge commit `02ff475a`; D13 replaces D5). `main` now
+  holds the audited rebuild v2.0.0, the README and the first interview. Tag `round2-submission` still marks 13 Nov.
+- **Submission folder `submission/`**: `SUBMISSION.md` (every link, a paste-ready description, how to present),
+  `TrueLift_Report.pdf` (IEEE conference format, 7 pages), `TrueLift_Presentation.pdf` + `.html` (14 slides, Zomato
+  style), `TrueLift_Demo.mp4` (copy of `docs/pitch/demo.mp4`). Rebuild: `python submission/src/build.py` (numbers
+  from the claims ledger and generated tables; needs tectonic and Chrome). The README links each file.
+- Branches: `main` (shared; CI publishes the demo from it on `[deploy]`), `kshitish` (Kshitish's work), `gh-pages`
   (generated demo site, do not edit).
-- Public demo https://yashg1836.github.io/truelift/ is published by CI from `kshitish` (`build.json` names the commit);
-  15 Nov: 32 restaurants, browser tests pass against the public URL. Fresh clone: installs, tests pass, quick run
-  reproduces the golden snapshot. Not yet published: the 18 Nov How it works fixes (legend swatch blue,
-  "218 of 228"); the next `[deploy]` publishes them.
+- Public demo https://yashg1836.github.io/truelift/ (`build.json` names the commit it was built from). Last published
+  15 Nov from `kshitish@8ac3ca4`, 32 restaurants. From 18 Nov CI publishes from `main` (both branch names in `ci.yml`
+  changed); the merge follow-up commit carries `[deploy]`, which also publishes the 18 Nov How it works fixes
+  (legend swatch blue, "218 of 228"). Check `build.json` and the Actions run before saying it is live.
 - Release v2.0.0 https://github.com/YashG1836/truelift/releases/tag/v2.0.0: annotated tag on `8ac3ca4`, the commit
   the public demo is built from. Files: `truelift-offline.zip` (made from that deployed site; offline browser tests
   8 of 8), `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`; SHA-256 in the notes. Tag `round2-submission` unchanged.
@@ -22,8 +23,11 @@ do not append history here (history goes in SESSIONS.md).
   `data/processed/model.pkl` (+ `.sha256`). Any later change that moves a number needs a new full run and must
   update README, DEVLOG, docs and this file together; `scripts/check_claims.py` and `render_tables.py --check` fail
   until they agree.
-- Teammates ksawesome (Kshitish) and BhavayGoyal have write access. History rewrite of 13 Nov is done (never merge
-  old history back).
+- Teammates ksawesome (Kshitish) and BhavayGoyal have write access.
+- The 13 Nov history rewrite was **not** run: the commits of 12-13 Nov on `main` still carry a Claude co-author line
+  (`git log origin/main --format=%B | grep -c anthropic` prints 10). Rewriting now would also move `v2.0.0`, its
+  release and every hash the docs cite, so leave it unless the whole team decides otherwise. New commits carry no
+  attribution (`.claude/settings.json`, hook).
 
 ## Headline numbers (generated from `reports/evaluation.json`; per week, 300 simulated restaurants)
 <!-- BEGIN:results-table -->
@@ -62,10 +66,10 @@ do not append history here (history goes in SESSIONS.md).
    up its note from the template, fill the table, delete the raw photos.
 2. [team] Native-speaker review of `truelift/static/i18n/{hi,kn,gu}.json`, then switch `TRUELIFT_LANGUAGES=1` (D4).
 3. [team] Send Eternal the questions in `docs/method_and_evidence.md` §10.
-4. [team] Rehearse with `docs/pitch/runbook.md` (three runs) and own ten questions each from `docs/pitch/questions.md`.
-5. [Yash] Review the restyle of `truelift/static/` (his last area) before `kshitish` is merged into `main`.
-6. [team] Merge `kshitish` into `main` (DECISIONS D13 supersedes D5 at merge); steps and repository
-   settings in `docs/handoff.md` (use a merge commit, not a squash).
+4. [team] Rehearse with `docs/pitch/runbook.md` (three runs) and own ten questions each from `docs/pitch/questions.md`;
+   present with the guided demo, slides in `submission/` as backup.
+5. [Yash] Repository settings in `docs/handoff.md` 8-10 (branch protection for `main`, Pages source, security alerts).
+6. [Bhavay] Commit his own work under his own name (handoff 4).
 
 ## Known limits (say these if asked)
 - All outcomes are simulated; only the real-data checks (ads, e-mail) are real, and neither is about restaurant offers.
@@ -76,8 +80,8 @@ do not append history here (history goes in SESSIONS.md).
   the model early and on the restaurant's own holdout later.
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
-- Yash: idle since 13 Nov; to review the `truelift/static/` restyle on `kshitish`.
-- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check), release v2.0.0,
-  README rewrite and interview record (18 Nov). Remaining items are the team's: `docs/handoff.md`.
-  Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
+- Yash: 18 Nov reviewed and merged pull request #1, rewrote `README.md`, made `submission/`, moved the deploy to
+  `main` in `.github/workflows/ci.yml`. Files: `README.md`, `submission/*`.
+- Kshitish: branch `kshitish` (merged into `main` 18 Nov; pull `main` before new work). M1-M5 done, release v2.0.0,
+  interview record. Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

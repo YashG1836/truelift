@@ -28,12 +28,11 @@ do. Each says why it matters and when it is done.
    Hindi and Gujarati field-kit sheets) with native speakers. Then switch them on (decision D4):
    `TRUELIFT_LANGUAGES=1` for the live service, and the same variable in the export step's `env` in
    `.github/workflows/ci.yml` before the next `[deploy]`, so the public demo offers them.
-6. **Merge `kshitish` into `main`** through a pull request; decision D13 replaces D5 at the merge.
-   Use a merge commit, not a squash: a squash drops the individual commits and their authors, and
-   leaves the tag `v2.0.0` outside `main`'s history. Never merge the history from before the
-   13 November rewrite. After the merge, if `main` should
-   publish the demo, change `refs/heads/kshitish` to `refs/heads/main` in the deploy job of
-   `.github/workflows/ci.yml`.
+6. **Merge `kshitish` into `main`: done on 18 November** (pull request #1, a merge commit, so the
+   individual commits and the tag `v2.0.0` are in `main`'s history; D13 replaces D5). The demo now
+   publishes from `main`: both places in `.github/workflows/ci.yml` that name the branch (the site
+   job's `DEPLOYING` and the deploy job's `if`) say `refs/heads/main`. Changing only the deploy job
+   would have published a two-restaurant site.
 7. **Release: done on 15 November.** `v2.0.0` is an annotated tag on `8ac3ca4`, the commit the
    public demo is built from: https://github.com/YashG1836/truelift/releases/tag/v2.0.0. It has the
    notes of `CHANGELOG.md` 2.0.0 and three files: `truelift-offline.zip`, `TrueLift_deck.pdf` and

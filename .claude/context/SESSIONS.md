@@ -13,6 +13,23 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 18 Nov 2026 · Yash (Claude Opus) · branch main (merge, README, submission folder)
+- Did: reviewed pull request #1 (CI green; locally lint 0 errors, 185 tests, 194 claims, tables, photos have no
+  metadata and bystanders blurred) and merged it with a merge commit (`02ff475a`). Deploy moved to `main` (both
+  branch names in `ci.yml`; changing only the deploy job, as handoff 6 said, would have published 2 restaurants).
+  CodeQL's one alert (test_api CSP substring) fixed by comparing the policy's sources whole. README rewritten:
+  shorter, "Start here" links to demo, report, slides, video, offline copy, `submission/`. New `submission/`:
+  SUBMISSION.md, IEEE-format report (tectonic, IEEEtran), 14 Zomato-style slides (PDF + browser copy with arrow
+  keys), demo video; built by `submission/src/build.py` from the claims ledger and generated tables. STATE said the
+  13 Nov history rewrite was done; it was not, corrected.
+- Files: README.md, submission/*, docs/claims.yml (+4 claims), .github/workflows/ci.yml, tests/test_api.py,
+  docs/handoff.md, CLAUDE.md, .gitignore, .claude/context/*.
+- Checked: claims 198 of 198, tables, lint (ruff, pyright 0), fast tests 170 passed; every report and slide page
+  looked at; slides' browser navigation (no page errors). Not checked: the CI deploy run from `main` (started by
+  this commit's `[deploy]`) and the public URL after it.
+- Numbers changed: none.
+- Next / open: confirm the deploy (`build.json` names the new commit); repository settings (handoff 8-10).
+
 ## 18 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (README, screenshots, first interview)
 - Did: README rewritten for judges: intro and links, the guided demo as `docs/img/tour.gif`, the 100-order problem
   picture, four phone screens, Zomato's side, results (seeds, weekly measurement and real-data tables generated, in
