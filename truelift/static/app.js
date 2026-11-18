@@ -47,7 +47,7 @@ const T = (key, vars = {}) => {
   const src = (CFG.i18n?.[LANG.code] || CFG.i18n?.en)?.otp?.[key];
   return src === undefined ? null : src.replace(/\{(\w+)\}/g, (_, k) => vars[k]);
 };
-const TABS = ["demo", "how", "evidence", "money", "ops"];
+const TABS = ["overview", "demo", "how", "evidence", "money", "ops"];
 // The service's constants, read once at start (GET /api/v1/config; data/config.json when static)
 const CFG = { holdout_share: 0.1, consent_weeks: 4 };
 const oneIn = () => Math.round(1 / CFG.holdout_share);
@@ -246,6 +246,8 @@ async function boot() {
   $("#screen").innerHTML = skeleton(5);
   firstVisitHint();
   try { Object.assign(CFG, await api("/api/v1/config")); } catch (e) { /* keep the defaults */ }
+  // the Overview opens first; a link such as #tab=demo opens another tab
+  showTab(TABS.includes(LINK.tab) ? LINK.tab : "overview");
   const data = await api("/api/v1/restaurants");
   const sel = $("#rest");
   const list = data.restaurants.filter((r) => r.menu_visits_per_week > 0)
@@ -255,10 +257,9 @@ async function boot() {
   sel.value = first;
   sel.addEventListener("change", () => openRestaurant(+sel.value).catch((e) => { $("#screen").innerHTML = errorCard(e, "this restaurant"); }));
   await openRestaurant(first);
-  if (TABS.includes(LINK.tab) && LINK.tab !== "demo") showTab(LINK.tab);
   window.addEventListener("hashchange", () => { // a link to #tab=evidence on the page itself
     const h = location.hash.replace(/^#/, ""), q = new URLSearchParams(h.includes("=") ? h : `tab=${h}`);
-    const t = q.get("tab") || "demo";
+    const t = q.get("tab") || "overview";
     if (TABS.includes(t) && !$(`#tab-${t}`).classList.contains("on")) showTab(t);
   });
 }
@@ -268,8 +269,9 @@ function showTab(t) {
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
   $(".pick label").style.visibility = $(".pick select").style.visibility = t === "demo" ? "visible" : "hidden";
   const keep = LINK.generic ? "names=generic" : "";
-  const hash = [t === "demo" ? "" : `tab=${t}`, keep].filter(Boolean).join("&");
+  const hash = [t === "overview" ? "" : `tab=${t}`, keep].filter(Boolean).join("&");
   history.replaceState(null, "", hash ? `#${hash}` : location.pathname + location.search);
+  if (t === "overview") renderOverview();
   if (t === "how") renderHow();
   if (t === "evidence") renderEvidence();
   if (t === "money") renderMoney();
@@ -837,6 +839,98 @@ function tourSteps() {
 }
 
 // ---------------- how it works ----------------
+// ---------------- overview ----------------
+// The first page: what TrueLift is for, the problem, the solution, what it achieves and how we know,
+// in plain words. Every number comes from the evidence the other tabs use.
+const REPO = "https://github.com/YashG1836/truelift";
+async function renderOverview() {
+  const el = $("#overview");
+  if (el.dataset.done) return;
+  el.innerHTML = skeleton(5);
+  let E = null;
+  try { E = await once("evidence", () => api("/api/v1/evidence")); } catch (e) { /* the words still work without numbers */ }
+  const P = E?.main?.policies, A = E?.main?.measurement?.after_4_weeks;
+  const tl = P?.truelift, bl = P?.today_blanket, rule = P?.rule_new_customers;
+  const waffle = Array.from({ length: 100 }, (_, k) => `<i class="${k >= 70 ? "x" : ""}"></i>`).join("");
+  const results = P ? `
+  <div class="ov-results">
+    <div class="tile"><div class="v">${tl.offers_that_pay} of ${tl.restaurants_with_offer}</div><div class="l">TrueLift offers pay for themselves, against <b>${bl.offers_that_pay} of ${bl.restaurants_with_offer}</b> offers that give everyone the same discount</div></div>
+    <div class="tile"><div class="v">+${lakh(tl.restaurant_profit_change)}</div><div class="l">extra restaurant profit a week, against +${lakh(bl.restaurant_profit_change)} with blanket offers and +${lakh(rule.restaurant_profit_change)} with "new customers only"</div></div>
+    <div class="tile"><div class="v">${lakh(bl.customer_savings - tl.customer_savings)}</div><div class="l">less discount given a week than blanket offers, for more profit</div></div>
+    <div class="tile"><div class="v">+${lakh(tl.zomato_commission_change)}</div><div class="l">extra Zomato commission a week, against +${lakh(bl.zomato_commission_change)} with blanket offers: good offers keep being approved</div></div>
+  </div>
+  <p class="note">A simulated market of 300 real Bengaluru listings, per week. ${A ? `After four weeks the true effect of an offer falls inside TrueLift's 80% range ${pct(A.coverage_80)} of the time. ` : ""}Details on the <a href="#tab=evidence">Evidence</a> tab.</p>` : "";
+  el.innerHTML = `
+  <div class="ov-hero">
+    <div>
+      <h1>Restaurant discounts, judged by the orders they <em>create</em></h1>
+      <p class="lead">TrueLift tells a restaurant owner, before they approve an offer on Zomato, how many <b>extra</b> orders and how much <b>extra</b> profit it will bring. While the offer runs it shows the discount only to customers it brings in, and every week it reports what the offer really added.</p>
+      <div class="ov-cta">
+        <button class="btn small" data-ov="tour">▶ Start the guided demo</button>
+        <button class="btn small ghost" data-ov="demo">Try it yourself</button>
+        <a class="btn small ghost" href="${REPO}/blob/main/submission/TrueLift_Report.pdf" target="_blank" rel="noopener">Read the report</a>
+      </div>
+      <p class="note">A prototype for Zomato's restaurant partner app, by Team Banana (IIT Gandhinagar) for the IITGN × Eternal hackathon. Restaurant names and listings are real public 2019 data; every customer, order and rupee is simulated.</p>
+    </div>
+  </div>
+
+  <h2>The problem</h2>
+  <div class="split"><div><div class="waffle" role="img" aria-label="100 orders: 70 would have come anyway, 30 extra">${waffle}</div>
+      <div class="legend"><span><i style="background:var(--series-mute)"></i>70 orders that would have come anyway</span><span><i style="background:var(--series)"></i>30 extra orders</span></div></div>
+    <div>
+      <p class="p">Restaurants pay for most discounts on Zomato. Today an offer is judged by the orders that <b>use</b> it. Take ₹60 off ₹400 orders: 100 orders used it, but 70 came from regulars who would have ordered anyway at full price. The restaurant gave away ₹4,200 for nothing and ends the week <b>₹210 worse off</b>.</p>
+      <p class="p">₹60 off pays for itself only if at least <b>32 of every 100</b> orders using it are truly extra. No offer report shows that number, because it needs to know what would have happened without the offer.</p>
+    </div></div>
+
+  <h2>Why it matters now</h2>
+  <div class="ov-why">
+    <div class="tile"><div class="v">OTP</div><div class="l">Since August 2026 a restaurant-funded offer starts only after the owner approves it with an OTP. An owner who cannot see whether offers pay will stop approving them.</div></div>
+    <div class="tile"><div class="v">${bl ? `${bl.offers_that_lose} of ${bl.restaurants_with_offer}` : "Most"}</div><div class="l">blanket offers lose their restaurant money in our simulated market, and no report tells the owner which ones.</div></div>
+    <div class="tile"><div class="v">₹1,138 Cr</div><div class="l">Eternal's advertising and promotion spend in Q2 FY27, up 41% in a year, while food delivery earns 5.5% of order value.</div></div>
+  </div>
+
+  <h2>The solution: four steps inside Zomato's existing offer flow</h2>
+  <div class="steps4">
+    <div class="step4"><div class="n">1</div><h4>Forecast before the OTP</h4><p>Extra orders and profit with a likely range, and a better version of the same discount: who sees it, minimum order, time of day. The owner keeps the discount size.</p></div>
+    <div class="step4"><div class="n">2</div><h4>Show it to the right customers</h4><p>When a customer opens the menu, the discount appears only if it is likely to bring them in. A random 1 in ${oneIn()} eligible customers is held out as a control group.</p></div>
+    <div class="step4"><div class="n">3</div><h4>Fair payout</h4><p>The restaurant pays for its own offer, itemised. Zomato co-funds only where its own measurement shows a gain.</p></div>
+    <div class="step4"><div class="n">4</div><h4>Measure every week</h4><p>Shown customers against the control group: what the offer really added, with a range and a verdict (keep, change or stop) on WhatsApp.</p></div>
+  </div>
+  <p class="note">No new screens: the forecast sits on the OTP screen, the result arrives on WhatsApp, and nothing changes in how customers order. Full detail on the <a href="#tab=how">How it works</a> tab.</p>
+
+  <h2>Who gains</h2>
+  <div class="ov-why">
+    <div class="tile"><div class="v ov-s">Restaurant owners</div><div class="l">Know before approving whether an offer pays, spend discount money only where it brings orders, and see the proof every week.</div></div>
+    <div class="tile"><div class="v ov-s">Zomato</div><div class="l">Owners keep approving offers that work, so orders and commission grow; Zomato's own discount money can be measured the same way.</div></div>
+    <div class="tile"><div class="v ov-s">Customers</div><div class="l">Discounts go to people they change the decision for. Nobody pays more than the menu price, and targeting uses order history only.</div></div>
+  </div>
+
+  ${results ? `<h2>What it achieves</h2>${results}` : ""}
+
+  <h2>How we know it works</h2>
+  <div class="gloss">
+    <div><b>A market where the truth is known</b>A simulator of 300 real listings and 30,000 synthetic customers knows each customer's true response to every discount, so every forecast and weekly result is checked against the truth.</div>
+    <div><b>Strong baselines</b>TrueLift is compared with today's same-discount-for-everyone offers and with the sensible "new customers only" rule, across five market seeds and eight varied assumptions.</div>
+    <div><b>Real randomised data</b>The targeting method was also tested on Criteo's advertising and Hillstrom's e-mail experiments. It wins on some outcomes and not on others, and the Evidence tab says which.</div>
+    <div><b>Honest limits</b>All outcomes here are simulated; real numbers need Zomato's data. The first step inside Zomato is a silent holdout on offers owners already run.</div>
+  </div>
+
+  <h2>What is on this site</h2>
+  <div class="ov-map">
+    <button data-ov="demo"><b>Demo</b>The partner app: create an offer, approve it with the OTP, run the weeks. Press ▶ Guided demo for the ten-step story.</button>
+    <button data-ov="how"><b>How it works</b>The four steps, how TrueLift knows, the words used, common questions.</button>
+    <button data-ov="evidence"><b>Evidence</b>Every result against the truth, the checks that could fail, and the real-data tests.</button>
+    <button data-ov="money"><b>Money maths</b>Every rupee of one order and the break-even of a discount.</button>
+    <button data-ov="ops"><b>Operations</b>Guardrails and drift checks for running it at Zomato's scale.</button>
+  </div>
+  <p class="note" style="margin-top:18px">Code, report, slides and video: <a href="${REPO}" target="_blank" rel="noopener">github.com/YashG1836/truelift</a> · <a href="${REPO}/tree/main/submission" target="_blank" rel="noopener">submission folder</a>.</p>`;
+  el.querySelectorAll("[data-ov]").forEach((b) => b.addEventListener("click", () => {
+    const t = b.dataset.ov;
+    if (t === "tour") Tour.start(); else showTab(t);
+  }));
+  el.dataset.done = "1";
+}
+
 async function renderHow() {
   const el = $("#how");
   if (el.dataset.done) return;

@@ -13,6 +13,15 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 19 Nov 2026 · Yash (Claude Opus) · branch main (Overview page)
+- Did: new Overview tab, the page the site opens on (`renderOverview` in app.js, `.ov-*` styles): what TrueLift
+  is for, the problem with the 100-order picture, why now, the four steps, who gains, what it achieves (numbers from
+  /api/v1/evidence), how we know, and a map of the other tabs; buttons start the guided demo or open Demo. The tour
+  still switches to Demo itself. Tests, ui_check, record_demo and screenshots open `#tab=demo`.
+- Files: truelift/static/{index.html,app.js,style.css}, tests/ui/*, tests/ui_check.js, README.md, submission/SUBMISSION.md.
+- Checked: fast tests 172, Playwright static + phone + live 12 of 12, desktop and 390 px screenshots, no page errors.
+- Numbers changed: none.
+
 ## 19 Nov 2026 · Yash (Claude Opus) · branch main (README screenshots)
 - Did: every README image retaken whole (Yash: no cut screenshots). `tests/ui/screenshots.js`: phone cards are
   captured from their top to their bottom with a margin and the cards around them hidden; new `owner_flow.png`

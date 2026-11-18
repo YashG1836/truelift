@@ -33,7 +33,8 @@ test.beforeEach(async ({ page }, testInfo) => {
 
 async function openHome(page) {
   // from disk the page is index.html itself; over HTTP the folder serves it
-  await page.goto(test.info().project.name === "offline-file" ? "index.html" : "./");
+  // the site opens on the Overview; the partner app is the Demo tab
+  await page.goto(test.info().project.name === "offline-file" ? "index.html#tab=demo" : "./#tab=demo");
   await page.waitForSelector(".hero-card", { timeout: 90_000 });
 }
 
@@ -70,7 +71,7 @@ test("guided demo runs from the first step to Finish", async ({ page }) => {
 test("every tab renders", async ({ page }) => {
   const errors = watch(page);
   await openHome(page);
-  for (const tab of ["how", "evidence", "money", "ops", "demo"]) {
+  for (const tab of ["overview", "how", "evidence", "money", "ops", "demo"]) {
     await page.click(`nav button[data-tab="${tab}"]`);
     await page.waitForTimeout(500);
     await expectCleanText(page, `tab ${tab}`);

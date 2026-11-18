@@ -56,7 +56,9 @@ Overwrite lines that become wrong; do not append history here (history goes in S
 ## Demo site
 - 32 restaurants (tasks.py `DEMO_RESTAURANTS`, six localities x five price bands); 233 Burger King opens first.
   Flat and percentage designs (258 files a restaurant). Draft translations kept only for 233.
-- Tabs: Demo (guided demo, 10 steps, Back and keys), How it works, Evidence, Money maths, Operations.
+- Tabs: Overview (opens first: what it is for, the problem, the solution, who gains, results, how we know, a map of
+  the site; numbers from the evidence), Demo (guided demo, 10 steps, Back and keys; `#tab=demo`), How it works,
+  Evidence, Money maths, Operations. Tests and scripts open `#tab=demo`.
 - Offline bundle: `python scripts/build_offline.py` after an export -> `dist/truelift-offline/`.
 - Pitch in `docs/pitch/`: deck (PDF, PPTX, `deck.html`), speaker notes, runbook (choreography, failure drill,
   90-second audience script), 30-question bank (numbers in the claims ledger), one-pager with QR, `demo.mp4`.

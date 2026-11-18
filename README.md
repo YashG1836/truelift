@@ -10,8 +10,9 @@ it creates, inside the OTP approval that Zomato already asks owners for.
 
 ## Start here
 
-- **[Live demo](https://yashg1836.github.io/truelift/)**: press **▶ Guided demo** for the ten-step story
-  (→ next, ← back, Esc to leave), or pick a restaurant and create your own offer.
+- **[Live demo](https://yashg1836.github.io/truelift/)**: it opens on an **Overview** of the problem and the
+  solution. Press **▶ Guided demo** for the ten-step story (→ next, ← back, Esc to leave), or open **Demo**,
+  pick a restaurant and create your own offer.
 - **[Report](submission/TrueLift_Report.pdf)** (IEEE format, PDF): the problem, the method, the evidence
   and the limits, end to end.
 - **[Presentation](submission/TrueLift_Presentation.pdf)** (PDF): the guided demo's story as slides.

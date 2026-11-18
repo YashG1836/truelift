@@ -39,8 +39,8 @@ and money are simulated; restaurant names and listings are real public 2019 data
 
 ## How to present
 
-1. **Live, with the guided demo (recommended).** Open the demo, press **▶ Guided demo** and keep
-   pressing →. Ten steps with captions: the restaurant, the forecast, the better version, who sees the
+1. **Live, with the guided demo (recommended).** Open the demo: it starts on the Overview (the problem,
+   the solution and the results on one page). Press **▶ Guided demo** and keep pressing →. Ten steps with captions: the restaurant, the forecast, the better version, who sees the
    discount, the OTP approval, week 1, four weeks later, and the market.
 2. **Slides.** `TrueLift_Presentation.pdf` (or the `.html` copy) tells the same story with the results.
 3. **If the internet fails.** The offline zip from the release opens from a file; the video plays

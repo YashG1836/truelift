@@ -32,7 +32,7 @@ async function open(browser, url, options) {
   const context = await browser.newContext(options);
   const page = await context.newPage();
   page.on("pageerror", (e) => errors.push(e.message));
-  await page.goto(url);
+  await page.goto(url + (url.includes("#") ? "&" : "#") + "tab=demo"); // the site opens on the Overview
   await page.waitForSelector(".hero-card", { timeout: 90_000 });
   await page.evaluate(() => document.fonts.ready);
   const hint = await page.waitForSelector(".hint-x", { timeout: 5_000 }).catch(() => null);

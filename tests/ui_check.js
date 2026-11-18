@@ -19,7 +19,7 @@ const bad = /NaN|undefined|\[object Object\]|Infinity/;
     const m = t.match(bad);
     if (m) errors.push(`${label}: found "${m[0]}" near "${t.slice(Math.max(0, m.index - 60), m.index + 20).replace(/\s+/g, " ")}"`);
   };
-  await p.goto(url);
+  await p.goto(url + (url.includes("#") ? "&" : "#") + "tab=demo"); // the site opens on the Overview
   await p.waitForSelector(".hero-card", { timeout: 90000 });
   await p.screenshot({ path: out + "/t0_home.png" }); await check("home");
   await p.click("#tourBtn");
@@ -32,7 +32,7 @@ const bad = /NaN|undefined|\[object Object\]|Infinity/;
     if ((await p.textContent("#tourNext")) === "Finish") { await p.click("#tourNext"); break; }
     await p.click("#tourNext");
   }
-  for (const tab of ["how", "evidence", "money", "ops"]) {
+  for (const tab of ["overview", "how", "evidence", "money", "ops"]) {
     await p.click(`nav button[data-tab="${tab}"]`); await p.waitForTimeout(800);
     await p.screenshot({ path: `${out}/tab_${tab}.png`, fullPage: true }); await check("tab " + tab);
   }
