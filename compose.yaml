@@ -1,0 +1,16 @@
+# docker compose up --build   -> http://localhost:8000 (service, page, /docs, /metrics)
+services:
+  truelift:
+    build: .
+    image: truelift:local
+    ports:
+      - "8000:8000"
+    environment:
+      TRUELIFT_DB: /data/truelift.sqlite  # consent ledger and exposure log survive restarts
+      TRUELIFT_LOG_JSON: "1"
+    volumes:
+      - truelift-data:/data
+    restart: unless-stopped
+
+volumes:
+  truelift-data:

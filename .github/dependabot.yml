@@ -1,0 +1,27 @@
+# Weekly update proposals. Dependabot reads this file from the default branch (main).
+# The scientific libraries stay pinned on purpose: the committed numbers were produced with exactly
+# these versions, so a bump is a deliberate change (re-run the pipeline, update the golden snapshot).
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 3
+    ignore:
+      - dependency-name: numpy
+      - dependency-name: pandas
+      - dependency-name: scikit-learn
+      - dependency-name: scipy
+
+  - package-ecosystem: npm
+    directory: /tests/ui
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 2

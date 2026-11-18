@@ -1,0 +1,3784 @@
+{
+ "openapi": "3.1.0",
+ "info": {
+  "title": "TrueLift",
+  "description": "Forecast, target and measure restaurant-funded offers by the extra orders and profit they create. **Hooks** are the calls Zomato's offer flow would make; **demo** routes run the simulated market behind the prototype. Every figure is simulated.",
+  "version": "2.0.0"
+ },
+ "paths": {
+  "/api/v1/quote": {
+   "post": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Hook 1: forecast an offer and a better version, before the owner's OTP",
+    "operationId": "quote_api_v1_quote_post",
+    "parameters": [
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QuoteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/QuoteResponse"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers": {
+   "post": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Create an offer awaiting the owner's OTP",
+    "operationId": "create_offer_api_v1_offers_post",
+    "parameters": [
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QuoteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferCreated"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}/renew": {
+   "post": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Renew an offer whose approval period ended: a new OTP, shown what was measured",
+    "description": "The owner renews on evidence, not on a forecast: the new offer carries what the last period\nmeasured (extra orders, extra profit, range, verdict) and the consent record stores it. The\nsame customers stay in the control group, so the measurement carries on (audit A09 D3).",
+    "operationId": "renew_api_v1_offers__oid__renew_post",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "201": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferCreated"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}/approve": {
+   "post": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "The owner's OTP: consent recorded with exactly what they were shown",
+    "operationId": "approve_api_v1_offers__oid__approve_post",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "Idempotency-Key",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 100
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Idempotency-Key"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/OtpIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferView"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/serve": {
+   "get": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Hook 2: a customer opens the menu; show the discount or not",
+    "operationId": "serve_api_v1_serve_get",
+    "parameters": [
+     {
+      "name": "restaurant_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 0,
+       "title": "Restaurant Id"
+      }
+     },
+     {
+      "name": "customer_id",
+      "in": "query",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "minimum": 0,
+       "title": "Customer Id"
+      }
+     },
+     {
+      "name": "slot",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "integer",
+       "maximum": 2,
+       "minimum": 0,
+       "description": "0 lunch, 1 3-6 pm, 2 dinner",
+       "default": 2,
+       "title": "Slot"
+      },
+      "description": "0 lunch, 1 3-6 pm, 2 dinner"
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ServeDecision"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}": {
+   "get": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Hook 4: the measured effect so far, the WhatsApp summary and the payout",
+    "operationId": "get_offer_view_api_v1_offers__oid__get",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferView"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}/decision": {
+   "post": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "Keep or stop a running offer",
+    "operationId": "decision_api_v1_offers__oid__decision_post",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/DecisionIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferView"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}/consent": {
+   "get": {
+    "tags": [
+     "hooks"
+    ],
+    "summary": "The consent record, and whether the hash-chained ledger still verifies",
+    "operationId": "consent_api_v1_offers__oid__consent_get",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ConsentCheck"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/restaurants": {
+   "get": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "Restaurants",
+    "operationId": "restaurants_api_v1_restaurants_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RestaurantList"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/restaurants/{rid}": {
+   "get": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "Restaurant",
+    "operationId": "restaurant_api_v1_restaurants__rid__get",
+    "parameters": [
+     {
+      "name": "rid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Rid"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/RestaurantCard"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/customers": {
+   "post": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "A few of this restaurant's recent visitors and what TrueLift does for each",
+    "operationId": "sample_customers_api_v1_customers_post",
+    "parameters": [
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "requestBody": {
+     "required": true,
+     "content": {
+      "application/json": {
+       "schema": {
+        "$ref": "#/components/schemas/QuoteIn"
+       }
+      }
+     }
+    },
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/CustomersResponse"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/offers/{oid}/run_week": {
+   "post": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "Demo: simulate the offer's next week (idempotent with ?week=N)",
+    "operationId": "run_week_api_v1_offers__oid__run_week_post",
+    "parameters": [
+     {
+      "name": "oid",
+      "in": "path",
+      "required": true,
+      "schema": {
+       "type": "integer",
+       "title": "Oid"
+      }
+     },
+     {
+      "name": "week",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "integer",
+         "maximum": 52,
+         "minimum": 1
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "Week"
+      }
+     },
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/OfferView"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/calls": {
+   "get": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "This session's recent hook calls and their latency",
+    "operationId": "calls_api_v1_calls_get",
+    "parameters": [
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/example": {
+   "get": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "The Round 1 worked example, recomputed exactly",
+    "operationId": "example_api_v1_example_get",
+    "parameters": [
+     {
+      "name": "commission_on",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "enum": [
+        "post_discount",
+        "pre_discount"
+       ],
+       "type": "string",
+       "default": "post_discount",
+       "title": "Commission On"
+      }
+     },
+     {
+      "name": "food_cost_share",
+      "in": "query",
+      "required": false,
+      "schema": {
+       "type": "number",
+       "maximum": 0.6,
+       "minimum": 0.2,
+       "description": "Food and packaging cost, share of the menu price",
+       "default": 0.37,
+       "title": "Food Cost Share"
+      },
+      "description": "Food and packaging cost, share of the menu price"
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/evidence": {
+   "get": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "The evaluation reports behind the Evidence page",
+    "operationId": "evidence_api_v1_evidence_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/reset": {
+   "post": {
+    "tags": [
+     "demo"
+    ],
+    "summary": "Clear this session's offers (other visitors are unaffected)",
+    "operationId": "reset_api_v1_reset_post",
+    "parameters": [
+     {
+      "name": "X-Session",
+      "in": "header",
+      "required": false,
+      "schema": {
+       "anyOf": [
+        {
+         "type": "string",
+         "maxLength": 64,
+         "pattern": "^[A-Za-z0-9_-]{1,64}$"
+        },
+        {
+         "type": "null"
+        }
+       ],
+       "title": "X-Session"
+      }
+     }
+    ],
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {}
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/api/v1/config": {
+   "get": {
+    "tags": [
+     "operations"
+    ],
+    "summary": "Constants the page shares with the service",
+    "operationId": "config_api_v1_config_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/ServiceConfig"
+        }
+       }
+      }
+     },
+     "400": {
+      "description": "Request body is not valid JSON",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "403": {
+      "description": "Wrong OTP",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "404": {
+      "description": "Unknown restaurant, customer or offer",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "409": {
+      "description": "Offer is in the wrong state",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "422": {
+      "description": "Invalid input or design",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "429": {
+      "description": "Too many wrong OTPs",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Model not loaded",
+      "content": {
+       "application/problem+json": {
+        "schema": {
+         "$ref": "#/components/schemas/Problem"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/healthz": {
+   "get": {
+    "tags": [
+     "operations"
+    ],
+    "summary": "Process is up",
+    "operationId": "healthz_healthz_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Health"
+        }
+       }
+      }
+     }
+    }
+   }
+  },
+  "/readyz": {
+   "get": {
+    "tags": [
+     "operations"
+    ],
+    "summary": "Model and data loaded",
+    "operationId": "readyz_readyz_get",
+    "responses": {
+     "200": {
+      "description": "Successful Response",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ready"
+        }
+       }
+      }
+     },
+     "503": {
+      "description": "Service Unavailable",
+      "content": {
+       "application/json": {
+        "schema": {
+         "$ref": "#/components/schemas/Ready"
+        }
+       }
+      }
+     }
+    }
+   }
+  }
+ },
+ "components": {
+  "schemas": {
+   "BrandPackMeasurement": {
+    "properties": {
+     "regular_visits": {
+      "type": "integer",
+      "title": "Regular Visits"
+     },
+     "control_visits": {
+      "type": "integer",
+      "title": "Control Visits"
+     },
+     "orders": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/BrandPackQuantity"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "profit": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/BrandPackQuantity"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "verdict_code": {
+      "type": "string",
+      "enum": [
+       "pays",
+       "costs",
+       "unclear",
+       "too_early"
+      ],
+      "title": "Verdict Code"
+     },
+     "verdict": {
+      "type": "string",
+      "title": "Verdict"
+     }
+    },
+    "type": "object",
+    "required": [
+     "regular_visits",
+     "control_visits",
+     "orders",
+     "profit",
+     "verdict_code",
+     "verdict"
+    ],
+    "title": "BrandPackMeasurement",
+    "description": "The Brand Pack reward measured on its own: regulars who got it against regulars held out."
+   },
+   "BrandPackQuantity": {
+    "properties": {
+     "per_visit": {
+      "type": "number",
+      "title": "Per Visit"
+     },
+     "total": {
+      "type": "number",
+      "title": "Total"
+     },
+     "low": {
+      "type": "number",
+      "title": "Low"
+     },
+     "high": {
+      "type": "number",
+      "title": "High"
+     }
+    },
+    "type": "object",
+    "required": [
+     "per_visit",
+     "total",
+     "low",
+     "high"
+    ],
+    "title": "BrandPackQuantity"
+   },
+   "ConsentCheck": {
+    "properties": {
+     "offer_id": {
+      "type": "integer",
+      "title": "Offer Id"
+     },
+     "record": {
+      "type": "object",
+      "title": "Record"
+     },
+     "seq": {
+      "type": "integer",
+      "title": "Seq"
+     },
+     "hash": {
+      "type": "string",
+      "title": "Hash"
+     },
+     "prev_hash": {
+      "type": "string",
+      "title": "Prev Hash"
+     },
+     "verified": {
+      "type": "boolean",
+      "title": "Verified",
+      "description": "True if every record in the ledger still matches its hash chain"
+     }
+    },
+    "type": "object",
+    "required": [
+     "offer_id",
+     "record",
+     "seq",
+     "hash",
+     "prev_hash",
+     "verified"
+    ],
+    "title": "ConsentCheck"
+   },
+   "ConsentRecord": {
+    "properties": {
+     "approved_at": {
+      "type": "string",
+      "title": "Approved At",
+      "description": "ISO 8601 with time zone"
+     },
+     "design": {
+      "$ref": "#/components/schemas/DesignOut"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "forecast_shown": {
+      "$ref": "#/components/schemas/Forecast"
+     },
+     "valid_for_weeks": {
+      "type": "integer",
+      "title": "Valid For Weeks"
+     },
+     "who_pays": {
+      "type": "string",
+      "title": "Who Pays"
+     },
+     "model_version": {
+      "type": "string",
+      "title": "Model Version"
+     },
+     "ledger": {
+      "type": "object",
+      "title": "Ledger",
+      "description": "Position and SHA-256 hash in the append-only consent ledger"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "approved_at",
+     "design",
+     "label",
+     "forecast_shown",
+     "valid_for_weeks",
+     "who_pays",
+     "model_version",
+     "ledger"
+    ],
+    "title": "ConsentRecord"
+   },
+   "CustomerSample": {
+    "properties": {
+     "customer_id": {
+      "type": "integer",
+      "title": "Customer Id"
+     },
+     "group": {
+      "type": "string",
+      "title": "Group"
+     },
+     "orders_here_4w": {
+      "type": "integer",
+      "title": "Orders Here 4W"
+     },
+     "orders_here_ever": {
+      "type": "integer",
+      "title": "Orders Here Ever"
+     },
+     "zomato_orders_per_week": {
+      "type": "number",
+      "title": "Zomato Orders Per Week"
+     },
+     "share_of_orders_with_discount": {
+      "type": "number",
+      "title": "Share Of Orders With Discount"
+     },
+     "weeks_since_last_order_here": {
+      "type": "integer",
+      "title": "Weeks Since Last Order Here"
+     },
+     "visit_slot": {
+      "type": "integer",
+      "title": "Visit Slot"
+     },
+     "decision": {
+      "$ref": "#/components/schemas/ServeDecision"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "customer_id",
+     "group",
+     "orders_here_4w",
+     "orders_here_ever",
+     "zomato_orders_per_week",
+     "share_of_orders_with_discount",
+     "weeks_since_last_order_here",
+     "visit_slot",
+     "decision"
+    ],
+    "title": "CustomerSample"
+   },
+   "CustomersResponse": {
+    "properties": {
+     "customers": {
+      "items": {
+       "$ref": "#/components/schemas/CustomerSample"
+      },
+      "type": "array",
+      "title": "Customers"
+     },
+     "design": {
+      "$ref": "#/components/schemas/DesignOut"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "offer_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Id"
+     },
+     "note": {
+      "type": "string",
+      "title": "Note"
+     }
+    },
+    "type": "object",
+    "required": [
+     "customers",
+     "design",
+     "label",
+     "offer_id",
+     "note"
+    ],
+    "title": "CustomersResponse"
+   },
+   "DecisionIn": {
+    "properties": {
+     "action": {
+      "type": "string",
+      "enum": [
+       "keep",
+       "stop"
+      ],
+      "title": "Action"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "action"
+    ],
+    "title": "DecisionIn",
+    "examples": [
+     {
+      "action": "stop"
+     }
+    ]
+   },
+   "DesignIn": {
+    "properties": {
+     "discount": {
+      "type": "number",
+      "maximum": 1000.0,
+      "minimum": 0.0,
+      "title": "Discount",
+      "description": "Rupees off the order; 0 means no discount",
+      "default": 60
+     },
+     "min_order": {
+      "type": "number",
+      "maximum": 5000.0,
+      "minimum": 0.0,
+      "title": "Min Order",
+      "description": "Offer applies only to bills of at least this; 0 = none",
+      "default": 0
+     },
+     "audience": {
+      "type": "string",
+      "enum": [
+       "all",
+       "new_to_restaurant",
+       "lapsed",
+       "targeted"
+      ],
+      "title": "Audience",
+      "description": "Who may see it: everyone, new to the restaurant, stopped ordering (4+ weeks), or chosen by TrueLift",
+      "default": "all"
+     },
+     "offpeak_only": {
+      "type": "boolean",
+      "title": "Offpeak Only",
+      "description": "Valid 3-6 pm only",
+      "default": false
+     },
+     "reward": {
+      "type": "number",
+      "maximum": 500.0,
+      "minimum": 0.0,
+      "title": "Reward",
+      "description": "Brand Pack reward per order for regulars (3+ orders in 4 weeks)",
+      "default": 0
+     },
+     "zomato_share": {
+      "type": "number",
+      "maximum": 1.0,
+      "minimum": 0.0,
+      "title": "Zomato Share",
+      "description": "Share of the discount Zomato funds for customers new to Zomato",
+      "default": 0
+     },
+     "pct": {
+      "type": "number",
+      "maximum": 0.6,
+      "minimum": 0.0,
+      "title": "Pct",
+      "description": "Percentage offer: this share of the bill off, up to `discount` rupees (the cap); 0 means a flat offer of `discount` rupees",
+      "default": 0
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "title": "DesignIn",
+    "description": "An offer as the owner sets it up on the create screen.",
+    "examples": [
+     {
+      "audience": "all",
+      "discount": 60,
+      "min_order": 0,
+      "offpeak_only": false,
+      "reward": 0,
+      "zomato_share": 0
+     }
+    ]
+   },
+   "DesignOptions": {
+    "properties": {
+     "depths": {
+      "items": {
+       "type": "integer"
+      },
+      "type": "array",
+      "title": "Depths"
+     },
+     "default_depth": {
+      "type": "integer",
+      "title": "Default Depth"
+     },
+     "min_order": {
+      "type": "integer",
+      "title": "Min Order"
+     },
+     "reward": {
+      "type": "integer",
+      "title": "Reward"
+     },
+     "pct_offers": {
+      "items": {
+       "$ref": "#/components/schemas/PctOption"
+      },
+      "type": "array",
+      "title": "Pct Offers",
+      "description": "Percentage offers: one percentage per cap (the depths above)"
+     }
+    },
+    "type": "object",
+    "required": [
+     "depths",
+     "default_depth",
+     "min_order",
+     "reward",
+     "pct_offers"
+    ],
+    "title": "DesignOptions",
+    "description": "The only design choices the page offers (single source, audit TL-002)."
+   },
+   "DesignOut": {
+    "properties": {
+     "discount": {
+      "type": "number",
+      "title": "Discount"
+     },
+     "min_order": {
+      "type": "number",
+      "title": "Min Order"
+     },
+     "audience": {
+      "type": "string",
+      "enum": [
+       "all",
+       "new_to_restaurant",
+       "lapsed",
+       "targeted"
+      ],
+      "title": "Audience"
+     },
+     "offpeak_only": {
+      "type": "boolean",
+      "title": "Offpeak Only"
+     },
+     "reward": {
+      "type": "number",
+      "title": "Reward"
+     },
+     "zomato_share": {
+      "type": "number",
+      "title": "Zomato Share"
+     },
+     "pct": {
+      "type": "number",
+      "title": "Pct",
+      "default": 0.0
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "discount",
+     "min_order",
+     "audience",
+     "offpeak_only",
+     "reward",
+     "zomato_share"
+    ],
+    "title": "DesignOut"
+   },
+   "Evidence": {
+    "properties": {
+     "offer_id": {
+      "type": "integer",
+      "title": "Offer Id"
+     },
+     "weeks": {
+      "type": "integer",
+      "title": "Weeks"
+     },
+     "extra_orders": {
+      "type": "number",
+      "title": "Extra Orders"
+     },
+     "extra_orders_low": {
+      "type": "number",
+      "title": "Extra Orders Low"
+     },
+     "extra_orders_high": {
+      "type": "number",
+      "title": "Extra Orders High"
+     },
+     "extra_profit": {
+      "type": "number",
+      "title": "Extra Profit"
+     },
+     "extra_profit_low": {
+      "type": "number",
+      "title": "Extra Profit Low"
+     },
+     "extra_profit_high": {
+      "type": "number",
+      "title": "Extra Profit High"
+     },
+     "chance_making_money": {
+      "type": "number",
+      "title": "Chance Making Money"
+     },
+     "verdict_code": {
+      "type": "string",
+      "title": "Verdict Code"
+     },
+     "verdict": {
+      "type": "string",
+      "title": "Verdict"
+     },
+     "forecast_at_approval": {
+      "type": "number",
+      "title": "Forecast At Approval",
+      "description": "What the forecast said for the same weeks, rupees"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "offer_id",
+     "weeks",
+     "extra_orders",
+     "extra_orders_low",
+     "extra_orders_high",
+     "extra_profit",
+     "extra_profit_low",
+     "extra_profit_high",
+     "chance_making_money",
+     "verdict_code",
+     "verdict",
+     "forecast_at_approval"
+    ],
+    "title": "Evidence",
+    "description": "What was measured over an approval period: shown at renewal instead of a forecast (A09 D3)."
+   },
+   "Experiment": {
+    "properties": {
+     "shown_visits": {
+      "type": "integer",
+      "title": "Shown Visits"
+     },
+     "shown_orders": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Shown Orders",
+      "description": "Hidden (null) while either group has fewer than 20 customers"
+     },
+     "control_visits": {
+      "type": "integer",
+      "title": "Control Visits"
+     },
+     "control_orders": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Control Orders"
+     },
+     "shown_customers": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Shown Customers"
+     },
+     "control_customers": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Control Customers"
+     },
+     "suppressed": {
+      "type": "boolean",
+      "title": "Suppressed",
+      "default": false
+     },
+     "min_group_customers": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Min Group Customers"
+     }
+    },
+    "type": "object",
+    "required": [
+     "shown_visits",
+     "shown_orders",
+     "control_visits",
+     "control_orders"
+    ],
+    "title": "Experiment",
+    "description": "The two groups the week's number comes from (cumulative)."
+   },
+   "Forecast": {
+    "properties": {
+     "design": {
+      "$ref": "#/components/schemas/DesignOut"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "menu_visits": {
+      "type": "integer",
+      "title": "Menu Visits",
+      "description": "Menu visits a week behind the forecast"
+     },
+     "eligible_visits": {
+      "type": "integer",
+      "title": "Eligible Visits",
+      "description": "Visits a week that could see the discount"
+     },
+     "redemptions": {
+      "type": "number",
+      "title": "Redemptions",
+      "description": "Orders a week expected to use the offer"
+     },
+     "extra_orders": {
+      "type": "number",
+      "title": "Extra Orders",
+      "description": "Of those, orders that happen only because of the offer"
+     },
+     "anyway_share": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Anyway Share",
+      "description": "Share of redemptions that would have come anyway"
+     },
+     "profit_change": {
+      "type": "integer",
+      "title": "Profit Change",
+      "description": "Expected change in the restaurant's profit a week, ₹"
+     },
+     "profit_low": {
+      "type": "integer",
+      "title": "Profit Low",
+      "description": "Low end of the 80% range, ₹"
+     },
+     "profit_high": {
+      "type": "integer",
+      "title": "Profit High",
+      "description": "High end of the 80% range, ₹"
+     },
+     "prob_profit_positive": {
+      "type": "number",
+      "title": "Prob Profit Positive",
+      "description": "Chance the offer makes the restaurant money, from the forecast"
+     },
+     "advantage": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Advantage",
+      "description": "For a suggested version: expected extra profit a week over the owner's version, ₹"
+     },
+     "discount_spend": {
+      "type": "integer",
+      "title": "Discount Spend"
+     },
+     "discount_per_use": {
+      "type": "integer",
+      "title": "Discount Per Use",
+      "description": "Rupees off an order that uses the offer (for a percentage offer, the average under its cap)"
+     },
+     "reward_spend": {
+      "type": "integer",
+      "title": "Reward Spend"
+     },
+     "discount_per_extra_order": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Discount Per Extra Order"
+     },
+     "zomato_commission_change": {
+      "type": "integer",
+      "title": "Zomato Commission Change"
+     },
+     "zomato_funded": {
+      "type": "integer",
+      "title": "Zomato Funded"
+     },
+     "offer_use_rate": {
+      "type": "number",
+      "title": "Offer Use Rate"
+     },
+     "order_value_with_offer": {
+      "type": "integer",
+      "title": "Order Value With Offer"
+     },
+     "usual_order_value": {
+      "type": "integer",
+      "title": "Usual Order Value"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "design",
+     "label",
+     "menu_visits",
+     "eligible_visits",
+     "redemptions",
+     "extra_orders",
+     "anyway_share",
+     "profit_change",
+     "profit_low",
+     "profit_high",
+     "prob_profit_positive",
+     "discount_spend",
+     "discount_per_use",
+     "reward_spend",
+     "discount_per_extra_order",
+     "zomato_commission_change",
+     "zomato_funded",
+     "offer_use_rate",
+     "order_value_with_offer",
+     "usual_order_value"
+    ],
+    "title": "Forecast",
+    "description": "Hook 1 output for one version of an offer: one week, with an 80% range.",
+    "examples": [
+     {
+      "anyway_share": 0.57,
+      "design": {
+       "audience": "targeted",
+       "discount": 60,
+       "min_order": 0,
+       "offpeak_only": false,
+       "reward": 0,
+       "zomato_share": 0
+      },
+      "discount_per_extra_order": 140,
+      "discount_per_use": 60,
+      "discount_spend": 7278,
+      "eligible_visits": 905,
+      "extra_orders": 52.1,
+      "label": "₹60 off only for customers it brings in",
+      "menu_visits": 3300,
+      "offer_use_rate": 1.0,
+      "order_value_with_offer": 431,
+      "prob_profit_positive": 0.82,
+      "profit_change": 1731,
+      "profit_high": 4014,
+      "profit_low": -552,
+      "redemptions": 121.3,
+      "reward_spend": 0,
+      "usual_order_value": 431,
+      "zomato_commission_change": 1820,
+      "zomato_funded": 0
+     }
+    ]
+   },
+   "Health": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "title": "Status"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status"
+    ],
+    "title": "Health"
+   },
+   "MeasuredQuantity": {
+    "properties": {
+     "per_visit": {
+      "type": "number",
+      "title": "Per Visit"
+     },
+     "per_visit_sd": {
+      "type": "number",
+      "title": "Per Visit Sd"
+     },
+     "own_per_visit": {
+      "type": "number",
+      "title": "Own Per Visit"
+     },
+     "own_se": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Own Se"
+     },
+     "model_per_visit": {
+      "type": "number",
+      "title": "Model Per Visit"
+     },
+     "weight_on_own_data": {
+      "type": "number",
+      "title": "Weight On Own Data",
+      "description": "0 = all from the model, 1 = all from this offer's control group"
+     },
+     "prob_positive": {
+      "type": "number",
+      "title": "Prob Positive",
+      "description": "Chance the true effect is above zero"
+     },
+     "total": {
+      "type": "number",
+      "title": "Total"
+     },
+     "low": {
+      "type": "number",
+      "title": "Low"
+     },
+     "high": {
+      "type": "number",
+      "title": "High"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "per_visit",
+     "per_visit_sd",
+     "own_per_visit",
+     "own_se",
+     "model_per_visit",
+     "weight_on_own_data",
+     "prob_positive",
+     "total",
+     "low",
+     "high"
+    ],
+    "title": "MeasuredQuantity"
+   },
+   "Measurement": {
+    "properties": {
+     "shown_visits": {
+      "type": "integer",
+      "title": "Shown Visits"
+     },
+     "control_visits": {
+      "type": "integer",
+      "title": "Control Visits"
+     },
+     "profit": {
+      "$ref": "#/components/schemas/MeasuredQuantity"
+     },
+     "orders": {
+      "$ref": "#/components/schemas/MeasuredQuantity"
+     },
+     "report_today": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Report Today"
+     },
+     "verdict": {
+      "type": "string",
+      "title": "Verdict"
+     },
+     "verdict_code": {
+      "type": "string",
+      "enum": [
+       "keep",
+       "pause",
+       "probably_losing",
+       "wait",
+       "check_failed"
+      ],
+      "title": "Verdict Code"
+     },
+     "sample_ratio": {
+      "type": "object",
+      "title": "Sample Ratio",
+      "description": "Customers held out against the planned share (A04 M2)"
+     },
+     "pause_check": {
+      "type": "object",
+      "title": "Pause Check",
+      "description": "Always-valid bound on the offer's own evidence (TL-017)"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "shown_visits",
+     "control_visits",
+     "profit",
+     "orders",
+     "report_today",
+     "verdict",
+     "verdict_code",
+     "sample_ratio",
+     "pause_check"
+    ],
+    "title": "Measurement",
+    "description": "Hook 4: what the offer added so far, with an 80% range and a verdict."
+   },
+   "OfferCreated": {
+    "properties": {
+     "offer_id": {
+      "type": "integer",
+      "title": "Offer Id"
+     },
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "quote": {
+      "$ref": "#/components/schemas/Forecast"
+     },
+     "otp_sent_to": {
+      "type": "string",
+      "title": "Otp Sent To"
+     },
+     "demo_otp": {
+      "type": "string",
+      "title": "Demo Otp",
+      "description": "Shown only because this is a demo; a real OTP never leaves the SMS"
+     },
+     "otp_expires_in_seconds": {
+      "type": "integer",
+      "title": "Otp Expires In Seconds"
+     },
+     "renewal_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Renewal Of",
+      "description": "For a renewal: the offer whose approval period ended"
+     },
+     "evidence": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Evidence"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "For a renewal: what that period measured"
+     }
+    },
+    "type": "object",
+    "required": [
+     "offer_id",
+     "status",
+     "quote",
+     "otp_sent_to",
+     "demo_otp",
+     "otp_expires_in_seconds"
+    ],
+    "title": "OfferCreated"
+   },
+   "OfferView": {
+    "properties": {
+     "offer_id": {
+      "type": "integer",
+      "title": "Offer Id"
+     },
+     "restaurant_id": {
+      "type": "integer",
+      "title": "Restaurant Id"
+     },
+     "status": {
+      "type": "string",
+      "enum": [
+       "awaiting_otp",
+       "active",
+       "paused",
+       "stopped",
+       "consent_expired",
+       "replaced",
+       "otp_expired"
+      ],
+      "title": "Status"
+     },
+     "design": {
+      "$ref": "#/components/schemas/DesignOut"
+     },
+     "label": {
+      "type": "string",
+      "title": "Label"
+     },
+     "quote": {
+      "$ref": "#/components/schemas/Forecast"
+     },
+     "consent": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/ConsentRecord"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "weeks": {
+      "items": {
+       "$ref": "#/components/schemas/WeekResult"
+      },
+      "type": "array",
+      "title": "Weeks"
+     },
+     "who_pays": {
+      "type": "string",
+      "title": "Who Pays"
+     },
+     "replaced_by": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Replaced By"
+     },
+     "renewal_of": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Renewal Of"
+     },
+     "renewed_by": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Renewed By"
+     },
+     "evidence": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Evidence"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "offer_id",
+     "restaurant_id",
+     "status",
+     "design",
+     "label",
+     "quote",
+     "consent",
+     "weeks",
+     "who_pays"
+    ],
+    "title": "OfferView"
+   },
+   "OtpIn": {
+    "properties": {
+     "otp": {
+      "type": "string",
+      "maxLength": 12,
+      "minLength": 1,
+      "title": "Otp",
+      "description": "The code sent to the owner's registered phone"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "otp"
+    ],
+    "title": "OtpIn",
+    "examples": [
+     {
+      "otp": "4821"
+     }
+    ]
+   },
+   "Payout": {
+    "properties": {
+     "orders": {
+      "type": "integer",
+      "title": "Orders"
+     },
+     "gross_sales": {
+      "type": "integer",
+      "title": "Gross Sales"
+     },
+     "discount_paid_by_you": {
+      "type": "integer",
+      "title": "Discount Paid By You"
+     },
+     "brand_pack_rewards_paid_by_you": {
+      "type": "integer",
+      "title": "Brand Pack Rewards Paid By You"
+     },
+     "discount_paid_by_zomato": {
+      "type": "integer",
+      "title": "Discount Paid By Zomato"
+     },
+     "commission": {
+      "type": "integer",
+      "title": "Commission"
+     },
+     "commission_rate": {
+      "type": "number",
+      "title": "Commission Rate"
+     },
+     "gst_on_commission": {
+      "type": "integer",
+      "title": "Gst On Commission"
+     },
+     "gst_rate": {
+      "type": "number",
+      "title": "Gst Rate"
+     },
+     "net_payout": {
+      "type": "integer",
+      "title": "Net Payout"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "orders",
+     "gross_sales",
+     "discount_paid_by_you",
+     "brand_pack_rewards_paid_by_you",
+     "discount_paid_by_zomato",
+     "commission",
+     "commission_rate",
+     "gst_on_commission",
+     "gst_rate",
+     "net_payout"
+    ],
+    "title": "Payout"
+   },
+   "PctOption": {
+    "properties": {
+     "pct": {
+      "type": "number",
+      "title": "Pct",
+      "description": "Share of the bill off"
+     },
+     "cap": {
+      "type": "integer",
+      "title": "Cap",
+      "description": "The most it takes off, rupees"
+     }
+    },
+    "type": "object",
+    "required": [
+     "pct",
+     "cap"
+    ],
+    "title": "PctOption"
+   },
+   "Problem": {
+    "properties": {
+     "type": {
+      "type": "string",
+      "title": "Type"
+     },
+     "title": {
+      "type": "string",
+      "title": "Title"
+     },
+     "status": {
+      "type": "integer",
+      "title": "Status"
+     },
+     "detail": {
+      "type": "string",
+      "title": "Detail"
+     },
+     "instance": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Instance"
+     },
+     "correlation_id": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Correlation Id"
+     },
+     "errors": {
+      "anyOf": [
+       {
+        "items": {
+         "type": "object"
+        },
+        "type": "array"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Errors"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "type",
+     "title",
+     "status",
+     "detail"
+    ],
+    "title": "Problem",
+    "description": "RFC 9457 problem details: the one error shape for every failure.",
+    "examples": [
+     {
+      "correlation_id": "6f1c2e9a",
+      "detail": "A ₹500 discount is more than 60% of this restaurant's average order (₹150).",
+      "instance": "/api/v1/quote",
+      "status": 422,
+      "title": "Invalid offer design",
+      "type": "/problems/invalid-design"
+     }
+    ]
+   },
+   "QuoteIn": {
+    "properties": {
+     "restaurant_id": {
+      "type": "integer",
+      "minimum": 0.0,
+      "title": "Restaurant Id",
+      "description": "Restaurant (0-299 in the simulated market)"
+     },
+     "design": {
+      "$ref": "#/components/schemas/DesignIn"
+     }
+    },
+    "additionalProperties": false,
+    "type": "object",
+    "required": [
+     "restaurant_id"
+    ],
+    "title": "QuoteIn",
+    "examples": [
+     {
+      "design": {
+       "audience": "all",
+       "discount": 60,
+       "min_order": 0,
+       "offpeak_only": false,
+       "reward": 0,
+       "zomato_share": 0
+      },
+      "restaurant_id": 233
+     }
+    ]
+   },
+   "QuoteResponse": {
+    "properties": {
+     "owner": {
+      "$ref": "#/components/schemas/Forecast",
+      "description": "The owner's own design"
+     },
+     "better": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/Forecast"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "description": "A better version at the same discount size, or no offer when no version is likely to make money; null when the owner's version is already the best"
+     },
+     "designs_compared": {
+      "type": "integer",
+      "title": "Designs Compared"
+     },
+     "consent_weeks": {
+      "type": "integer",
+      "title": "Consent Weeks"
+     },
+     "model_version": {
+      "type": "string",
+      "title": "Model Version"
+     }
+    },
+    "type": "object",
+    "required": [
+     "owner",
+     "better",
+     "designs_compared",
+     "consent_weeks",
+     "model_version"
+    ],
+    "title": "QuoteResponse"
+   },
+   "Ready": {
+    "properties": {
+     "status": {
+      "type": "string",
+      "title": "Status"
+     },
+     "model_version": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Model Version"
+     },
+     "trained_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Trained At"
+     },
+     "data_built_at": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Data Built At"
+     },
+     "detail": {
+      "anyOf": [
+       {
+        "type": "string"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Detail"
+     }
+    },
+    "type": "object",
+    "required": [
+     "status"
+    ],
+    "title": "Ready"
+   },
+   "RestaurantCard": {
+    "properties": {
+     "restaurant_id": {
+      "type": "integer",
+      "title": "Restaurant Id"
+     },
+     "name": {
+      "type": "string",
+      "title": "Name"
+     },
+     "locality": {
+      "type": "string",
+      "title": "Locality"
+     },
+     "cuisines": {
+      "type": "string",
+      "title": "Cuisines"
+     },
+     "rating": {
+      "type": "number",
+      "title": "Rating"
+     },
+     "aov": {
+      "type": "number",
+      "title": "Aov",
+      "description": "Average order value, ₹"
+     },
+     "orders_per_week": {
+      "type": "number",
+      "title": "Orders Per Week"
+     },
+     "regular_customers": {
+      "type": "integer",
+      "title": "Regular Customers"
+     },
+     "regulars_share_of_orders": {
+      "type": "number",
+      "title": "Regulars Share Of Orders"
+     },
+     "menu_visits_per_week": {
+      "type": "integer",
+      "title": "Menu Visits Per Week"
+     },
+     "design_options": {
+      "$ref": "#/components/schemas/DesignOptions"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "restaurant_id",
+     "name",
+     "locality",
+     "cuisines",
+     "rating",
+     "aov",
+     "orders_per_week",
+     "regular_customers",
+     "regulars_share_of_orders",
+     "menu_visits_per_week",
+     "design_options"
+    ],
+    "title": "RestaurantCard"
+   },
+   "RestaurantList": {
+    "properties": {
+     "demo_restaurant": {
+      "type": "integer",
+      "title": "Demo Restaurant"
+     },
+     "restaurants": {
+      "items": {
+       "$ref": "#/components/schemas/RestaurantCard"
+      },
+      "type": "array",
+      "title": "Restaurants"
+     }
+    },
+    "type": "object",
+    "required": [
+     "demo_restaurant",
+     "restaurants"
+    ],
+    "title": "RestaurantList"
+   },
+   "ServeDecision": {
+    "properties": {
+     "show_offer": {
+      "type": "boolean",
+      "title": "Show Offer"
+     },
+     "control_group": {
+      "type": "boolean",
+      "title": "Control Group",
+      "default": false
+     },
+     "reason": {
+      "type": "string",
+      "title": "Reason"
+     },
+     "brand_pack_reward": {
+      "type": "number",
+      "title": "Brand Pack Reward",
+      "default": 0.0
+     },
+     "brand_pack_control_group": {
+      "type": "boolean",
+      "title": "Brand Pack Control Group",
+      "description": "A regular held out of the Brand Pack reward (its own control group, TL-016)",
+      "default": false
+     },
+     "p_order_without": {
+      "type": "number",
+      "title": "P Order Without",
+      "default": 0.0
+     },
+     "p_order_with": {
+      "type": "number",
+      "title": "P Order With",
+      "default": 0.0
+     },
+     "expected_profit_gain": {
+      "type": "number",
+      "title": "Expected Profit Gain",
+      "default": 0.0
+     },
+     "degraded": {
+      "type": "boolean",
+      "title": "Degraded",
+      "default": false
+     },
+     "model_version": {
+      "type": "string",
+      "title": "Model Version",
+      "default": ""
+     },
+     "offer_id": {
+      "anyOf": [
+       {
+        "type": "integer"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Offer Id"
+     },
+     "latency_ms": {
+      "anyOf": [
+       {
+        "type": "number"
+       },
+       {
+        "type": "null"
+       }
+      ],
+      "title": "Latency Ms"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "show_offer",
+     "reason"
+    ],
+    "title": "ServeDecision",
+    "description": "Hook 2 output: what one customer sees when they open the menu.",
+    "examples": [
+     {
+      "brand_pack_reward": 0.0,
+      "control_group": false,
+      "degraded": false,
+      "expected_profit_gain": 4.1,
+      "latency_ms": 0.4,
+      "model_version": "2026-11-15",
+      "offer_id": 3,
+      "p_order_with": 0.072,
+      "p_order_without": 0.031,
+      "reason": "likely to order because of the offer",
+      "show_offer": true
+     }
+    ]
+   },
+   "ServiceConfig": {
+    "properties": {
+     "consent_weeks": {
+      "type": "integer",
+      "title": "Consent Weeks"
+     },
+     "holdout_share": {
+      "type": "number",
+      "title": "Holdout Share"
+     },
+     "commission_rate": {
+      "type": "number",
+      "title": "Commission Rate"
+     },
+     "gst_on_commission": {
+      "type": "number",
+      "title": "Gst On Commission"
+     },
+     "food_cost_share": {
+      "type": "number",
+      "title": "Food Cost Share"
+     },
+     "commission_on": {
+      "type": "string",
+      "title": "Commission On"
+     },
+     "model_version": {
+      "type": "string",
+      "title": "Model Version"
+     },
+     "api_version": {
+      "type": "string",
+      "title": "Api Version"
+     },
+     "languages_enabled": {
+      "type": "boolean",
+      "title": "Languages Enabled",
+      "description": "Hindi, Kannada and Gujarati owner texts offered (off until a native speaker reviews them)"
+     },
+     "i18n": {
+      "additionalProperties": {
+       "type": "object"
+      },
+      "type": "object",
+      "title": "I18N",
+      "description": "Approval-screen texts by language code"
+     }
+    },
+    "type": "object",
+    "required": [
+     "consent_weeks",
+     "holdout_share",
+     "commission_rate",
+     "gst_on_commission",
+     "food_cost_share",
+     "commission_on",
+     "model_version",
+     "api_version",
+     "languages_enabled",
+     "i18n"
+    ],
+    "title": "ServiceConfig",
+    "description": "Constants the page shares with the service (audit TL-033)."
+   },
+   "WeekResult": {
+    "properties": {
+     "week": {
+      "type": "integer",
+      "title": "Week"
+     },
+     "measurement": {
+      "$ref": "#/components/schemas/Measurement"
+     },
+     "brand_pack": {
+      "anyOf": [
+       {
+        "$ref": "#/components/schemas/BrandPackMeasurement"
+       },
+       {
+        "type": "null"
+       }
+      ]
+     },
+     "simulator_truth": {
+      "additionalProperties": {
+       "type": "number"
+      },
+      "type": "object",
+      "title": "Simulator Truth",
+      "description": "Only a simulation knows this: the offer's true effect"
+     },
+     "payout": {
+      "$ref": "#/components/schemas/Payout"
+     },
+     "experiment": {
+      "$ref": "#/components/schemas/Experiment"
+     },
+     "whatsapp": {
+      "type": "string",
+      "title": "Whatsapp"
+     }
+    },
+    "additionalProperties": true,
+    "type": "object",
+    "required": [
+     "week",
+     "measurement",
+     "simulator_truth",
+     "payout",
+     "experiment",
+     "whatsapp"
+    ],
+    "title": "WeekResult"
+   }
+  }
+ },
+ "tags": [
+  {
+   "name": "hooks",
+   "description": "The calls Zomato's systems would make"
+  },
+  {
+   "name": "demo",
+   "description": "Simulation and demo screens only"
+  },
+  {
+   "name": "operations",
+   "description": "Health, readiness, configuration, metrics"
+  }
+ ]
+}

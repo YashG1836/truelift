@@ -13,6 +13,7 @@ Assumptions (each one is a parameter, see Terms):
   reported figure, FY25, unverified), and adjusted EBITDA at 5.5% of NOV (Q2 FY27, verified; a floor
   because it also covers fixed costs).
 """
+
 from __future__ import annotations
 
 from dataclasses import asdict, dataclass
@@ -47,6 +48,27 @@ class OrderMoney:
         return {k: round(v, 2) for k, v in asdict(self).items()}
 
 
+def fmt_inr(x: float, sign: bool = False) -> str:
+    """Whole rupees with Indian digit grouping and a true minus sign: "−₹1,23,456", "+₹2,101".
+
+    The page formats money the same way (`inr` in app.js), so the WhatsApp text and the screens
+    never disagree (audit TL-032).
+    """
+    v = int(round(float(x)))
+    digits = str(abs(v))
+    if len(digits) > 3:
+        head, tail = digits[:-3], digits[-3:]
+        groups = []
+        while len(head) > 2:
+            groups.insert(0, head[-2:])
+            head = head[:-2]
+        if head:
+            groups.insert(0, head)
+        digits = ",".join(groups + [tail])
+    prefix = "−₹" if v < 0 else ("+₹" if sign and v > 0 else "₹")
+    return prefix + digits
+
+
 def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     """Vectorised money split; works on floats or numpy arrays of equal shape."""
     z_funded = discount * zomato_share
@@ -57,9 +79,14 @@ def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     gst = terms.gst_on_commission * commission
     food = terms.food_cost_share * basket
     return {
-        "basket": basket, "discount": discount, "restaurant_funded": r_funded,
-        "zomato_funded": z_funded, "customer_pays": bill, "commission": commission,
-        "gst_on_commission": gst, "food_cost": food,
+        "basket": basket,
+        "discount": discount,
+        "restaurant_funded": r_funded,
+        "zomato_funded": z_funded,
+        "customer_pays": bill,
+        "commission": commission,
+        "gst_on_commission": gst,
+        "food_cost": food,
         "restaurant_profit": basket - r_funded - commission - gst - food,
         "zomato_gross": commission - z_funded,
         "zomato_contribution": terms.zomato_contribution_share * bill - z_funded,
@@ -67,8 +94,7 @@ def split(basket, discount, zomato_share, terms: Terms = Terms()) -> dict:
     }
 
 
-def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0,
-                terms: Terms = Terms()) -> OrderMoney:
+def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0, terms: Terms = Terms()) -> OrderMoney:
     """Split one order's money between customer, restaurant and Zomato.
 
     zomato_share is the fraction of the discount Zomato funds (0 for a restaurant-funded offer).
@@ -80,8 +106,14 @@ def order_money(basket: float, discount: float = 0.0, zomato_share: float = 0.0,
     return OrderMoney(**{k: float(v) for k, v in split(basket, discount, zomato_share, terms).items()})
 
 
-def weekly_example(terms: Terms = Terms(), basket: float = 400.0, discount: float = 60.0,
-                   regulars: int = 70, new_orders: int = 30, rewards: float = 650.0) -> dict:
+def weekly_example(
+    terms: Terms = Terms(),
+    basket: float = 400.0,
+    discount: float = 60.0,
+    regulars: int = 70,
+    new_orders: int = 30,
+    rewards: float = 650.0,
+) -> dict:
     """The Round 1 example, recomputed exactly with the given terms.
 
     One restaurant, one week: `regulars` orders arrive with or without an offer; a blanket offer
@@ -103,14 +135,63 @@ def weekly_example(terms: Terms = Terms(), basket: float = 400.0, discount: floa
         "blanket": {
             "discount_spend": (regulars + new_orders) * discount,
             "discount_on_regulars": regulars * discount,
-            "restaurant_profit": blanket_r, "restaurant_change": blanket_r - base_r,
-            "zomato_commission": blanket_z, "zomato_change": blanket_z - base_z,
+            "restaurant_profit": blanket_r,
+            "restaurant_change": blanket_r - base_r,
+            "zomato_commission": blanket_z,
+            "zomato_change": blanket_z - base_z,
             "discount_per_extra_order": (regulars + new_orders) * discount / new_orders,
         },
         "truelift": {
             "discount_spend": new_orders * discount + rewards,
-            "restaurant_profit": tl_r, "restaurant_change": tl_r - base_r,
-            "zomato_commission": tl_z, "zomato_change": tl_z - base_z,
+            "restaurant_profit": tl_r,
+            "restaurant_change": tl_r - base_r,
+            "zomato_commission": tl_z,
+            "zomato_change": tl_z - base_z,
             "discount_per_extra_order": (new_orders * discount + rewards) / new_orders,
         },
+        "terms": asdict(terms),
+        "basket": basket,
+        "discount": discount,
+        "regulars": regulars,
+        "new_orders": new_orders,
+        "rewards": rewards,
+        # share of the orders using an offer that must be extra for it to pay for itself
+        "break_even": [
+            {"discount": d, "share_of_basket": d / basket, "extra_share_needed": break_even_share(basket, d, terms)}
+            for d in (0.10 * basket, 0.15 * basket, 0.20 * basket, 0.25 * basket)
+        ],
+        # the same question for a percentage offer, whose rupees off depend on the order (A19 4.1):
+        # the create screen pairs a cap of 20% of the usual order with 40% off
+        "pct_example": {
+            "pct": 0.4,
+            "cap": 0.2 * basket,
+            "rows": pct_offer_rows(0.4, 0.2 * basket, [basket * k for k in (0.375, 0.5, 1.0, 1.5)], terms),
+        },
     }
+
+
+def pct_offer_rows(pct: float, cap: float, baskets, terms: Terms = Terms()) -> list[dict]:
+    """A percentage offer at several order sizes: rupees off (pct x order, at most `cap`), the share
+    of the order that really is, and the break-even share of extra orders. The headline percentage
+    is paid only on orders below cap / pct; above it the offer is a flat `cap` off."""
+    rows = []
+    for b in baskets:
+        off = min(pct * b, cap)
+        rows.append(
+            {
+                "basket": float(b),
+                "discount": float(off),
+                "share_of_basket": off / b,
+                "extra_share_needed": break_even_share(b, off, terms),
+            }
+        )
+    return rows
+
+
+def break_even_share(basket: float, discount: float, terms: Terms = Terms()) -> float:
+    """Share f of the orders using a restaurant-funded discount that must be extra (would not have
+    happened without it) for the offer to pay: the restaurant gains its discounted profit on those
+    and loses (full profit - discounted profit) on the rest, so f = 1 - discounted / full."""
+    full = order_money(basket, 0.0, terms=terms).restaurant_profit
+    disc = order_money(basket, discount, terms=terms).restaurant_profit
+    return 1.0 - disc / full if full > 0 else float("nan")

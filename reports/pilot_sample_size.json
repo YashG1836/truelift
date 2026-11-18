@@ -1,0 +1,26 @@
+{
+ "outcome": "share of offers renewed at the end of the approval period",
+ "unit": "restaurant",
+ "renewal_without": 0.6,
+ "renewal_with": 0.7,
+ "alpha_two_sided": 0.05,
+ "power": 0.8,
+ "restaurants_per_arm": 356,
+ "restaurants_total": 712,
+ "if_whole_localities_are_randomised": {
+  "restaurants_per_locality": 50,
+  "icc_0.01": {
+   "design_effect": 1.49,
+   "restaurants_per_arm": 531
+  },
+  "icc_0.05": {
+   "design_effect": 3.45,
+   "restaurants_per_arm": 1229
+  },
+  "icc_0.10": {
+   "design_effect": 5.9,
+   "restaurants_per_arm": 2101
+  }
+ },
+ "note": "The baseline renewal share is a placeholder until Eternal supplies the real one."
+}

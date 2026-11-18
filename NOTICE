@@ -1,0 +1,26 @@
+TrueLift
+Copyright (c) 2026 Team Banana, IIT Gandhinagar. The code is released under the MIT License (LICENSE).
+
+This repository also contains or uses material from others, under their own terms:
+
+1. Figtree font (truelift/static/fonts/), Copyright 2022 The Figtree Project Authors,
+   https://github.com/erikdkennedy/figtree. SIL Open Font License 1.1; the licence is in
+   truelift/static/fonts/OFL.txt. Bundled unmodified (WOFF2 files from the @fontsource/figtree package).
+
+2. Restaurant listings (data/processed/restaurants.csv): public listing fields (name, locality,
+   cuisines, cost for two, rating, votes) of 300 Bengaluru restaurants from the Kaggle dataset
+   "Zomato Bangalore Restaurants" (2019). Only these public fields are used. Every customer, order and
+   profit figure attached to a restaurant in this project is simulated, and the demo says so on
+   every screen. Restaurant and brand names belong to their owners; their use here identifies
+   public listings and implies no endorsement.
+
+3. Criteo Uplift Modeling Dataset v2.1 (not redistributed; downloaded by the user into data/raw/),
+   Diemert et al., AdKDD 2018, https://huggingface.co/datasets/criteo/criteo-uplift,
+   CC BY-NC-SA 4.0. Used only to check the uplift method on real randomised data; the summary
+   results are in reports/uplift_validation_criteo.json.
+
+4. Python and JavaScript dependencies are installed from their registries under their own licences
+   (pinned in uv.lock and tests/ui/package-lock.json); none is vendored here.
+
+"Zomato", "Eternal", "Swiggy", "Brand Pack" and other names are trademarks of their owners. TrueLift is
+a hackathon prototype built for the IITGN x Eternal hackathon and is not a product of Zomato or Eternal.

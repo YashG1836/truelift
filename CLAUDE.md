@@ -11,7 +11,7 @@ approval, so an owner who cannot see whether an offer pays will stop approving. 
 targets and measures each offer by the extra orders and profit it creates, inside that OTP flow.
 
 - Live demo: https://yashg1836.github.io/truelift/ (branch `gh-pages`, generated; do not edit by hand)
-- Code: https://github.com/YashG1836/truelift (public). Write-up: `TrueLift_Round2_Plan.md`.
+- Code: https://github.com/YashG1836/truelift (public). Write-up: `docs/method_and_evidence.md` (was `TrueLift_Round2_Plan.md`).
   Judge-facing build story: `DEVLOG.md`. Round 1 PDF: `docs/round1_problem_statement.pdf`.
 
 ## Shared context (read in this order)
@@ -28,32 +28,60 @@ targets and measures each offer by the extra orders and profit it creates, insid
 |---|---|
 | `truelift/economics.py` | Money of one order (commission 25% + 18% GST on it, food cost 37%, who funds the discount) |
 | `truelift/sim.py` | Simulated Bengaluru market: 300 real 2019 listings, synthetic customers, exact counterfactuals |
-| `truelift/model.py` | Uplift model (T-learner, HistGradientBoosting) and Qini |
-| `truelift/engine.py` | Quote, design search (owner's depth fixed, 34 versions), serving, weekly measurement, calibration |
-| `truelift/api.py` | FastAPI service: Zomato-style hooks (quote, offers, approve/OTP, serve, run_week, decision) + demo endpoints |
+| `truelift/assignment.py` | The hashed (customer, offer) control group, shared by simulator, service and measurement |
+| `truelift/features.py` | Customer and restaurant features from the order history (aggregates computed once) |
+| `truelift/model.py` | Uplift model (T-learner, HistGradientBoosting), Qini, model bundle with SHA-256 check |
+| `truelift/training.py` | History -> model -> calibration (used by the pipeline and the tests) |
+| `truelift/engine.py` | Quote, design search (owner's depth fixed), decision table, serving, weekly measurement, verdicts |
+| `truelift/api.py` | FastAPI routes under `/api/v1` (hooks + demo), RFC 9457 errors, `/healthz` `/readyz` `/metrics` |
+| `truelift/schemas.py`, `settings.py` | Typed request/response models (the OpenAPI contract); configuration from `TRUELIFT_*` env vars |
+| `truelift/state.py`, `store.py`, `demo.py` | Sessions and offers; SQLite consent ledger (hash-chained) and exposure log; simulated weeks and payout |
+| `truelift/observability.py` | JSON request logs, Prometheus metrics, security headers |
+| `truelift/monitoring.py` | Input drift (PSI per feature, drift.html) and weekly guardrails with thresholds |
+| `truelift/i18n.py`, `truelift/static/i18n/` | Owner texts in en/hi/kn/gu (drafts off until reviewed, D4) |
 | `truelift/static/` | Partner-app UI (index.html, app.js, style.css): guided demo, How it works, Evidence, Money maths |
-| `scripts/` | build_restaurants, run_pipeline, export_static (static site), validate_uplift (Criteo real data) |
-| `tests/` | `test_truelift.py` (11 pytest tests), `ui_check.js` (browser check with playwright-core) |
+| `scripts/` | build_restaurants, run_pipeline (+ measurement_study), sensitivity, benchmark_learners, experiments, bench_latency, export_static (static site), build_offline, render_tables, check_claims (claims ledger `docs/claims.yml`), get_data + validate_uplift (Criteo, Hillstrom), compare_reports, shadow_measure + make_sample_events (shadow kit), pilot_sample_size, make_deck + make_video (pitch) |
+| `tests/` | pytest by area (economics, simulator, engine, api, consistency, statistics, market, fairness, monitoring, shadow, pitch), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests (+ `print_pdf.js`, `record_demo.js` for the pitch, `screenshots.js` for the README images); `tests/load/` Locust; `ui_check.js` (older browser check) |
+| `docs/` | method_and_evidence (write-up), what_we_tested, integration_blueprint (+ `events/`, `openapi.json`), architecture, model_card, simulator_datasheet, privacy_and_fairness, `decisions/`, `field_research.md` + `field_research/` (kit, interview `photos/`), `pitch/` (deck, notes, runbook, questions, one-pager, video), `img/` (README images) |
+| `tasks.py`, `Makefile` | One entry point for setup, test, lint, pipeline, serve, export, reproduce, golden, docker, deck, video, screenshots |
+| `Dockerfile`, `compose.yaml` | The service in a container (non-root, health check) |
+| `.github/workflows/` | CI (lint, tests on Linux and Windows, golden + fuzz, browser tests, Docker, gated deploy), CodeQL |
 | `reports/` | Pipeline outputs. Every number in docs and UI must trace to a file here |
 | `data/processed/restaurants.csv` | The 300 restaurants (public listing fields only) |
 
-Not in git (each person builds locally): `.venv/`, `data/raw/`, `data/processed/model.pkl`, `site/`, `LOG.md` (Yash's private log).
+Not in git (each person builds locally): `.venv/`, `data/raw/`, `data/processed/model.pkl` (+ `.sha256`),
+`data/processed/serving_*.npz` (start-up cache), `site/`, `LOG.md` (Yash's private log).
 
 ## Commands
 
 ```bash
-python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
-.venv/bin/python scripts/run_pipeline.py            # ~6 min: simulate, train, evaluate -> reports/, model.pkl
-.venv/bin/uvicorn truelift.api:app --port 8000      # full service + UI at http://localhost:8000
-.venv/bin/python -m pytest -q                       # 11 tests, must pass before any push
-node tests/ui_check.js reports/ui http://localhost:8000/   # browser check (npm i playwright-core; CHROME=path)
-.venv/bin/python scripts/export_static.py 233 248 17 142 191 273 84 172 57 146 283 31   # site/ (~12 restaurants)
-.venv/bin/python scripts/export_static.py --assets  # refresh only the UI files in site/
+uv sync                                  # pinned environment from uv.lock (or: pip install -r requirements-dev.txt)
+python tasks.py pipeline                 # ~10 min: simulate, train, evaluate, scenarios and 5 seeds -> reports/, model.pkl
+python tasks.py sensitivity              # ~5 min: eight assumptions low/high -> reports/sensitivity.json
+python tasks.py benchmark                # ~1 min: uplift learners vs the truth -> reports/learner_benchmark.json
+python tasks.py experiments              # ~15 min: oracle, depth choice, noise, holdout draws, retraining, depth test
+python tasks.py latency                  # starts the service, times serve and quote over HTTP -> reports/latency.json
+python tasks.py realdata                 # downloads Criteo + Hillstrom (checksummed), five rankings -> reports/uplift_validation_*.json
+python tasks.py serve                    # full service + UI at http://localhost:8000 (API docs at /docs)
+python tasks.py test                     # fast tests (~20 s), must pass before any push; --all adds golden + fuzz
+python tasks.py lint                     # ruff check, ruff format --check, pyright
+python tasks.py reproduce                # re-run the pipeline in a temp folder, compare with reports/ (1e-6)
+python tasks.py export                   # site/ with the 32 demo restaurants (~25 min); ids as arguments for fewer
+python tasks.py golden                   # re-record tests/golden/ after an intended change in the numbers
+python tasks.py deck                     # pitch deck, notes, one-pager (PDF + PPTX) from reports/ -> docs/pitch/
+python tasks.py video                    # captioned guided-demo recording -> docs/pitch/demo.mp4 (after export)
+python tasks.py screenshots              # ~30 s: the README images -> docs/img/ (animated tour, phone screens; after export)
+python scripts/check_claims.py           # every number in the docs against reports/ (docs/claims.yml)
+cd tests/ui && npm ci && npx playwright install chromium && npx playwright test   # browser tests, static + live
 ```
 
-Publish the demo: clone branch `gh-pages` into a temp folder, `rsync -a --delete --exclude .git site/ <temp>/`,
-commit, normal `git push`. Then run `ui_check.js` against the live URL.
+Publish the demo: CI publishes from branch `kshitish` after every check passes, for a commit whose
+message contains `[deploy]` (or a manual run with deploy=true); it refuses a site built without the
+committed model (DECISIONS D15). By hand: clone branch `gh-pages` into a temp folder,
+`rsync -a --delete --exclude .git site/ <temp>/`, commit, normal `git push`, then run the browser tests
+with `UI_PROJECTS=public TRUELIFT_PUBLIC_URL=<url>`.
 UI must keep `/static/app.js` and `/static/style.css` paths in index.html (export_static rewrites them).
+API routes live under `/api/v1/`; the page and the static export use the same paths.
 
 ## Team rules (every Claude follows these, every session)
 

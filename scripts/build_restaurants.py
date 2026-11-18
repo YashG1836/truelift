@@ -6,13 +6,16 @@ Output: data/processed/restaurants.csv (300 delivery restaurants, 6 localities x
 Only public listing fields are used: name, locality, cuisines, cost for two, rating, votes.
 Everything else about these restaurants (customers, orders, profits) is simulated, and the UI says so.
 """
+
 import sys
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-RAW = "data/raw/zomato_blr/zomato.csv"
-OUT = "data/processed/restaurants.csv"
+ROOT = Path(__file__).resolve().parents[1]  # paths work from any working directory (audit TL-034)
+RAW = ROOT / "data/raw/zomato_blr/zomato.csv"
+OUT = ROOT / "data/processed/restaurants.csv"
 LOCALITIES = ["Koramangala 5th Block", "HSR", "BTM", "Indiranagar", "Jayanagar", "Whitefield"]
 PER_LOCALITY = 50
 SEED = 2026

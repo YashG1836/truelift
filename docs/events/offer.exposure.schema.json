@@ -1,0 +1,108 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/YashG1836/truelift/blob/main/docs/events/offer.exposure.schema.json",
+  "title": "Offer exposure",
+  "description": "A customer who could get the offer opened the menu. Written by the menu service when the decision is taken, for shown and held-out customers alike: the control group exists only if its visits are logged. Wrapped in a CloudEvents 1.0 envelope so it fits an existing event bus.",
+  "type": "object",
+  "required": [
+    "specversion",
+    "id",
+    "source",
+    "type",
+    "time",
+    "data"
+  ],
+  "properties": {
+    "specversion": {
+      "const": "1.0"
+    },
+    "id": {
+      "type": "string",
+      "description": "Unique per event; consumers drop duplicates by it"
+    },
+    "source": {
+      "type": "string",
+      "description": "The service that wrote it, e.g. /truelift/serve"
+    },
+    "type": {
+      "const": "truelift.offer.exposure"
+    },
+    "time": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "datacontenttype": {
+      "const": "application/json"
+    },
+    "data": {
+      "type": "object",
+      "required": [
+        "offer_id",
+        "restaurant_id",
+        "customer_id",
+        "visit_id",
+        "week",
+        "assignment",
+        "decision_table_version"
+      ],
+      "properties": {
+        "offer_id": {
+          "type": "integer"
+        },
+        "restaurant_id": {
+          "type": "integer"
+        },
+        "customer_id": {
+          "type": "integer"
+        },
+        "visit_id": {
+          "type": "string",
+          "description": "Joins the exposure to an order from the same visit"
+        },
+        "week": {
+          "type": "integer",
+          "minimum": 1,
+          "description": "Week of the approval period"
+        },
+        "slot": {
+          "enum": [
+            0,
+            1,
+            2
+          ],
+          "description": "0 lunch, 1 3-6 pm, 2 dinner"
+        },
+        "assignment": {
+          "enum": [
+            "show",
+            "control"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "p0": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Model's chance of an order without the offer"
+        },
+        "base_profit": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "description": "Model's expected profit without the offer"
+        },
+        "decision_table_version": {
+          "type": "string"
+        },
+        "model_version": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

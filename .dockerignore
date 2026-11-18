@@ -1,0 +1,25 @@
+.git
+.github
+.claude
+.venv
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.ruff_cache
+.hypothesis
+.coverage
+coverage.xml
+htmlcov
+data/raw
+data/processed/serving_*.npz
+data/processed/*.npz.tmp
+site
+dist
+docs
+tests
+reports/ui
+plan
+plan.zip
+other supporting docs (do not commit or push)
+LOG.md
+*.log

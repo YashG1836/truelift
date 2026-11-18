@@ -1,0 +1,51 @@
+{
+  "_meta": {"language": "English", "code": "en", "status": "source text"},
+  "label": {
+    "flat": "₹{amount} off",
+    "pct": "{pct}% off up to ₹{cap}",
+    "above": "above ₹{min}",
+    "aud_all": "for everyone",
+    "aud_new_to_restaurant": "for customers new to you",
+    "aud_lapsed": "for customers who stopped ordering (4+ weeks)",
+    "aud_targeted": "only for customers it brings in",
+    "offpeak": "(3-6 pm)",
+    "reward": "+ ₹{reward} Brand Pack reward for regulars",
+    "zomato_share": "(Zomato pays {share}% for customers new to Zomato)",
+    "no_offer": "No offer",
+    "reward_only": "No discount; ₹{reward} Brand Pack reward for regulars",
+    "sep": " "
+  },
+  "wa": {
+    "title": "TrueLift weekly summary: {name}, week {week}",
+    "offer": "Offer: {label}",
+    "used": "Orders that used the offer: {n}",
+    "extra_orders": "Extra orders it created: {low} to {high} (best estimate {best})",
+    "extra_profit": "Extra profit for you: {low} to {high} (best estimate {best})",
+    "how": "How we know: 1 in {one_in} eligible customers did not see the offer, and we compare the two groups.",
+    "verdict_keep": "This offer is making you money. Keep it.",
+    "verdict_pause": "This offer is losing money, so it has been paused.",
+    "verdict_probably_losing": "This offer is probably losing you money. It keeps running until you stop it.",
+    "verdict_wait": "Too early to say. Keep it running; the range narrows every week.",
+    "verdict_check_failed": "The control group did not split as planned this week, so no result is shown; we are checking.",
+    "bp_line": "Brand Pack reward, measured on its own (1 in {one_in} regulars did not get it): {low} to {high} for you (best estimate {best}). {verdict}",
+    "bp_only": "Brand Pack reward: {verdict}",
+    "bp_pays": "The Brand Pack reward brings in more profit from your regulars than it costs.",
+    "bp_costs": "The Brand Pack reward costs more than the extra orders it brings from your regulars.",
+    "bp_unclear": "Not yet clear whether the Brand Pack reward pays for itself.",
+    "bp_too_early": "Too early to tell whether the Brand Pack reward pays: too few orders from regulars so far.",
+    "open": "Open the Offers tab in the partner app to keep, change or stop it."
+  },
+  "otp": {
+    "approve_title": "Approve this offer",
+    "extra_orders": "Expected extra orders a week",
+    "extra_profit": "Expected extra profit a week",
+    "range": "Likely range",
+    "runs_for": "Runs for",
+    "runs_weeks": "{weeks} weeks, then needs a new OTP",
+    "who_pays": "You pay the discount and any Brand Pack rewards. Nothing is deducted without this approval.",
+    "who_pays_shared": "You pay the discount, except for customers new to Zomato, where Zomato pays {share}%. Brand Pack rewards are paid by you.",
+    "weekly": "A weekly summary comes on WhatsApp. If the offer is clearly losing money it pauses by itself.",
+    "enter": "Enter the OTP sent to your registered phone",
+    "button": "Approve with OTP"
+  }
+}
