@@ -851,7 +851,7 @@ async function renderHow() {
   <p>Restaurant discounts on Zomato are judged by the orders that <b>use</b> them, not the orders they <b>create</b>. Since August 2026 a restaurant-funded offer starts only after the owner approves it with an OTP, so an owner who can't see whether an offer pays will stop approving it. TrueLift shows them, before and after.</p>
   <h2>The problem in one picture</h2>
   <div class="split"><div><div class="waffle" role="img" aria-label="100 orders: 70 would have come anyway, 30 extra">${waffle}</div>
-      <div class="legend"><span><i style="background:var(--series-mute)"></i>70 orders that would have come anyway</span><span><i style="background:var(--red)"></i>30 extra orders</span></div></div>
+      <div class="legend"><span><i style="background:var(--series-mute)"></i>70 orders that would have come anyway</span><span><i style="background:var(--series)"></i>30 extra orders</span></div></div>
     <div><p class="p">A ₹60-off offer on ₹400 orders: <b>100 orders used it</b>. The report shows 100. But 70 would have come anyway at full price, so the restaurant gave away ₹4,200 for nothing and ends the week <b>₹210 worse off</b>.</p>
       <p class="p">₹60 off pays for itself only if at least <b>32 of every 100</b> orders using it are truly extra. Nobody measures that today. TrueLift does.</p></div></div>
   <h2>Four steps inside Zomato's existing offer flow</h2>
@@ -874,7 +874,7 @@ async function renderHow() {
     <div class="tile"><div class="v">${quoteMs}</div><div class="l">median time per forecast over HTTP, comparing about 34 versions of an offer</div></div>
     <div class="tile"><div class="v">Weekly</div><div class="l">batch measurement per offer; no change to how customers order</div></div>
   </div>
-  ${P ? `<h2>Does it work?</h2><p>In a simulated market of 300 real Bengaluru listings, <b>${P.truelift.offers_that_pay} of 300</b> TrueLift offers pay for themselves against <b>${P.today_blanket.offers_that_pay}</b> blanket offers, and restaurants make ${lakh(P.truelift.restaurant_profit_change)} vs ${lakh(P.today_blanket.restaurant_profit_change)} extra profit a week.${v ? ` On real randomised data (Criteo's ad holdouts), the model's top 30% picks hold ${pct(v.value)} of all the extra visits.` : ""} Details on the Evidence tab.</p>` : ""}
+  ${P ? `<h2>Does it work?</h2><p>In a simulated market of 300 real Bengaluru listings, <b>${P.truelift.offers_that_pay} of ${P.truelift.restaurants_with_offer}</b> TrueLift offers pay for themselves against <b>${P.today_blanket.offers_that_pay} of ${P.today_blanket.restaurants_with_offer}</b> blanket offers, and restaurants make ${lakh(P.truelift.restaurant_profit_change)} vs ${lakh(P.today_blanket.restaurant_profit_change)} extra profit a week.${v ? ` On real randomised data (Criteo's ad holdouts), the model's top 30% picks hold ${pct(v.value)} of all the extra visits.` : ""} Details on the Evidence tab.</p>` : ""}
   <h2>Words used on this site</h2>
   <div class="gloss">
     <div><b>Extra orders</b>Orders that happened only because of the offer.</div>
