@@ -889,7 +889,9 @@ def slides() -> list[Slide]:
         Slide(
             title="Appendix: research with restaurant owners",
             body=(
-                '<div class="col"><p><b>Not yet conducted.</b> The kit is ready: question sheets in English (Hindi and '
+                '<div class="col"><p><b>One interview so far.</b> On 17 November a team member showed the demo to the '
+                "manager of a chain outlet in Gandhinagar; its note is not written up yet.</p>"
+                "<p>The kit for the rest is ready: question sheets in English (Hindi and "
                 "Gujarati drafts), a consent script, comprehension cards that put today's offer report beside "
                 "TrueLift's weekly result, and a note template.</p>"
                 "<p>What we will bring back: whether commission is charged before or after the discount, what an offer "
@@ -897,10 +899,14 @@ def slides() -> list[Slide]:
                 '<p class="small">We publish no finding we have not collected (docs/field_research.md).</p></div>'
             ),
             points=[
-                "Not yet conducted. The kit is ready: question sheets, consent script, comprehension cards, note template.",
+                "One interview so far (17 Nov, a chain outlet's manager, Gandhinagar); its note is not written up yet.",
+                "The kit for the rest is ready: question sheets, consent script, comprehension cards, note template.",
                 "We will bring back: the commission base, what reports and the OTP screen show, which wording owners read.",
             ],
-            notes=["If asked: say plainly that the interviews are not done yet, and what the kit will find out."],
+            notes=[
+                "If asked: one interview so far and its note is not written up, so we report no finding yet; "
+                "say what the kit will find out."
+            ],
             source="docs/field_research.md, docs/field_research/",
             visual=False,
             appendix=True,

@@ -1,16 +1,19 @@
 # Current state
 
-Last updated: 15 Nov 2026 by Kshitish (Claude), release v2.0.0 of branch `kshitish`. Overwrite lines that become wrong;
+Last updated: 18 Nov 2026 by Kshitish (Claude), README rewrite and first interview on branch `kshitish`. Overwrite lines that become wrong;
 do not append history here (history goes in SESSIONS.md).
 
 ## Status
 - Round 2 submission is live from `main` (tag `round2-submission`). Branch `kshitish` holds the audited rebuild
   (service v1, measurement, market analyses, real-data checks, restyle, docs); not merged into `main` yet.
+- 18 Nov: README rewritten (animated guided demo, phone screens, problem picture, Zomato's side, evidence, first
+  interview); its images live in `docs/img/` and are retaken by `python tasks.py screenshots` from `site/`.
 - Branches: `main` (shared), `kshitish` (Kshitish's work, CI publishes the demo from it on `[deploy]`), `gh-pages`
   (generated demo site, do not edit).
 - Public demo https://yashg1836.github.io/truelift/ is published by CI from `kshitish` (`build.json` names the commit);
   15 Nov: 32 restaurants, browser tests pass against the public URL. Fresh clone: installs, tests pass, quick run
-  reproduces the golden snapshot.
+  reproduces the golden snapshot. Not yet published: the 18 Nov How it works fixes (legend swatch blue,
+  "218 of 228"); the next `[deploy]` publishes them.
 - Release v2.0.0 https://github.com/YashG1836/truelift/releases/tag/v2.0.0: annotated tag on `8ac3ca4`, the commit
   the public demo is built from. Files: `truelift-offline.zip` (made from that deployed site; offline browser tests
   8 of 8), `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`; SHA-256 in the notes. Tag `round2-submission` unchanged.
@@ -54,6 +57,8 @@ do not append history here (history goes in SESSIONS.md).
 
 ## Open tasks (owner in brackets; change when you pick one up)
 1. [team] Interview 6-8 restaurant owners with the field kit (`docs/field_research.md`, `docs/field_research/`).
+   One done 17 Nov (manager of a chain outlet, Gandhinagar; photos in `docs/field_research/photos/`, D17): write
+   up its note from the template, fill the table, delete the raw photos.
 2. [team] Native-speaker review of `truelift/static/i18n/{hi,kn,gu}.json`, then switch `TRUELIFT_LANGUAGES=1` (D4).
 3. [team] Send Eternal the questions in `docs/method_and_evidence.md` §10.
 4. [team] Rehearse with `docs/pitch/runbook.md` (three runs) and own ten questions each from `docs/pitch/questions.md`.
@@ -63,6 +68,7 @@ do not append history here (history goes in SESSIONS.md).
 
 ## Known limits (say these if asked)
 - All outcomes are simulated; only the real-data checks (ads, e-mail) are real, and neither is about restaurant offers.
+- One interview with a restaurant manager so far; no findings until its note is written up.
 - The suggested version's stated advantage runs well above its true advantage.
 - Across ten holdout draws the four-week estimate over-states the truth by about ₹450 an offer (model prior bias).
 - Small restaurants: a 10% holdout alone gives ±5.4 points in a week on a 3-point effect, so the estimate leans on
@@ -70,7 +76,7 @@ do not append history here (history goes in SESSIONS.md).
 
 ## Who is on what (update when you start or finish; prevents two people editing the same file)
 - Yash: idle since 13 Nov; to review the `truelift/static/` restyle on `kshitish`.
-- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check), release v2.0.0. Remaining
-  items are the team's: `docs/handoff.md`.
+- Kshitish: branch `kshitish`. M1-M5 done (build, evidence, docs, pitch, deploy, clean-clone check), release v2.0.0,
+  README rewrite and interview record (18 Nov). Remaining items are the team's: `docs/handoff.md`.
   Files: `truelift/*`, `scripts/*`, `tests/*`, `docs/*`, `.github/*`.
 - Bhavay: not started in the repo yet. Add your area here.

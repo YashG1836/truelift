@@ -41,9 +41,9 @@ targets and measures each offer by the extra orders and profit it creates, insid
 | `truelift/i18n.py`, `truelift/static/i18n/` | Owner texts in en/hi/kn/gu (drafts off until reviewed, D4) |
 | `truelift/static/` | Partner-app UI (index.html, app.js, style.css): guided demo, How it works, Evidence, Money maths |
 | `scripts/` | build_restaurants, run_pipeline (+ measurement_study), sensitivity, benchmark_learners, experiments, bench_latency, export_static (static site), build_offline, render_tables, check_claims (claims ledger `docs/claims.yml`), get_data + validate_uplift (Criteo, Hillstrom), compare_reports, shadow_measure + make_sample_events (shadow kit), pilot_sample_size, make_deck + make_video (pitch) |
-| `tests/` | pytest by area (economics, simulator, engine, api, consistency, statistics, market, fairness, monitoring, shadow, pitch), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests (+ `print_pdf.js`, `record_demo.js` for the pitch); `tests/load/` Locust; `ui_check.js` (older browser check) |
-| `docs/` | method_and_evidence (write-up), what_we_tested, integration_blueprint (+ `events/`, `openapi.json`), architecture, model_card, simulator_datasheet, privacy_and_fairness, `decisions/`, `field_research.md` + `field_research/` (kit), `pitch/` (deck, notes, runbook, questions, one-pager, video) |
-| `tasks.py`, `Makefile` | One entry point for setup, test, lint, pipeline, serve, export, reproduce, golden, docker |
+| `tests/` | pytest by area (economics, simulator, engine, api, consistency, statistics, market, fairness, monitoring, shadow, pitch), `test_golden.py` (numbers), `test_fuzz.py` (contract); `tests/ui/` Playwright browser tests (+ `print_pdf.js`, `record_demo.js` for the pitch, `screenshots.js` for the README images); `tests/load/` Locust; `ui_check.js` (older browser check) |
+| `docs/` | method_and_evidence (write-up), what_we_tested, integration_blueprint (+ `events/`, `openapi.json`), architecture, model_card, simulator_datasheet, privacy_and_fairness, `decisions/`, `field_research.md` + `field_research/` (kit, interview `photos/`), `pitch/` (deck, notes, runbook, questions, one-pager, video), `img/` (README images) |
+| `tasks.py`, `Makefile` | One entry point for setup, test, lint, pipeline, serve, export, reproduce, golden, docker, deck, video, screenshots |
 | `Dockerfile`, `compose.yaml` | The service in a container (non-root, health check) |
 | `.github/workflows/` | CI (lint, tests on Linux and Windows, golden + fuzz, browser tests, Docker, gated deploy), CodeQL |
 | `reports/` | Pipeline outputs. Every number in docs and UI must trace to a file here |
@@ -70,6 +70,7 @@ python tasks.py export                   # site/ with the 32 demo restaurants (~
 python tasks.py golden                   # re-record tests/golden/ after an intended change in the numbers
 python tasks.py deck                     # pitch deck, notes, one-pager (PDF + PPTX) from reports/ -> docs/pitch/
 python tasks.py video                    # captioned guided-demo recording -> docs/pitch/demo.mp4 (after export)
+python tasks.py screenshots              # ~30 s: the README images -> docs/img/ (animated tour, phone screens; after export)
 python scripts/check_claims.py           # every number in the docs against reports/ (docs/claims.yml)
 cd tests/ui && npm ci && npx playwright install chromium && npx playwright test   # browser tests, static + live
 ```

@@ -19,8 +19,10 @@
     python tasks.py docker             build the image and run it on port 8000
     python tasks.py deck               pitch deck, notes and one-pager from reports/ -> docs/pitch/
                                        (PDF and PPTX; needs the UI tests' Chromium)
-    python tasks.py video              captioned recording of the guided demo -> docs/pitch/demo.mp4
-                                       (needs `python tasks.py export` first)
+    python tasks.py video              captioned recording of the guided demo -> docs/pitch/demo.mp4,
+                                       and the README images (needs `python tasks.py export` first)
+    python tasks.py screenshots        only the README images -> docs/img/ (animated tour, phone
+                                       screens, pictures; needs site/ from `python tasks.py export`)
 
 Uses `uv run` when uv is installed; otherwise the Python running this file (so an activated
 virtual environment with requirements-dev.txt works too). Standard library only.
@@ -205,6 +207,10 @@ def video(a) -> int:
     return run([*py_media(), "scripts/make_video.py"])
 
 
+def screenshots(a) -> int:
+    return run([*py_media(), "scripts/make_video.py", "--no-video"])
+
+
 def docker(a) -> int:
     return run(["docker", "build", "-t", "truelift", "."]) or run(
         ["docker", "run", "--rm", "-p", f"{a.port}:8000", "truelift"]
@@ -254,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
     p.set_defaults(fn=docker)
     sub.add_parser("deck").set_defaults(fn=deck)
     sub.add_parser("video").set_defaults(fn=video)
+    sub.add_parser("screenshots").set_defaults(fn=screenshots)
     a = ap.parse_args(argv)
     return a.fn(a)
 

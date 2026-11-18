@@ -360,9 +360,10 @@ test the method, not Zomato's numbers.
 
 The field kit in `docs/field_research/` (question sheets in English, Hindi and Gujarati, a consent
 script, a note template, comprehension cards that compare today's offer report with TrueLift's
-weekly result, and a target-outlet sheet) is ready. The interviews themselves are the team's to do;
-`docs/field_research.md` holds the method and an empty findings table marked "not yet conducted".
-We publish no finding we have not collected.
+weekly result, and a target-outlet sheet) is ready. The first interview took place on 17 November
+2026: a team member showed the demo to the manager of a chain outlet in Gandhinagar. Its note is not
+written up yet, so the findings table in `docs/field_research.md` is still empty. We publish no
+finding we have not collected.
 
 ## 8. Demo script (about 5 minutes)
 

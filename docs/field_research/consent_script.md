@@ -41,6 +41,9 @@ Then ask separately: "May we take a photo of a report or statement, with the det
 - No names of owners, staff or customers in any note, file or slide.
 - Photos only with permission; crop or cover customer names, phone numbers, order ids and the
   restaurant's name before the photo leaves the phone; delete the raw photo.
+- A photo of the conversation itself needs the person's own agreement to appear in a public
+  repository. Blur everyone else and any restaurant name, and strip the file's metadata, before it
+  is committed; the raw photo never goes into the repository (decision D17).
 - Nothing is recorded on audio or video.
 - If an owner asks to see their notes or to withdraw, delete their note and say so in the findings
   table ("one interview withdrawn").

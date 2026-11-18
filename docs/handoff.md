@@ -11,7 +11,9 @@ do. Each says why it matters and when it is done.
    team. Each member owns ten questions of `docs/pitch/questions.md` and answers them without notes.
    *Done when* the talk ends 30 seconds inside the limit twice in a row.
 2. **Interview six to eight restaurant owners** with the kit in `docs/field_research/` (consent script
-   first; question sheets; comprehension cards). Fill the tables in `docs/field_research.md` from the
+   first; question sheets; comprehension cards). The first took place on 17 November with the
+   manager of a chain outlet in Gandhinagar (photos in `docs/field_research/photos/`); its note is
+   still to be written up. Fill the tables in `docs/field_research.md` from the
    written notes only, as counts. If a finding changes the product or the pitch, list the change.
    *Why:* every rupee in the evidence is simulated; owners are the only real evidence we can collect
    this week, and one payout statement settles the commission question. *Done when* at least six

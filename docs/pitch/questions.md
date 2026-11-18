@@ -169,7 +169,8 @@ against 70%, so the restaurant's own evidence builds faster.
 *Source: `reports/evaluation.json` (detection, adaptive rule).*
 
 **25. Will owners understand a range?**
-Not yet tested with owners. The page shows both a range and a chance ("8 in 10 chance it makes
+Not yet measured: one interview so far (17 November, the manager of a chain outlet in
+Gandhinagar), and its note is not written up yet. The page shows both a range and a chance ("8 in 10 chance it makes
 you money"), and the field kit tests which one owners read correctly. We publish no finding we
 have not collected.
 *Source: `docs/field_research.md`, `docs/field_research/comprehension_cards.md`.*

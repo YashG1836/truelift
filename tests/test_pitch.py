@@ -1,10 +1,28 @@
 """The pitch deck, its notes and the one-pager are generated from reports/ (scripts/make_deck.py):
 the committed files must say exactly what the reports say now, so a slide can never keep an old
-number. Rebuild with `python tasks.py deck`."""
+number. Rebuild with `python tasks.py deck`. The README is the first page judges read, so every
+file it links to or shows must exist."""
 
 from __future__ import annotations
 
+import re
+from pathlib import Path
+
 import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+# Markdown links and images, and HTML src/href attributes, that point inside the repository
+LOCAL_LINK = re.compile(r"\]\(([^)\s]+)\)|(?:src|href)=\"([^\"]+)\"")
+
+
+@pytest.mark.parametrize("doc", ["README.md", "docs/field_research.md"])
+def test_readme_links_point_to_files_that_exist(doc):
+    text = (ROOT / doc).read_text(encoding="utf-8")
+    targets = [a or b for a, b in LOCAL_LINK.findall(text)]
+    local = [t.split("#")[0] for t in targets if not t.startswith(("http://", "https://", "mailto:", "#"))]
+    assert local, f"no local links found in {doc}"
+    missing = [t for t in local if not (ROOT / doc).parent.joinpath(t).exists()]
+    assert not missing, f"{doc} links to files that do not exist: {missing}"
 
 
 def test_pitch_files_match_the_reports():

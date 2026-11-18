@@ -13,6 +13,23 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 18 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (README, screenshots, first interview)
+- Did: README rewritten for judges: intro and links, the guided demo as `docs/img/tour.gif`, the 100-order problem
+  picture, four phone screens, Zomato's side, results (seeds, weekly measurement and real-data tables generated, in
+  `<details>`), the hooks diagram (mermaid), field research with two photos, a repository map. `tests/ui/screenshots.js`
+  takes every image (`python tasks.py screenshots` = `make_video.py --no-video`, GIF via imageio-ffmpeg); old
+  `docs/demo_*.png` removed. First owner interview recorded (17 Nov, manager of a chain outlet, Gandhinagar; no
+  findings until the note is written): field_research.md, consent rule, method §7, handoff 2, DEVLOG Next, Q25, deck
+  slide A6 (deck rebuilt), D17. How it works page: legend swatch blue, "218 of 228" (code only, not deployed).
+- Files: README.md, docs/img/, docs/field_research*, docs/claims.yml (7 README claims), tests/ui/screenshots.js,
+  scripts/make_video.py, scripts/make_deck.py, tasks.py, tests/test_pitch.py, truelift/static/app.js, docs/pitch/.
+- Checked: claims 194 of 194, tables, fast tests 173 passed, lint (ruff, format, pyright 0 errors), Playwright
+  static + phone 8 of 8 and `ui_check.js` (no problems) on `site/` refreshed with `export_static.py --assets`.
+  Every image and both photos looked at. Not checked: the public URL (the fixes are not deployed).
+- Numbers changed: none (the README's money example is now in the ledger).
+- Next / open: the team merges the pull request `kshitish` -> `main` (merge commit); the next `[deploy]` publishes the
+  How it works fixes; write up interview 1's note and delete the raw photos.
+
 ## 15 Nov 2026 · Kshitish (Claude Opus) · branch kshitish (release v2.0.0)
 - Did: owner's go-ahead, so annotated tag `v2.0.0` on `8ac3ca4` (the deployed commit) and the GitHub release with
   the CHANGELOG 2.0.0 notes and three files: `truelift-offline.zip`, `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`.

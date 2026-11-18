@@ -2,6 +2,27 @@
 
 All notable changes, newest first. Versions follow semantic versioning; dates are IST.
 
+## Unreleased (branch `kshitish`, 18 November 2026)
+
+### Changed
+- README rewritten for first-time readers: the guided demo as an animated image, the 100-order problem
+  picture, four phone screens of the owner's flow, Zomato's side of an offer, the results with the seeds,
+  weekly-measurement and real-data tables (generated), the hooks diagram and a map of the repository. Its
+  money example is in the claims ledger (seven claims).
+- The README's images are retaken by one command, `python tasks.py screenshots` (`tests/ui/screenshots.js`,
+  `scripts/make_video.py --no-video`), into `docs/img/`; the two older screenshots are removed.
+- Field research: the first interview (17 November, the manager of a chain outlet in Gandhinagar) is recorded
+  with two photos, published with the manager's permission and blurred elsewhere (decision D17). No findings
+  until its note is written up; documents that said "not yet conducted" say so, and the deck's appendix
+  slide is rebuilt.
+
+### Fixed
+- How it works page: the legend swatch for extra orders is blue like the squares (it was brand red), and the
+  page says "218 of 228 TrueLift offers" (it said "of 300").
+
+### Added
+- A test that every file the README and the field-research page link to or show exists.
+
 ## 2.0.0 (branch `kshitish`, 14–15 November 2026)
 
 The Round 2 build after a full self-audit (50 findings, numbered TL-001 to TL-050). Each fix is

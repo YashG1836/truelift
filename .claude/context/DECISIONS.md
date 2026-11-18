@@ -56,3 +56,7 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   while restaurant profit falls and losing offers rise (quick: 10 -> 19), because both sides earn from the same
   extra orders. The 60%-chance-of-profit floor applies at any weight. `Engine.best_design(zomato_weight=...)` stays
   for the analysis.
+- D17. (Kshitish, 18 Nov.) A photo of an interview is published only with the interviewee's own agreement to appear
+  in a public repository. Everyone else's face and any restaurant name are blurred, the file carries no metadata,
+  and the raw photo never enters git (`docs/field_research/photos/`, made with Pillow). Why: the consent script
+  promises not to name restaurants, and diners in the background agreed to nothing.

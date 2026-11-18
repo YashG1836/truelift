@@ -169,7 +169,9 @@ python tasks.py serve            # the full service and page at http://localhost
 
 ## Next
 
-1. Interview 6–8 restaurant owners with the field kit (`docs/field_research.md`).
+1. Interview 6–8 restaurant owners with the field kit (`docs/field_research.md`). The first, with
+   the manager of a chain outlet in Gandhinagar, took place on 17 November 2026; its note is still
+   to be written up.
 2. Ask Eternal whether commission is charged before or after the discount (break-even 32% against 45%
    at 15% off) and whether anonymised offer logs or a shadow holdout are possible.
 3. A shadow holdout on real offers in one city, then the randomised pilot sized in

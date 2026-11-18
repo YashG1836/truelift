@@ -96,7 +96,7 @@ docs/privacy_and_fairness.md has the regulatory map, marked as our reading.
 
 ## A6. Appendix: research with restaurant owners
 
-If asked: say plainly that the interviews are not done yet, and what the kit will find out.
+If asked: one interview so far and its note is not written up, so we report no finding yet; say what the kit will find out.
 
 ## A7. Appendix: if commission is charged before the discount, break-even rises to 45 in 100
 

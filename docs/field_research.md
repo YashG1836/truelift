@@ -1,8 +1,18 @@
 # Research with restaurant owners
 
-**Status: not yet conducted.** No interview has taken place. This page holds the method and the
-empty tables the findings will go into. Nothing below is a finding until a row is filled from a
-written interview note.
+**Status: one interview of six to eight done.** On 17 November 2026 a team member showed the demo
+to the manager of a chain outlet in Gandhinagar. Its note is not written up yet, so the tables below
+are still empty. This page holds the method and the tables the findings will go into. Nothing below
+is a finding until a row is filled from a written interview note.
+
+<p>
+  <img src="field_research/photos/interview_01_a.jpg" width="400" alt="A team member talks the manager of a chain outlet in Gandhinagar through TrueLift">
+  <img src="field_research/photos/interview_01_b.jpg" width="400" alt="The manager watches the TrueLift demo on the team member's phone">
+</p>
+
+The first interview, 17 November 2026: a team member talks the manager through TrueLift, then shows
+the demo on a phone. The photos are published with the manager's permission; other diners' faces
+and the restaurant's name are blurred, and the files carry no metadata (decision D17).
 
 ## Why
 
@@ -49,6 +59,9 @@ The phone runs the offline demo (`python scripts/build_offline.py`, then open
   even-numbered ones).
 - Photos of screens only with permission, with customer names, phone numbers and the restaurant's
   name covered or cropped. Delete raw photos after cropping.
+- A photo of the conversation itself only if the person agrees to appear in a public repository.
+  Blur everyone else and any restaurant name, and strip the file's metadata, before it is committed
+  to `field_research/photos/` (decision D17).
 
 ## How to report
 
@@ -58,7 +71,8 @@ anonymous. A finding that changes the product is listed with the change it cause
 
 ## Findings
 
-Not yet conducted.
+One interview done (17 November 2026, the manager of a chain outlet in Gandhinagar). Its note is
+not written up yet, so no row below is filled.
 
 | # | Restaurant (described, not named) | Area | Rough Zomato orders a week | Offer report seen | Payout statement seen | Commission base | OTP approval seen |
 |---|---|---|---|---|---|---|---|
