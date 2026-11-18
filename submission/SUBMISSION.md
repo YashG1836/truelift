@@ -11,7 +11,7 @@ IITGN × Eternal hackathon, Round 2.
 | Code (GitHub) | https://github.com/YashG1836/truelift |
 | Report (IEEE format, PDF) | https://github.com/YashG1836/truelift/blob/main/submission/TrueLift_Report.pdf |
 | Presentation (PDF) | https://github.com/YashG1836/truelift/blob/main/submission/TrueLift_Presentation.pdf |
-| Demo video (MP4) | https://github.com/YashG1836/truelift/blob/main/submission/TrueLift_Demo.mp4 |
+| Demo video (MP4, downloads) | https://github.com/YashG1836/truelift/raw/main/submission/TrueLift_Demo.mp4 |
 | Offline demo (zip, runs without internet) | https://github.com/YashG1836/truelift/releases/tag/v2.0.0 |
 | Full write-up: method, evidence, limits | https://github.com/YashG1836/truelift/blob/main/docs/method_and_evidence.md |
 | Round 1 problem statement | https://github.com/YashG1836/truelift/blob/main/docs/round1_problem_statement.pdf |
