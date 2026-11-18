@@ -61,6 +61,9 @@ b, strong { color: var(--ink); font-weight: 700; }
 .phone .scr { border-radius: 25px; overflow: hidden; background: #fff; height: 515px; }
 .phone img { width: 100%; display: block; }
 .phone-cap { margin-top: 10px; font-size: 15px; color: var(--muted); text-align: center; width: 300px; }
+/* a whole card from the demo, never cropped: scaled to fit its box */
+.shot { display: block; width: 300px; height: auto; max-height: 540px; object-fit: contain; object-position: top;
+  border-radius: 14px; background: var(--bg); }
 
 /* the guided demo's caption card */
 .tour { background: #1c1c1c; color: #fff; border-radius: 16px; padding: 22px 26px 24px; box-shadow: var(--shadow-lg); }
@@ -123,7 +126,7 @@ table.money tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; fo
   </div>
   <div class="who">Team Banana, IIT Gandhinagar<br>Yash Goyal · Bhavay Goyal · Kshitish Madbhavi<br><span>IITGN × Eternal hackathon, Round 2</span></div>
   <div style="position:absolute; right:300px; top:70px;">
-    <div class="phone"><div class="scr"><img src="{{img:owner_forecast}}" alt="The forecast screen"></div></div>
+    <img class="shot" style="width:330px; max-height:560px; box-shadow: var(--shadow-lg)" src="{{img:owner_better}}" alt="TrueLift's better version">
   </div>
   <div style="position:absolute; right:56px; top:250px; width:210px;">
     <div class="qrbox">{{qr}}<div>Try the demo on your phone</div></div>
@@ -215,8 +218,8 @@ table.money tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; fo
   <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
   <div class="body">
     <div class="cols" style="gap:28px">
-      <div><div class="phone"><div class="scr"><img src="{{img:owner_forecast}}" alt="The forecast of the owner's offer"></div></div><div class="phone-cap">The owner's usual offer</div></div>
-      <div><div class="phone"><div class="scr"><img src="{{img:owner_better}}" alt="TrueLift's better version"></div></div><div class="phone-cap">TrueLift's better version</div></div>
+      <div><img class="shot" src="{{img:owner_forecast}}" alt="The forecast of the owner's offer"><div class="phone-cap">The owner's usual offer</div></div>
+      <div><img class="shot" src="{{img:owner_better}}" alt="TrueLift's better version"><div class="phone-cap">TrueLift's better version</div></div>
       <div style="flex:1; padding-top:20px">
         <div class="tour">
           <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -237,7 +240,7 @@ table.money tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; fo
   <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
   <div class="body">
     <div class="cols" style="gap:30px">
-      <div class="card" style="padding:10px; flex:none"><img src="{{img:who_sees}}" alt="Who sees the discount" style="height:530px; display:block; border-radius:8px"></div>
+      <div class="card" style="padding:10px; flex:none"><img src="{{img:who_sees}}" alt="Who sees the discount" style="height:540px; display:block; border-radius:8px"></div>
       <div style="flex:1; padding-top:20px">
         <div class="tour">
           <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
@@ -257,8 +260,8 @@ table.money tr.total td { border-top: 2px solid var(--ink); border-bottom: 0; fo
   <div class="top"><span class="wordmark">truelift</span><small>Prototype for Zomato's restaurant partner app</small><div class="steps"></div></div>
   <div class="body">
     <div class="cols" style="gap:28px">
-      <div><div class="phone"><div class="scr"><img src="{{img:owner_otp}}" alt="The OTP approval"></div></div><div class="phone-cap">The OTP approval</div></div>
-      <div><div class="phone"><div class="scr"><img src="{{img:owner_result}}" alt="The result after four weeks"></div></div><div class="phone-cap">Four weeks later</div></div>
+      <div><img class="shot" src="{{img:owner_otp}}" alt="The OTP approval"><div class="phone-cap">The OTP approval</div></div>
+      <div><img class="shot" src="{{img:owner_result}}" alt="The result after four weeks"><div class="phone-cap">Four weeks later</div></div>
       <div style="flex:1; padding-top:20px">
         <div class="tour">
           <div class="seg"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>

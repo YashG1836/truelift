@@ -12,10 +12,12 @@ Overwrite lines that become wrong; do not append history here (history goes in S
   from the claims ledger and generated tables; needs tectonic and Chrome). The README links each file.
 - Branches: `main` (shared; CI publishes the demo from it on `[deploy]`), `kshitish` (Kshitish's work), `gh-pages`
   (generated demo site, do not edit).
-- Public demo https://yashg1836.github.io/truelift/ (`build.json` names the commit it was built from). Last published
-  15 Nov from `kshitish@8ac3ca4`, 32 restaurants. From 18 Nov CI publishes from `main` (both branch names in `ci.yml`
-  changed); the merge follow-up commit carries `[deploy]`, which also publishes the 18 Nov How it works fixes
-  (legend swatch blue, "218 of 228"). Check `build.json` and the Actions run before saying it is live.
+- Public demo https://yashg1836.github.io/truelift/ (`build.json` names the commit it was built from): published
+  18 Nov from `main@d39e35b1` by CI (every job green, browser tests on the public URL passed), 32 restaurants, with
+  the How it works fixes. CI publishes from `main` on `[deploy]`.
+- README images (`docs/img/`, `python tasks.py screenshots` after `python tasks.py export 233`): whole cards only,
+  nothing cut at an edge; `owner_flow.png` is the owner's four screens two by two; the guided-demo GIF is taken at
+  1440 x 1000 so every frame shows the whole phone. The report and slides use the same images.
 - Release v2.0.0 https://github.com/YashG1836/truelift/releases/tag/v2.0.0: annotated tag on `8ac3ca4`, the commit
   the public demo is built from. Files: `truelift-offline.zip` (made from that deployed site; offline browser tests
   8 of 8), `TrueLift_deck.pdf`, `TrueLift_one_page.pdf`; SHA-256 in the notes. Tag `round2-submission` unchanged.

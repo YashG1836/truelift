@@ -13,6 +13,17 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 19 Nov 2026 · Yash (Claude Opus) · branch main (README screenshots)
+- Did: every README image retaken whole (Yash: no cut screenshots). `tests/ui/screenshots.js`: phone cards are
+  captured from their top to their bottom with a margin and the cards around them hidden; new `owner_flow.png`
+  (the four owner screens, two by two, captioned) replaces four small cropped phone frames; `who_sees.png` is the
+  whole panel with six visitors; GIF frames at 1440 x 1000 keep the whole phone in view (a low panel gets the
+  visitor list folded for that frame). Slides 1, 6, 8 and the report's Fig. 2 use the whole cards.
+- Also: the 18 Nov deploy from `main` succeeded (all jobs green); CodeQL 0 open alerts after the set-comparison fix.
+- Files: tests/ui/screenshots.js, docs/img/*, README.md, submission/* (rebuilt), .claude/context/*.
+- Checked: every image and GIF frame looked at; claims 198 of 198, tables, test_pitch 4 passed.
+- Numbers changed: none.
+
 ## 18 Nov 2026 · Yash (Claude Opus) · branch main (merge, README, submission folder)
 - Did: reviewed pull request #1 (CI green; locally lint 0 errors, 185 tests, 194 claims, tables, photos have no
   metadata and bystanders blurred) and merged it with a merge commit (`02ff475a`). Deploy moved to `main` (both

@@ -39,12 +39,7 @@ measures that today, so owners approve blind, or stop approving. TrueLift measur
 
 ## What the owner sees
 
-<p>
-  <img src="docs/img/owner_forecast.png" width="160" alt="The forecast of the owner's offer before approval">
-  <img src="docs/img/owner_better.png" width="160" alt="TrueLift's better version of the same discount">
-  <img src="docs/img/owner_otp.png" width="160" alt="The OTP approval with the forecast, its range and the four-week period">
-  <img src="docs/img/owner_result.png" width="160" alt="What the offer really added after four weeks">
-</p>
+![The owner's four screens: the forecast before approval, a better version of the same discount, the OTP approval, and what the offer really added after four weeks](docs/img/owner_flow.png)
 
 1. **A forecast before approval:** the extra orders and profit the offer is likely to bring, with a
    range, and how many of the orders using it would have come anyway.
