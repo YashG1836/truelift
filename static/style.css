@@ -73,11 +73,10 @@ a { color: var(--red); }
 .skip:focus { left: 12px; }
 
 /* ---------- top bar (Zomato web header: white, wordmark, search-style picker, text links) ---------- */
-.top { display: flex; align-items: center; gap: 24px; padding: 12px 24px; background: var(--card);
+.top { display: flex; align-items: center; gap: 24px; padding: 8px 24px; background: var(--card);
   border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.brand { display: flex; align-items: center; flex-shrink: 0; }
 .wordmark { font-weight: 700; font-style: italic; font-size: 27px; letter-spacing: -0.03em; color: var(--ink); line-height: 1; }
-.brand small { display: block; font-weight: 400; font-size: 12px; color: var(--muted); line-height: 1.3; max-width: 260px; }
 nav { display: flex; gap: 4px; }
 nav button { border: 0; background: none; padding: 12px 10px 10px; color: var(--ink-2); font-weight: 400; font-size: 15px;
   border-bottom: 2px solid transparent; min-height: 44px; }
@@ -91,7 +90,10 @@ nav button.on { color: var(--red); border-bottom-color: var(--red); font-weight:
 .btn-tour { border: 1px solid var(--red); color: var(--red); background: var(--card); border-radius: 10px; padding: 0 16px; height: 44px;
   font-weight: 600; white-space: nowrap; }
 .btn-tour:hover { background: var(--red-soft); }
-.sim-note { background: var(--amber-soft); border-bottom: 1px solid var(--amber-line); color: var(--amber-ink); font-size: 13px; padding: 7px 24px; text-align: center; }
+/* page foot: who made it and the simulated-data note, small, at the end of every tab (D7) */
+.foot { max-width: 1320px; margin: 0 auto; padding: 18px 24px 28px; border-top: 1px solid var(--line); text-align: center;
+  font-size: 12.5px; line-height: 1.5; color: var(--muted); }
+.foot p { margin: 0 auto 4px; max-width: 900px; }
 .tab { display: none; }
 .tab.on { display: block; }
 
@@ -265,7 +267,17 @@ table.t caption { text-align: left; font-size: 13px; color: var(--muted); paddin
 .scale { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; scroll-behavior: auto !important; } }
+/* one line down to about 1200 px; below that the label goes and the links tighten; below 1040 px the links take a second row */
+@media (max-width: 1240px) {
+  .top { gap: 16px; }
+  .pick label { display: none; }
+  .pick select { max-width: 240px; }
+  nav button { padding: 12px 8px 10px; }
+}
 @media (max-width: 1040px) {
+  .top { row-gap: 0; }
+  nav { order: 3; width: 100%; overflow-x: auto; }
+  nav button { white-space: nowrap; }
   .demo { grid-template-columns: 1fr; padding: 16px; }
   .phone { position: static; width: 100%; max-width: 410px; height: 780px; margin: 0 auto; }
   .charts, .split, .gloss { grid-template-columns: 1fr; }
@@ -273,14 +285,15 @@ table.t caption { text-align: left; font-size: 13px; color: var(--muted); paddin
 }
 @media (max-width: 640px) {
   .top { padding: 10px 16px; gap: 8px; }
-  .brand small { display: none; }
   .wordmark { font-size: 24px; }
   nav { width: 100%; overflow-x: auto; }
   nav button { white-space: nowrap; padding: 10px 8px; }
-  .pick { margin-left: 0; width: 100%; }
+  /* phone: logo and Guided demo on one row, the links below, the restaurant picker (Demo tab only) last */
+  .pick { display: contents; }
   .pick label { display: none; }
-  .pick select { max-width: none; flex: 1; min-width: 0; }
-  .sim-note { padding: 6px 16px; text-align: left; }
+  .btn-tour { order: 2; margin-left: auto; height: 40px; padding: 0 14px; }
+  .pick select { order: 4; max-width: none; flex: 1 1 100%; min-width: 0; margin-bottom: 8px; }
+  .foot { padding: 16px 16px 24px; }
   .phone { border-width: 0; border-radius: 0; height: auto; min-height: 640px; box-shadow: none; }
   .page { padding: 20px 16px 44px; }
   .page h1 { font-size: 25px; }
