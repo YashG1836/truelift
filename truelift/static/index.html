@@ -15,7 +15,6 @@
 <header class="top">
   <div class="brand">
     <span class="wordmark" aria-label="TrueLift">truelift</span>
-    <small>Prototype for Zomato's restaurant partner app · IITGN × Eternal hackathon</small>
   </div>
   <nav aria-label="Sections">
     <button data-tab="overview" class="on">Overview</button>
@@ -27,11 +26,10 @@
   </nav>
   <div class="pick">
     <label for="rest" class="note">Restaurant</label>
-    <select id="rest"></select>
+    <select id="rest" aria-label="Restaurant"></select>
     <button class="btn-tour" id="tourBtn">▶ Guided demo</button>
   </div>
 </header>
-<div class="sim-note">Simulated data. Restaurant names and listing details (locality, cuisine, rating, price) are real public 2019 Zomato listings. Customers, orders and profits are simulated by our model; they are not these restaurants' real figures.</div>
 
 <main id="main">
   <section id="tab-overview" class="tab on"><div id="overview" class="page"></div></section>
@@ -56,6 +54,10 @@
   <section id="tab-money" class="tab"><div id="money" class="page"></div></section>
   <section id="tab-ops" class="tab"><div id="ops" class="page"></div></section>
 </main>
+<footer class="foot">
+  <p>TrueLift is a prototype for Zomato's restaurant partner app, made by Team Banana for the IITGN × Eternal hackathon.</p>
+  <p class="sim-note">Simulated data: restaurant names and listing details (locality, cuisine, rating, price) are real public 2019 Zomato listings; customers, orders and profits are simulated by our model and are not these restaurants' real figures.</p>
+</footer>
 
 <div class="tour" id="tour" role="dialog" aria-live="polite" aria-label="Guided demo">
   <div class="dots" id="tourDots"></div>

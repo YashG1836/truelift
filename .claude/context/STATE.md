@@ -1,6 +1,6 @@
 # Current state
 
-Last updated: 19 Nov 2026 by Yash (Claude): Overview tab published (main@ff16f41e).
+Last updated: 19 Nov 2026 by Yash (Claude): header on one line, simulated-data note moved to the page foot.
 Overwrite lines that become wrong; do not append history here (history goes in SESSIONS.md).
 
 ## Status
@@ -58,7 +58,8 @@ Overwrite lines that become wrong; do not append history here (history goes in S
   Flat and percentage designs (258 files a restaurant). Draft translations kept only for 233.
 - Tabs: Overview (opens first: what it is for, the problem, the solution, who gains, results, how we know, a map of
   the site; numbers from the evidence), Demo (guided demo, 10 steps, Back and keys; `#tab=demo`), How it works,
-  Evidence, Money maths, Operations. Tests and scripts open `#tab=demo`.
+  Evidence, Money maths, Operations. Tests and scripts open `#tab=demo`. Header is one line on desktop (no tagline);
+  the simulated-data note is the small page foot of every tab.
 - Offline bundle: `python scripts/build_offline.py` after an export -> `dist/truelift-offline/`.
 - Pitch in `docs/pitch/`: deck (PDF, PPTX, `deck.html`), speaker notes, runbook (choreography, failure drill,
   90-second audience script), 30-question bank (numbers in the claims ledger), one-pager with QR, `demo.mp4`.

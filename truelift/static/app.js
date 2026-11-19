@@ -267,7 +267,8 @@ async function boot() {
 function showTab(t) {
   document.querySelectorAll("nav button").forEach((b) => b.classList.toggle("on", b.dataset.tab === t));
   document.querySelectorAll(".tab").forEach((s) => s.classList.toggle("on", s.id === "tab-" + t));
-  $(".pick label").style.visibility = $(".pick select").style.visibility = t === "demo" ? "visible" : "hidden";
+  // the restaurant picker only matters on the Demo tab; elsewhere it takes no room in the header
+  $(".pick label").style.display = $(".pick select").style.display = t === "demo" ? "" : "none";
   const keep = LINK.generic ? "names=generic" : "";
   const hash = [t === "overview" ? "" : `tab=${t}`, keep].filter(Boolean).join("&");
   history.replaceState(null, "", hash ? `#${hash}` : location.pathname + location.search);

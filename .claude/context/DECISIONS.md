@@ -21,7 +21,7 @@ Format: ID. Decision. Why. Add new ones at the bottom with a date and who decide
   (₹1.95 L -> ₹1.96 L), and losing offers rise 15 -> 38 (`reports/exp_depth_choice.json`). Size stays the owner's
   call for now; a per-restaurant 4-week depth test picks the better size only 61% of the time
   (`exp_depth_test.json`), so a size change needs pooled or longer tests. Team to re-decide after the final run.
-- D7. Real restaurant names are shown (looks real), with "Simulated data" on every screen and doc.
+- D7. Real restaurant names are shown (looks real), with "Simulated data" on every screen and doc. On the demo site the note is the page foot of every tab (19 Nov: Yash did not want it as a bar under the header).
   Customers are synthetic; no real customer data anywhere. (Yash, 13 Nov.)
 - D8. Weekly measurement = restaurant's own 10% holdout combined with the model's prior by precision
   (empirical Bayes), plus regression adjustment (CUPED-style). Why: a holdout alone is too noisy for a

@@ -13,6 +13,17 @@ Template:
 - Next / open: what the next person should pick up.
 ```
 
+## 19 Nov 2026 · Yash (Claude Opus) · branch main (header on one line)
+- Did: header is one line on desktop (logo, links, picker, Guided demo); the tagline under the logo is gone; the
+  restaurant picker takes no room outside Demo (`display:none`, was `visibility:hidden`). The yellow "Simulated data"
+  bar under the header is now a small grey page foot (`<footer class="foot">`, who made it + the simulated-data
+  note, D7). Below 1240 px the "Restaurant" label hides (select has `aria-label`); below 1040 px the links take a
+  second row; phone: logo + Guided demo, then links, then the picker on Demo.
+- Files: truelift/static/{index.html,app.js,style.css}.
+- Checked: fast tests 172, lint 0 errors, Playwright static + phone + live 12 of 12, ui_check no problems,
+  screenshots at 1470 / 1280 / 1180 / 1024 / 390 px on Overview and Demo.
+- Numbers changed: none. README images and submission PDFs still show the old header (not retaken).
+
 ## 19 Nov 2026 · Yash (Claude Opus) · branch main (Overview page)
 - Did: new Overview tab, the page the site opens on (`renderOverview` in app.js, `.ov-*` styles): what TrueLift
   is for, the problem with the 100-order picture, why now, the four steps, who gains, what it achieves (numbers from
