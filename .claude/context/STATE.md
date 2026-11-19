@@ -13,8 +13,8 @@ Overwrite lines that become wrong; do not append history here (history goes in S
 - Branches: `main` (shared; CI publishes the demo from it on `[deploy]`), `kshitish` (Kshitish's work), `gh-pages`
   (generated demo site, do not edit).
 - Public demo https://yashg1836.github.io/truelift/ (`build.json` names the commit it was built from): published
-  18 Nov from `main@ff16f41e` by CI (manual run 44384470890, every job green, browser tests on the public URL
-  passed), 32 restaurants, opens on the Overview tab. CI publishes from `main` on `[deploy]`.
+  19 Nov from `main@f6faf6f7` by CI (run 44465778254, every job green, browser tests on the public URL
+  passed), 32 restaurants, opens on the Overview tab, header on one line. CI publishes from `main` on `[deploy]`.
 - README images (`docs/img/`, `python tasks.py screenshots` after `python tasks.py export 233`): whole cards only,
   nothing cut at an edge; `owner_flow.png` is the owner's four screens two by two; the guided-demo GIF is taken at
   1440 x 1000 so every frame shows the whole phone. The report and slides use the same images.
